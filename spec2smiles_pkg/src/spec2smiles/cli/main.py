@@ -5,6 +5,7 @@ import click
 from spec2smiles.cli.train import train
 from spec2smiles.cli.predict import predict
 from spec2smiles.cli.evaluate import evaluate
+from spec2smiles.cli.visualize import visualize
 
 
 @click.group()
@@ -27,6 +28,7 @@ def cli():
 cli.add_command(train)
 cli.add_command(predict)
 cli.add_command(evaluate)
+cli.add_command(visualize)
 
 
 if __name__ == "__main__":
