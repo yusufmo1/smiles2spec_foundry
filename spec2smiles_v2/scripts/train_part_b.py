@@ -135,6 +135,10 @@ def main():
     scaled_train_desc = scaler.fit_transform(filtered_train_desc)
     scaled_val_desc = scaler.transform(filtered_val_desc) if len(filtered_val_desc) > 0 else None
 
+    # Setup log directory for live epoch logging
+    log_dir = Path("logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+
     # Train model
     print("\nTraining Conditional VAE...")
     history = service.train(
@@ -142,7 +146,8 @@ def main():
         scaled_train_desc,
         encoded_val if len(encoded_val) > 0 else None,
         scaled_val_desc,
-        verbose=args.verbose
+        verbose=args.verbose,
+        log_dir=log_dir,
     )
 
     print(f"\nTraining complete!")
@@ -168,6 +173,12 @@ def main():
         }, f, indent=2)
 
     print(f"Metrics saved to {metrics_path}")
+
+    # Auto-generate visualizations
+    print("\nGenerating visualizations...")
+    from scripts.visualize import generate_part_b_plots
+    generate_part_b_plots(settings.figures_path, skip_missing=True)
+
     print("\nDone!")
 
 

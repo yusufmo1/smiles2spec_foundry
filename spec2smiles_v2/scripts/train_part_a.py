@@ -136,7 +136,12 @@ def main():
     # Train model
     print(f"Training {model_type.upper()} model...")
     service = PartAService(model_type=model_type)
-    metrics = service.train(X_train, y_train, X_val, y_val, verbose=args.verbose)
+
+    # Setup log directory for live epoch logging
+    log_dir = Path("logs")
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    metrics = service.train(X_train, y_train, X_val, y_val, verbose=args.verbose, log_dir=log_dir)
 
     # Evaluate on test set
     print("\nEvaluating on test set...")
@@ -167,6 +172,12 @@ def main():
         json.dump(full_metrics, f, indent=2)
 
     print(f"Metrics saved to {metrics_path}")
+
+    # Auto-generate visualizations
+    print("\nGenerating visualizations...")
+    from scripts.visualize import generate_part_a_plots
+    generate_part_a_plots(settings.figures_path, skip_missing=True)
+
     print("\nDone!")
 
 

@@ -129,6 +129,8 @@ class PartBService:
         for epoch in range(n_epochs):
             self.model.train()
             epoch_losses = []
+            epoch_recon_losses = []
+            epoch_kl_losses = []
 
             # Create batches
             indices = np.random.permutation(len(encoded_tokens))
@@ -181,10 +183,17 @@ class PartBService:
                 optimizer.step()
 
                 epoch_losses.append(loss.item())
+                epoch_recon_losses.append(recon_loss.item())
+                epoch_kl_losses.append(kl_loss.item())
 
-            # Record training loss
+            # Record training metrics
             train_loss = np.mean(epoch_losses)
+            epoch_recon = np.mean(epoch_recon_losses)
+            epoch_kl = np.mean(epoch_kl_losses)
             history["train_loss"].append(train_loss)
+            history["recon_loss"].append(epoch_recon)
+            history["kl_loss"].append(epoch_kl)
+            history["beta"].append(beta)
 
             # Validation
             if val_tokens is not None and val_descriptors is not None:
@@ -202,11 +211,25 @@ class PartBService:
                             print(f"Early stopping at epoch {epoch + 1}")
                         break
 
+            # Live epoch logging
+            if epoch_logger is not None:
+                epoch_logger.log_epoch(epoch, {
+                    "train_loss": train_loss,
+                    "val_loss": history["val_loss"][-1] if history["val_loss"] else float("nan"),
+                    "recon_loss": epoch_recon,
+                    "kl_loss": epoch_kl,
+                    "beta": beta,
+                })
+
             if verbose and epoch % 10 == 0:
                 msg = f"Epoch {epoch + 1}: train_loss={train_loss:.4f}"
                 if val_tokens is not None:
                     msg += f", val_loss={history['val_loss'][-1]:.4f}"
                 print(msg)
+
+        # Close epoch logger
+        if epoch_logger is not None:
+            epoch_logger.close()
 
         self._trained = True
         return history

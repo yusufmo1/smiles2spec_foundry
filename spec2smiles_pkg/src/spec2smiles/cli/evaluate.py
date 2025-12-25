@@ -183,3 +183,96 @@ def evaluate_pipeline(
     if output:
         evaluator.save_results(output)
         click.echo(f"\nResults saved to: {output}")
+
+
+@evaluate.command("hybrid-pipeline")
+@click.option(
+    "--model-dir",
+    "-m",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Directory containing models (with hybrid/ and part_b/ subdirs)",
+)
+@click.option(
+    "--data-dir",
+    "-d",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Directory containing test data",
+)
+@click.option(
+    "--n-candidates",
+    "-n",
+    type=int,
+    default=50,
+    help="Number of candidates to generate",
+)
+@click.option(
+    "--temperature",
+    "-t",
+    type=float,
+    default=0.7,
+    help="Sampling temperature",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(path_type=Path),
+    default=None,
+    help="Output directory for results",
+)
+@click.option(
+    "--device",
+    type=str,
+    default="cuda",
+    help="Device for inference",
+)
+@click.option(
+    "--verbose/--quiet",
+    default=True,
+    help="Show progress",
+)
+def evaluate_hybrid_pipeline(
+    model_dir: Path,
+    data_dir: Path,
+    n_candidates: int,
+    temperature: float,
+    output_dir: Optional[Path],
+    device: str,
+    verbose: bool,
+):
+    """Evaluate integrated pipeline using Hybrid CNN-Transformer.
+
+    Uses the Hybrid model for Part A (Spectrum -> Descriptors)
+    and the trained VAE for Part B (Descriptors -> SMILES).
+
+    Example:
+        spec2smiles evaluate hybrid-pipeline -m ./models_gpu -d ./data/processed/hpj
+    """
+    from spec2smiles.models.hybrid_pipeline import run_hybrid_pipeline_evaluation
+
+    model_dir = Path(model_dir)
+    hybrid_dir = model_dir / "hybrid"
+    part_b_dir = model_dir / "part_b"
+
+    if not hybrid_dir.exists():
+        click.echo(f"Error: Hybrid model not found at {hybrid_dir}")
+        return
+
+    if not part_b_dir.exists():
+        click.echo(f"Error: Part B model not found at {part_b_dir}")
+        return
+
+    if output_dir is None:
+        output_dir = model_dir / "evaluation"
+
+    results = run_hybrid_pipeline_evaluation(
+        hybrid_dir=hybrid_dir,
+        part_b_dir=part_b_dir,
+        data_dir=Path(data_dir),
+        output_dir=Path(output_dir),
+        n_candidates=n_candidates,
+        temperature=temperature,
+        device=device,
+        verbose=verbose,
+    )

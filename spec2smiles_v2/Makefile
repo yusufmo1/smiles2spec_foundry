@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-a-lgbm train-part-a-transformer train-part-b train-part-b-vae train-full train-full-lgbm-vae train-full-transformer-vae predict evaluate visualize clean clean-logs lint format help
+.PHONY: install train-part-a train-part-a-lgbm train-part-a-transformer train-part-b train-part-b-vae train-full train-full-lgbm-vae train-full-transformer-vae predict evaluate visualize visualize-part-a visualize-part-b visualize-pipeline clean clean-logs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -28,7 +28,12 @@ help:
 	@echo ""
 	@echo "  Evaluation:"
 	@echo "    make evaluate         Compute metrics on test set"
-	@echo "    make visualize        Generate visualization figures"
+	@echo ""
+	@echo "  Visualization:"
+	@echo "    make visualize           Generate all visualization figures"
+	@echo "    make visualize-part-a    Generate Part A figures only"
+	@echo "    make visualize-part-b    Generate Part B figures only"
+	@echo "    make visualize-pipeline  Generate pipeline results figures"
 	@echo ""
 	@echo "  Development:"
 	@echo "    make lint             Run linter (ruff)"
@@ -84,6 +89,15 @@ evaluate:
 
 visualize:
 	poetry run python scripts/visualize.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/visualize_$$(date +%Y%m%d_%H%M%S).log
+
+visualize-part-a:
+	poetry run python scripts/visualize.py --part-a-only $(CONFIG_FLAG)
+
+visualize-part-b:
+	poetry run python scripts/visualize.py --part-b-only $(CONFIG_FLAG)
+
+visualize-pipeline:
+	poetry run python scripts/visualize.py --pipeline-only $(CONFIG_FLAG)
 
 # Development
 lint:

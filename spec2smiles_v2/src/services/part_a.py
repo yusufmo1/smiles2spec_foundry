@@ -64,6 +64,7 @@ class PartAService:
         X_val: Optional[np.ndarray] = None,
         y_val: Optional[np.ndarray] = None,
         verbose: bool = True,
+        log_dir: Optional[Path] = None,
     ) -> Dict[str, Dict[str, float]]:
         """Train model on spectral data.
 
@@ -73,6 +74,7 @@ class PartAService:
             X_val: Optional validation spectra
             y_val: Optional validation descriptors
             verbose: Whether to show progress
+            log_dir: Optional directory for live epoch logging (Transformer only)
 
         Returns:
             Dictionary of per-descriptor metrics
@@ -85,7 +87,13 @@ class PartAService:
 
         # Create and train model using factory
         self.model = self._create_model()
-        self.model.fit(X_train, y_train, X_val, y_val, verbose=verbose)
+
+        # TransformerWrapper supports log_dir, LGBMEnsemble does not
+        if self.model_type == "transformer" and log_dir is not None:
+            self.model.fit(X_train, y_train, X_val, y_val, verbose=verbose, log_dir=log_dir)
+        else:
+            self.model.fit(X_train, y_train, X_val, y_val, verbose=verbose)
+
         self._trained = True
 
         # Evaluate on validation set if provided
