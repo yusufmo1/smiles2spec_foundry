@@ -105,18 +105,27 @@ class PartAConfig:
 
 @dataclass(frozen=True)
 class PartBConfig:
-    """Part B (VAE) configuration."""
+    """Part B (DirectDecoder) configuration.
 
-    latent_dim: int = 128
-    hidden_dim: int = 256
-    n_layers: int = 2
-    dropout: float = 0.2
+    Model sizes:
+    - Tiny:  hidden_dim=256,  n_layers=3, n_heads=4  (~3M params)
+    - Small: hidden_dim=512,  n_layers=4, n_heads=8  (~17M params)
+    - Large: hidden_dim=768,  n_layers=6, n_heads=12 (~57M params)
+    """
+
+    hidden_dim: int = 768      # Large model default
+    n_layers: int = 6          # Large model default
+    n_heads: int = 12          # Large model default
+    dropout: float = 0.1
     max_seq_len: int = 100
-    learning_rate: float = 0.001
+    learning_rate: float = 0.0001  # Lower for larger model
     n_epochs: int = 100
-    batch_size: int = 64
-    kl_cycle_length: int = 20
+    batch_size: int = 32       # Smaller batch for larger model
     gradient_clip: float = 1.0
+    warmup_steps: int = 1000   # Warmup for transformer training
+    # Legacy VAE fields (kept for compatibility)
+    latent_dim: int = 128
+    kl_cycle_length: int = 20
 
 
 @dataclass(frozen=True)

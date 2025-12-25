@@ -261,7 +261,7 @@ def main():
     TOP_P_VALUES = [0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.99]
     TEMPERATURE_VALUES = [0.5, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2]
     N_SAMPLES = 20  # Per config
-    BATCH_SIZE = 512  # H200 + tiny model = can go bigger
+    BATCH_SIZE = 256  # H200 + small model
 
     print(f"\nSweep configuration:")
     print(f"  top_p values: {TOP_P_VALUES}")
@@ -274,11 +274,11 @@ def main():
     foundry_dir = script_dir.parent
     gnps_path = foundry_dir / "smiles2spec/data/input/GNPS/spectral_data.jsonl"
 
-    # Model configs - TINY ONLY for fast sweep
+    # Model configs - SMALL (medium) model
     models = {
-        'tiny': {
-            'path': Path("/tmp/gnps_model_tiny/best_model.pt"),
-            'config': {"hidden_dim": 256, "n_layers": 3, "n_heads": 4},
+        'small': {
+            'path': Path("/tmp/gnps_model_small/best_model.pt"),
+            'config': {"hidden_dim": 512, "n_layers": 4, "n_heads": 8},
         },
     }
 
@@ -398,7 +398,7 @@ def main():
         torch.cuda.empty_cache()
 
     # Save results
-    output_path = Path("/tmp/gnps_parallel_sweep_results.json")
+    output_path = Path("/tmp/gnps_parallel_sweep_small_results.json")
     with open(output_path, "w") as f:
         json.dump(all_results, f, indent=2)
     print(f"\nResults saved to {output_path}")

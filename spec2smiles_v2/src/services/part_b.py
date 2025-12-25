@@ -309,7 +309,7 @@ class PartBService:
                 batch_tokens, batch_desc = batch_tokens.to(self.device), batch_desc.to(self.device)
                 optimizer.zero_grad()
                 logits, targets = self.model(batch_tokens, batch_desc)
-                loss = criterion(logits.view(-1, self.encoder.vocab_size), targets.view(-1))
+                loss = criterion(logits.reshape(-1, self.encoder.vocab_size), targets.reshape(-1))
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), cfg.gradient_clip)
                 optimizer.step()
@@ -346,7 +346,7 @@ class PartBService:
             tokens_t = torch.LongTensor(tokens).to(self.device)
             desc_t = torch.FloatTensor(descriptors).to(self.device)
             logits, targets = self.model(tokens_t, desc_t)
-            return criterion(logits.view(-1, self.encoder.vocab_size), targets.view(-1)).item()
+            return criterion(logits.reshape(-1, self.encoder.vocab_size), targets.reshape(-1)).item()
 
     def _compute_validation_loss(
         self, tokens: np.ndarray, descriptors: np.ndarray
