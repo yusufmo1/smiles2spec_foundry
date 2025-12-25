@@ -43,40 +43,20 @@ class DescriptorConfig:
 
 @dataclass(frozen=True)
 class PartAConfig:
-    """Part A (LightGBM) configuration."""
+    """Part A (Hybrid CNN-Transformer) configuration."""
 
-    n_estimators: int = 1000
-    num_leaves: int = 31
-    learning_rate: float = 0.05
-    feature_fraction: float = 0.9
-    bagging_fraction: float = 0.8
-    bagging_freq: int = 5
-    reg_alpha: float = 0.1
-    reg_lambda: float = 0.1
-    early_stopping_rounds: int = 50
-    min_child_samples: int = 20
-    n_jobs: int = 8
-    verbose: int = -1
-
-    def to_lgbm_params(self) -> dict:
-        """Convert to LightGBM parameter dict."""
-        return {
-            "objective": "regression",
-            "metric": "rmse",
-            "boosting_type": "gbdt",
-            "n_estimators": self.n_estimators,
-            "num_leaves": self.num_leaves,
-            "learning_rate": self.learning_rate,
-            "feature_fraction": self.feature_fraction,
-            "bagging_fraction": self.bagging_fraction,
-            "bagging_freq": self.bagging_freq,
-            "reg_alpha": self.reg_alpha,
-            "reg_lambda": self.reg_lambda,
-            "min_child_samples": self.min_child_samples,
-            "n_jobs": self.n_jobs,
-            "verbose": self.verbose,
-            "random_state": 42,
-        }
+    cnn_hidden: int = 256
+    transformer_dim: int = 256
+    n_heads: int = 8
+    n_transformer_layers: int = 4
+    d_ff: int = 1024
+    dropout: float = 0.1
+    learning_rate: float = 3e-4
+    weight_decay: float = 0.01
+    max_epochs: int = 300
+    batch_size: int = 32
+    gradient_clip: float = 1.0
+    patience: int = 40
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,44 @@
+# Default configuration for RL molecule generation training
+
+# Dataset
+dataset: hpj  # or GNPS
+
+# Training
+n_episodes: 10000
+batch_size: 64
+rollout_steps: 2048
+lr: 0.0003
+gamma: 0.99
+gae_lambda: 0.95
+n_epochs: 4
+
+# Evaluation
+eval_interval: 100
+save_interval: 500
+
+# Model
+hidden_dim: 256
+n_layers: 2
+dropout: 0.1
+
+# PPO
+clip_eps: 0.2
+value_coef: 0.5
+entropy_coef: 0.01
+max_grad_norm: 0.5
+
+# Environment
+max_length: 100
+spectrum_dim: 500
+descriptor_dim: 30
+intermediate_reward: 0.01
+
+# Reward weights
+reward_weights:
+  spectrum_similarity: 0.4
+  descriptor_match: 0.3
+  validity: 0.2
+  length_efficiency: 0.1
+
+# Device
+device: auto  # auto, cuda, mps, cpu

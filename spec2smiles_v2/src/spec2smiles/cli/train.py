@@ -49,7 +49,7 @@ def train_part_a(
 ):
     """Train Part A model (Spectrum -> Descriptors).
 
-    Trains a LightGBM ensemble with one model per molecular descriptor.
+    Trains a Hybrid CNN-Transformer model for molecular descriptor prediction.
     Uses early stopping on validation set.
 
     Example:
@@ -187,7 +187,7 @@ def train_full(
     """Train full pipeline (Part A + Part B).
 
     Trains both components sequentially:
-    1. Part A: LightGBM ensemble for descriptor prediction
+    1. Part A: Hybrid CNN-Transformer for descriptor prediction
     2. Part B: Conditional VAE for SMILES generation
 
     Example:
@@ -350,8 +350,8 @@ def train_transformer_cmd(
     Trains a Transformer model that predicts all molecular descriptors
     jointly using multi-task learning and self-attention.
 
-    This is an alternative to the LightGBM ensemble that may achieve
-    higher accuracy by learning cross-descriptor correlations.
+    Alternative to Hybrid CNN-Transformer, may achieve higher accuracy
+    by learning cross-descriptor correlations.
 
     Example:
         spec2smiles train transformer -d ./data/processed/hpj -o ./models/transformer

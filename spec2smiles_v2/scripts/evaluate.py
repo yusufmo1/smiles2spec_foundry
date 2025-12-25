@@ -28,6 +28,7 @@ from src.utils.metrics import (
     compute_validity_rate,
     compute_uniqueness,
 )
+from src.utils.paths import validate_input_dir
 
 
 def main():
@@ -50,6 +51,9 @@ def main():
     global settings
     if args.config:
         settings = reload_config(args.config)
+
+    # Validate input directory exists
+    validate_input_dir(settings.input_path, "Dataset")
 
     n_candidates = args.n_candidates or settings.n_candidates
 

@@ -48,7 +48,7 @@ def evaluate_part_a(
     """
     import numpy as np
     from spec2smiles.data.loaders import DataLoader, extract_features_and_targets
-    from spec2smiles.models.part_a.lgbm_ensemble import LGBMEnsemble
+    from spec2smiles.services.part_a import PartAService
     from spec2smiles.evaluation.evaluator import PipelineEvaluator
 
     # Load data
@@ -59,9 +59,11 @@ def evaluate_part_a(
     X_test, y_test, _ = extract_features_and_targets(test_data)
     click.echo(f"Test samples: {len(test_data)}")
 
-    # Load model
+    # Load model (auto-detects model type)
     click.echo("Loading model...")
-    model = LGBMEnsemble.load(Path(model_dir) / "lgbm_ensemble.pkl")
+    service = PartAService()
+    service.load(Path(model_dir))
+    model = service.model
 
     # Evaluate
     evaluator = PipelineEvaluator()

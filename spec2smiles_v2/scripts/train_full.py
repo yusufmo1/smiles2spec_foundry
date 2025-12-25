@@ -2,10 +2,10 @@
 """Train complete SPEC2SMILES pipeline (Part A + Part B).
 
 Usage:
-    python scripts/train_full.py [--config config.yml] [--model lgbm|transformer]
+    python scripts/train_full.py [--config config.yml] [--model hybrid|transformer]
 
 Or via Makefile:
-    make train-full-lgbm-vae
+    make train-full-hybrid-vae
     make train-full-transformer-vae
 """
 
@@ -30,7 +30,7 @@ def main():
     )
     parser.add_argument(
         "--model",
-        choices=["lgbm", "transformer"],
+        choices=["transformer", "hybrid"],
         default=None,
         help="Part A model type (overrides config)"
     )

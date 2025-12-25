@@ -9,9 +9,7 @@ Spectrum (peaks) → [Part A] → Descriptors → [Part B] → SMILES candidates
 ```
 
 ### Part A: Spectrum → Descriptors
-Two model options:
-- **LightGBM** (default): Fast ensemble of gradient boosted trees
-- **Transformer**: Deep learning with multi-head self-attention
+- **Hybrid CNN-Transformer**: Combines local (CNN) and global (Transformer) pattern recognition
 
 ### Part B: Descriptors → SMILES
 - **VAE**: Conditional Variational Autoencoder with SELFIES encoding
@@ -41,16 +39,14 @@ spec2smiles_pkg/
 # Install dependencies
 make install
 
-# Train Part A (choose one)
-make train-part-a-lgbm         # LightGBM (fast, ~30s)
-make train-part-a-transformer  # Transformer (slower, ~10min)
+# Train Part A (Hybrid CNN-Transformer)
+make train-part-a
 
 # Train Part B
 make train-part-b-vae
 
 # Or train full pipeline
-make train-full-lgbm-vae       # LightGBM → VAE
-make train-full-transformer-vae # Transformer → VAE
+make train-full
 
 # Run predictions
 make predict
@@ -71,9 +67,12 @@ All settings are in `config.yml`:
 dataset: hpj
 device: auto  # cuda, mps, cpu, or auto
 
-# Part A model selection
+# Part A settings (Hybrid CNN-Transformer)
 part_a:
-  model: lgbm  # lgbm or transformer
+  cnn_hidden: 256
+  transformer_dim: 256
+  n_heads: 8
+  n_transformer_layers: 4
 
 # Inference settings
 inference:
@@ -83,9 +82,9 @@ inference:
 
 Use a custom config:
 ```bash
-make train-part-a-lgbm CONFIG=my_config.yml
+make train-part-a CONFIG=my_config.yml
 # Or directly:
-python scripts/train_part_a.py --config my_config.yml --model lgbm
+python scripts/train_part_a.py --config my_config.yml
 ```
 
 ## Commands

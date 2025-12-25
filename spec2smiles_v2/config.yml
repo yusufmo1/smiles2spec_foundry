@@ -19,8 +19,10 @@ spectrum:
   transform: sqrt  # sqrt, log, none
   normalize: true
 
-# Molecular Descriptors
+# Molecular Descriptors (30 for 100% uniqueness on HPJ dataset)
+# Original 12 descriptors had only 88.9% uniqueness
 descriptors:
+  # Original 12 descriptors
   - MolWt
   - HeavyAtomCount
   - NumHeteroatoms
@@ -33,53 +35,41 @@ descriptors:
   - MolLogP
   - NumRotatableBonds
   - FractionCSP3
+  # Extended descriptors for uniqueness (18 additional)
+  - ExactMolWt
+  - NumAliphaticRings
+  - NumSaturatedRings
+  - NumAromaticHeterocycles
+  - NumAromaticCarbocycles
+  - NumAliphaticHeterocycles
+  - NumAliphaticCarbocycles
+  - NumSaturatedHeterocycles
+  - NumSaturatedCarbocycles
+  - LabuteASA
+  - BalabanJ
+  - BertzCT
+  - Chi0
+  - Chi1
+  - Chi2n
+  - Chi3n
+  - Chi4n
+  - HallKierAlpha
 
-# Part A: Spectrum -> Descriptors
+# Part A: Spectrum -> Descriptors (Hybrid CNN-Transformer)
+# Larger model to match spec2smiles_pkg performance
 part_a:
-  model: lgbm  # lgbm, transformer, or hybrid
-
-  lgbm:
-    n_estimators: 1000
-    num_leaves: 31
-    learning_rate: 0.05
-    feature_fraction: 0.9
-    bagging_fraction: 0.8
-    bagging_freq: 5
-    reg_alpha: 0.1
-    reg_lambda: 0.1
-    early_stopping_rounds: 50
-    min_child_samples: 20
-    n_jobs: 8
-
-  transformer:
-    d_model: 256
-    n_heads: 8
-    n_layers: 6
-    d_ff: 1024
-    patch_size: 10
-    dropout: 0.1
-    learning_rate: 0.0001
-    weight_decay: 0.01
-    warmup_steps: 500
-    max_epochs: 200
-    batch_size: 32
-    gradient_clip: 1.0
-    patience: 30
-
-  # Hybrid CNN-Transformer: combines local + global pattern recognition
-  hybrid:
-    cnn_hidden: 256           # CNN feature dimension
-    transformer_dim: 256      # Transformer model dimension
-    n_heads: 8                # Attention heads
-    n_transformer_layers: 4   # Transformer encoder layers
-    d_ff: 1024                # Feedforward dimension
-    dropout: 0.1
-    learning_rate: 0.0003     # Higher LR with OneCycleLR
-    weight_decay: 0.01
-    max_epochs: 300
-    batch_size: 32
-    gradient_clip: 1.0
-    patience: 40              # Longer patience for complex model
+  cnn_hidden: 512           # CNN feature dimension (was 256)
+  transformer_dim: 512      # Transformer model dimension (was 256)
+  n_heads: 8                # Attention heads
+  n_transformer_layers: 6   # Transformer encoder layers (was 4)
+  d_ff: 2048                # Feedforward dimension (was 1024)
+  dropout: 0.1
+  learning_rate: 0.0003     # Higher LR with OneCycleLR
+  weight_decay: 0.01
+  max_epochs: 300
+  batch_size: 64            # Larger batch (was 32)
+  gradient_clip: 1.0
+  patience: 50              # Longer patience (was 40)
 
 # Part B: Descriptors -> SMILES
 part_b:

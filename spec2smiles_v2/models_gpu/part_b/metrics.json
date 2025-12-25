@@ -1,8 +1,0 @@
-{
-  "exact_match_rate": 0.09191176470588236,
-  "formula_match_rate": 0.5441176470588235,
-  "mean_tanimoto": 0.5207457452051062,
-  "median_tanimoto": 0.48280885780885785,
-  "mean_validity": 0.9999264705882354,
-  "total_evaluated": 272
-}

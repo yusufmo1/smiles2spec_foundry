@@ -22,16 +22,20 @@ descriptors:
     - NumRotatableBonds
     - FractionCSP3
 
+# Part A: Hybrid CNN-Transformer (spectrum -> descriptors)
 part_a:
-  n_estimators: 1000
-  num_leaves: 31
-  learning_rate: 0.05
-  feature_fraction: 0.9
-  bagging_fraction: 0.8
-  bagging_freq: 5
-  reg_alpha: 0.1
-  reg_lambda: 0.1
-  early_stopping_rounds: 50
+  cnn_hidden: 256
+  transformer_dim: 256
+  n_heads: 8
+  n_transformer_layers: 4
+  d_ff: 1024
+  dropout: 0.1
+  learning_rate: 0.0003
+  weight_decay: 0.01
+  max_epochs: 300
+  batch_size: 32
+  gradient_clip: 1.0
+  patience: 40
 
 part_b:
   latent_dim: 128

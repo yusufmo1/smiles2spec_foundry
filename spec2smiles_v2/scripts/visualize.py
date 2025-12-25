@@ -252,8 +252,8 @@ def generate_part_a_plots(output_dir: Optional[Path] = None, skip_missing: bool 
     plot_part_a_parity(metrics_path, output_dir)
 
     # Training curves for neural models
-    transformer_log = find_latest_epoch_log(Path("logs"), "transformer")
-    hybrid_log = find_latest_epoch_log(Path("logs"), "hybrid")
+    transformer_log = find_latest_epoch_log(settings.logs_path, "transformer")
+    hybrid_log = find_latest_epoch_log(settings.logs_path, "hybrid")
 
     if transformer_log:
         plot_transformer_training(transformer_log, output_dir)
@@ -262,7 +262,7 @@ def generate_part_a_plots(output_dir: Optional[Path] = None, skip_missing: bool 
         plot_hybrid_training(hybrid_log, output_dir)
 
     if not transformer_log and not hybrid_log and not skip_missing:
-        print("  [SKIP] No neural model epoch logs found (LightGBM has no epoch-level logging)")
+        print("  [SKIP] No neural model epoch logs found")
 
 
 # =============================================================================
@@ -393,7 +393,7 @@ def generate_part_b_plots(output_dir: Optional[Path] = None, skip_missing: bool 
     plot_training_history(metrics_path, output_dir)
 
     # Detailed loss components from epoch log
-    log_path = find_latest_epoch_log(Path("logs"), "vae")
+    log_path = find_latest_epoch_log(settings.logs_path, "vae")
     if log_path:
         plot_vae_loss_components(log_path, output_dir)
     elif not skip_missing:
@@ -507,7 +507,7 @@ def generate_hybrid_plots(output_dir: Optional[Path] = None, skip_missing: bool 
     print("Generating Hybrid model visualizations...")
 
     # Training curves
-    hybrid_log = find_latest_epoch_log(Path("logs"), "hybrid")
+    hybrid_log = find_latest_epoch_log(settings.logs_path, "hybrid")
     if hybrid_log:
         plot_hybrid_training(hybrid_log, output_dir)
     elif not skip_missing:

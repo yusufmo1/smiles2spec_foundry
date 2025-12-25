@@ -10,7 +10,7 @@ from tqdm import tqdm
 from spec2smiles.core.config import PipelineConfig
 from spec2smiles.data.loaders import DataLoader
 from spec2smiles.models.pipeline import IntegratedPipeline
-from spec2smiles.models.part_a.lgbm_ensemble import LGBMEnsemble
+from spec2smiles.services.part_a import PartAService
 from spec2smiles.evaluation.metrics import (
     compute_r2,
     compute_rmse,
@@ -47,7 +47,7 @@ class PipelineEvaluator:
 
     def evaluate_part_a(
         self,
-        model: LGBMEnsemble,
+        model: Any,
         X_test: np.ndarray,
         y_test: np.ndarray,
         descriptor_names: Optional[List[str]] = None,
@@ -55,7 +55,7 @@ class PipelineEvaluator:
         """Evaluate Part A (Spectrum -> Descriptors) model.
 
         Args:
-            model: Trained LGBMEnsemble model
+            model: Trained Part A model (Hybrid/Transformer)
             X_test: Test spectra of shape (n_samples, 500)
             y_test: True descriptors of shape (n_samples, n_descriptors)
             descriptor_names: Optional descriptor names
@@ -241,9 +241,10 @@ class PipelineEvaluator:
         if verbose:
             print("\nEvaluating Part A (Spectrum -> Descriptors)...")
 
-        part_a_model = LGBMEnsemble.load(Path(part_a_dir) / "lgbm_ensemble.pkl")
+        part_a_service = PartAService()
+        part_a_service.load(Path(part_a_dir))
         part_a_results = self.evaluate_part_a(
-            part_a_model, X_test, y_test, metadata.get("descriptor_names")
+            part_a_service.model, X_test, y_test, metadata.get("descriptor_names")
         )
 
         if verbose:

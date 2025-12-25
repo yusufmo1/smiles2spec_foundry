@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-a-lgbm train-part-a-transformer train-part-a-hybrid train-part-b train-part-b-vae train-full train-full-lgbm-vae train-full-transformer-vae train-full-hybrid-vae predict evaluate visualize visualize-part-a visualize-part-b visualize-pipeline visualize-hybrid clean clean-logs lint format help
+.PHONY: install train-part-a train-part-b train-part-b-vae train-part-b-direct train-part-b-vae-augmented train-part-b-direct-augmented train-full predict evaluate eval-nucleus eval-nucleus-sweep visualize visualize-part-a visualize-part-b visualize-pipeline visualize-hybrid clean clean-output clean-logs init-dirs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -13,23 +13,24 @@ help:
 	@echo "    make install          Install dependencies with Poetry"
 	@echo ""
 	@echo "  Training (Part A - Spectrum -> Descriptors):"
-	@echo "    make train-part-a-lgbm        LightGBM ensemble (fast)"
-	@echo "    make train-part-a-transformer Transformer (deep learning)"
-	@echo "    make train-part-a-hybrid      CNN-Transformer hybrid (local+global)"
+	@echo "    make train-part-a             Hybrid CNN-Transformer"
 	@echo ""
 	@echo "  Training (Part B - Descriptors -> SMILES):"
-	@echo "    make train-part-b-vae         Conditional VAE with SELFIES"
+	@echo "    make train-part-b-vae              Conditional VAE with SELFIES"
+	@echo "    make train-part-b-direct           DirectDecoder (transformer, no VAE)"
+	@echo "    make train-part-b-vae-augmented    VAE with 6x SMILES augmentation"
+	@echo "    make train-part-b-direct-augmented DirectDecoder with 6x augmentation"
 	@echo ""
 	@echo "  Training (Full Pipeline):"
-	@echo "    make train-full-lgbm-vae         LightGBM -> VAE"
-	@echo "    make train-full-transformer-vae  Transformer -> VAE"
-	@echo "    make train-full-hybrid-vae       Hybrid CNN-Transformer -> VAE"
+	@echo "    make train-full              Hybrid CNN-Transformer -> VAE"
 	@echo ""
 	@echo "  Inference:"
 	@echo "    make predict          Run predictions"
 	@echo ""
 	@echo "  Evaluation:"
-	@echo "    make evaluate         Compute metrics on test set"
+	@echo "    make evaluate            Compute metrics on test set"
+	@echo "    make eval-nucleus        Nucleus sampling eval (DirectDecoder)"
+	@echo "    make eval-nucleus-sweep  Parameter sweep for nucleus sampling"
 	@echo ""
 	@echo "  Visualization:"
 	@echo "    make visualize           Generate all visualization figures"
@@ -41,14 +42,16 @@ help:
 	@echo "  Development:"
 	@echo "    make lint             Run linter (ruff)"
 	@echo "    make format           Format code (ruff)"
-	@echo "    make clean            Remove generated files"
-	@echo "    make clean-logs       Remove log files"
+	@echo "    make init-dirs        Create all output directories"
+	@echo "    make clean            Remove all generated files"
+	@echo "    make clean-output     Remove model/metrics/figures only"
+	@echo "    make clean-logs       Remove log files only"
 	@echo ""
 	@echo "  Note: All commands log output to logs/ with timestamps"
 	@echo ""
 	@echo "  Configuration:"
 	@echo "    Edit config.yml to change settings (dataset, device, hyperparameters)"
-	@echo "    Or use: make train-part-a-lgbm CONFIG=custom_config.yml"
+	@echo "    Or use: make train-part-a-hybrid CONFIG=custom_config.yml"
 
 # Installation
 install:
@@ -58,35 +61,28 @@ install:
 CONFIG ?=
 CONFIG_FLAG = $(if $(CONFIG),--config $(CONFIG),)
 
-# Training Part A: Spectrum -> Descriptors
-train-part-a: train-part-a-lgbm  # Default to LightGBM
-
-train-part-a-lgbm:
-	poetry run python scripts/train_part_a.py --model lgbm $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_a_lgbm_$$(date +%Y%m%d_%H%M%S).log
-
-train-part-a-transformer:
-	poetry run python scripts/train_part_a.py --model transformer $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_a_transformer_$$(date +%Y%m%d_%H%M%S).log
-
-train-part-a-hybrid:
-	poetry run python scripts/train_part_a.py --model hybrid $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_a_hybrid_$$(date +%Y%m%d_%H%M%S).log
+# Training Part A: Spectrum -> Descriptors (Hybrid CNN-Transformer)
+train-part-a:
+	poetry run python scripts/train_part_a.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_a_$$(date +%Y%m%d_%H%M%S).log
 
 # Training Part B: Descriptors -> SMILES
 train-part-b: train-part-b-vae  # Default to VAE
 
 train-part-b-vae:
-	poetry run python scripts/train_part_b.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_vae_$$(date +%Y%m%d_%H%M%S).log
+	poetry run python scripts/train_part_b.py --model vae $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_vae_$$(date +%Y%m%d_%H%M%S).log
 
-# Training Full Pipeline
-train-full: train-full-lgbm-vae  # Default to LightGBM -> VAE
+train-part-b-direct:
+	poetry run python scripts/train_part_b.py --model direct $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_direct_$$(date +%Y%m%d_%H%M%S).log
 
-train-full-lgbm-vae:
-	$(MAKE) train-part-a-lgbm CONFIG=$(CONFIG) && $(MAKE) train-part-b-vae CONFIG=$(CONFIG)
+train-part-b-vae-augmented:
+	poetry run python scripts/train_part_b.py --model vae --augment --n-augment 5 $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_vae_aug_$$(date +%Y%m%d_%H%M%S).log
 
-train-full-transformer-vae:
-	$(MAKE) train-part-a-transformer CONFIG=$(CONFIG) && $(MAKE) train-part-b-vae CONFIG=$(CONFIG)
+train-part-b-direct-augmented:
+	poetry run python scripts/train_part_b.py --model direct --augment --n-augment 5 $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_direct_aug_$$(date +%Y%m%d_%H%M%S).log
 
-train-full-hybrid-vae:
-	$(MAKE) train-part-a-hybrid CONFIG=$(CONFIG) && $(MAKE) train-part-b-vae CONFIG=$(CONFIG)
+# Training Full Pipeline (Hybrid CNN-Transformer -> VAE)
+train-full:
+	$(MAKE) train-part-a CONFIG=$(CONFIG) && $(MAKE) train-part-b-vae CONFIG=$(CONFIG)
 
 # Inference
 predict:
@@ -95,6 +91,12 @@ predict:
 # Evaluation
 evaluate:
 	poetry run python scripts/evaluate.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/evaluate_$$(date +%Y%m%d_%H%M%S).log
+
+eval-nucleus:
+	poetry run python scripts/eval_nucleus.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/eval_nucleus_$$(date +%Y%m%d_%H%M%S).log
+
+eval-nucleus-sweep:
+	poetry run python scripts/eval_nucleus.py --sweep $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/eval_nucleus_sweep_$$(date +%Y%m%d_%H%M%S).log
 
 visualize:
 	poetry run python scripts/visualize.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/visualize_$$(date +%Y%m%d_%H%M%S).log
@@ -119,13 +121,25 @@ format:
 	poetry run ruff format src/ scripts/
 	poetry run ruff check --fix src/ scripts/
 
+# Directory management
+init-dirs:
+	@mkdir -p data/output/models/part_a data/output/models/part_b
+	@mkdir -p data/output/metrics
+	@mkdir -p data/output/figures
+	@mkdir -p $(LOG_DIR)
+	@echo "Created output directories"
+
 # Cleanup
-clean:
-	rm -rf data/output/models/* data/output/metrics/* data/output/figures/*
+clean: clean-output clean-logs
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
 	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
 	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
 
+clean-output:
+	rm -rf data/output/models/* data/output/metrics/* data/output/figures/*
+	@echo "Cleaned output directories"
+
 clean-logs:
 	rm -rf $(LOG_DIR)/*.log
+	@echo "Cleaned log files"

@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.config import settings, reload_config
 from src.services.pipeline import PipelineService
+from src.utils.paths import ensure_parent
 
 
 def main():
@@ -127,7 +128,8 @@ def main():
                 print(f"  Processed {i + 1}/{len(data)}")
 
         # Save results
-        output_path = args.output or "predictions.jsonl"
+        output_path = Path(args.output) if args.output else Path("predictions.jsonl")
+        ensure_parent(output_path)
         with open(output_path, "w") as f:
             for result in results:
                 f.write(json.dumps(result) + "\n")

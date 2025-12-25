@@ -22,52 +22,8 @@ class SpectrumConfig:
 
 
 @dataclass
-class LGBMConfig:
-    n_estimators: int = 1000
-    num_leaves: int = 31
-    learning_rate: float = 0.05
-    feature_fraction: float = 0.9
-    bagging_fraction: float = 0.8
-    bagging_freq: int = 5
-    reg_alpha: float = 0.1
-    reg_lambda: float = 0.1
-    early_stopping_rounds: int = 50
-    min_child_samples: int = 20
-    n_jobs: int = 8
-
-    def to_lgbm_params(self, seed: int = 42) -> dict:
-        """Convert to LightGBM parameter dictionary."""
-        return {
-            "objective": "regression", "metric": "rmse", "boosting_type": "gbdt",
-            "n_estimators": self.n_estimators, "num_leaves": self.num_leaves,
-            "learning_rate": self.learning_rate, "feature_fraction": self.feature_fraction,
-            "bagging_fraction": self.bagging_fraction, "bagging_freq": self.bagging_freq,
-            "reg_alpha": self.reg_alpha, "reg_lambda": self.reg_lambda,
-            "min_child_samples": self.min_child_samples, "n_jobs": self.n_jobs,
-            "verbose": -1, "random_state": seed,
-        }
-
-
-@dataclass
-class TransformerConfig:
-    d_model: int = 256
-    n_heads: int = 8
-    n_layers: int = 6
-    d_ff: int = 1024
-    patch_size: int = 10
-    dropout: float = 0.1
-    learning_rate: float = 1e-4
-    weight_decay: float = 0.01
-    warmup_steps: int = 500
-    max_epochs: int = 200
-    batch_size: int = 32
-    gradient_clip: float = 1.0
-    patience: int = 30
-
-
-@dataclass
-class HybridConfig:
-    """Configuration for HybridCNNTransformer model."""
+class PartAConfig:
+    """Part A configuration (Hybrid CNN-Transformer)."""
     cnn_hidden: int = 256
     transformer_dim: int = 256
     n_heads: int = 8
@@ -80,14 +36,6 @@ class HybridConfig:
     batch_size: int = 32
     gradient_clip: float = 1.0
     patience: int = 40
-
-
-@dataclass
-class PartAConfig:
-    model: Literal["lgbm", "transformer", "hybrid"] = "lgbm"
-    lgbm: LGBMConfig = field(default_factory=LGBMConfig)
-    transformer: TransformerConfig = field(default_factory=TransformerConfig)
-    hybrid: HybridConfig = field(default_factory=HybridConfig)
 
 
 @dataclass
@@ -105,9 +53,38 @@ class VAEConfig:
 
 
 @dataclass
+class DirectDecoderConfig:
+    """Configuration for DirectDecoder (transformer-based, no VAE).
+
+    Default: 768 hidden, 6 layers, 12 heads = ~57.5M parameters.
+    """
+    hidden_dim: int = 768
+    n_layers: int = 6
+    n_heads: int = 12
+    d_ff: int = 3072  # Feed-forward dimension (4x hidden)
+    dropout: float = 0.1
+    max_seq_len: int = 100
+    learning_rate: float = 3e-4
+    n_epochs: int = 200
+    batch_size: int = 64  # Reduced due to larger model
+    label_smoothing: float = 0.1
+    gradient_clip: float = 1.0
+    patience: int = 30
+
+
+@dataclass
+class AugmentConfig:
+    """Configuration for SMILES augmentation."""
+    enabled: bool = False
+    n_augment: int = 5  # 5 augmented versions = 6x total data
+
+
+@dataclass
 class PartBConfig:
-    model: Literal["vae"] = "vae"
+    model: Literal["vae", "direct"] = "vae"
     vae: VAEConfig = field(default_factory=VAEConfig)
+    direct: DirectDecoderConfig = field(default_factory=DirectDecoderConfig)
+    augment: AugmentConfig = field(default_factory=AugmentConfig)
 
 
 @dataclass
@@ -130,14 +107,25 @@ class Settings:
     """Main configuration container."""
     data_input_dir: str = "data/input"
     data_output_dir: str = "data/output"
+    logs_dir: str = "logs"
     dataset: str = "hpj"
     device: Literal["cuda", "mps", "cpu", "auto"] = "auto"
 
     spectrum: SpectrumConfig = field(default_factory=SpectrumConfig)
+    # 30 descriptors for 100% uniqueness on HPJ dataset
+    # (Original 12 descriptors had only 88.9% uniqueness)
     descriptors: List[str] = field(default_factory=lambda: [
+        # Original 12 descriptors
         "MolWt", "HeavyAtomCount", "NumHeteroatoms", "NumAromaticRings",
         "RingCount", "NOCount", "NumHDonors", "NumHAcceptors",
         "TPSA", "MolLogP", "NumRotatableBonds", "FractionCSP3",
+        # Extended 18 descriptors for uniqueness
+        "ExactMolWt", "NumAliphaticRings", "NumSaturatedRings",
+        "NumAromaticHeterocycles", "NumAromaticCarbocycles",
+        "NumAliphaticHeterocycles", "NumAliphaticCarbocycles",
+        "NumSaturatedHeterocycles", "NumSaturatedCarbocycles",
+        "LabuteASA", "BalabanJ", "BertzCT",
+        "Chi0", "Chi1", "Chi2n", "Chi3n", "Chi4n", "HallKierAlpha",
     ])
     part_a: PartAConfig = field(default_factory=PartAConfig)
     part_b: PartBConfig = field(default_factory=PartBConfig)
@@ -173,6 +161,8 @@ class Settings:
     def metrics_path(self) -> Path: return self.output_path / "metrics"
     @property
     def figures_path(self) -> Path: return self.output_path / "figures"
+    @property
+    def logs_path(self) -> Path: return Path(self.logs_dir)
 
     @property
     def torch_device(self) -> torch.device:
@@ -186,15 +176,15 @@ class Settings:
 
     # Model config accessors
     @property
-    def part_a_model(self) -> str: return self.part_a.model
-    @property
-    def lgbm(self) -> LGBMConfig: return self.part_a.lgbm
-    @property
-    def transformer(self) -> TransformerConfig: return self.part_a.transformer
-    @property
-    def hybrid(self) -> HybridConfig: return self.part_a.hybrid
-    @property
     def vae(self) -> VAEConfig: return self.part_b.vae
+    @property
+    def direct(self) -> DirectDecoderConfig: return self.part_b.direct
+    @property
+    def part_b_model(self) -> str: return self.part_b.model
+    @property
+    def augment_enabled(self) -> bool: return self.part_b.augment.enabled
+    @property
+    def n_augment(self) -> int: return self.part_b.augment.n_augment
 
     # Split config accessors
     @property
@@ -211,10 +201,6 @@ class Settings:
     def n_candidates(self) -> int: return self.inference.n_candidates
     @property
     def temperature(self) -> float: return self.inference.temperature
-
-    def to_lgbm_params(self) -> dict:
-        """Get LightGBM parameters."""
-        return self.lgbm.to_lgbm_params(self.split.seed)
 
 
 def load_config(config_path: Optional[Path] = None) -> Settings:
@@ -240,21 +226,17 @@ def load_config(config_path: Optional[Path] = None) -> Settings:
         kwargs["spectrum"] = dict_to_dataclass(SpectrumConfig, data["spectrum"])
 
     if "part_a" in data:
-        pa = data["part_a"]
-        pa_kwargs = {"model": pa.get("model", "lgbm")}
-        if "lgbm" in pa:
-            pa_kwargs["lgbm"] = dict_to_dataclass(LGBMConfig, pa["lgbm"])
-        if "transformer" in pa:
-            pa_kwargs["transformer"] = dict_to_dataclass(TransformerConfig, pa["transformer"])
-        if "hybrid" in pa:
-            pa_kwargs["hybrid"] = dict_to_dataclass(HybridConfig, pa["hybrid"])
-        kwargs["part_a"] = PartAConfig(**pa_kwargs)
+        kwargs["part_a"] = dict_to_dataclass(PartAConfig, data["part_a"])
 
     if "part_b" in data:
         pb = data["part_b"]
         pb_kwargs = {"model": pb.get("model", "vae")}
         if "vae" in pb:
             pb_kwargs["vae"] = dict_to_dataclass(VAEConfig, pb["vae"])
+        if "direct" in pb:
+            pb_kwargs["direct"] = dict_to_dataclass(DirectDecoderConfig, pb["direct"])
+        if "augment" in pb:
+            pb_kwargs["augment"] = dict_to_dataclass(AugmentConfig, pb["augment"])
         kwargs["part_b"] = PartBConfig(**pb_kwargs)
 
     if "inference" in data:

@@ -9,7 +9,10 @@ from typing import Callable, Dict, List, Optional, Tuple
 import numpy as np
 
 # Default descriptor names used throughout the pipeline
+# 30 descriptors for 100% uniqueness on HPJ dataset
+# (Original 12 descriptors had only 88.9% uniqueness)
 DESCRIPTOR_NAMES: Tuple[str, ...] = (
+    # Original 12 descriptors
     "MolWt",
     "HeavyAtomCount",
     "NumHeteroatoms",
@@ -22,6 +25,25 @@ DESCRIPTOR_NAMES: Tuple[str, ...] = (
     "MolLogP",
     "NumRotatableBonds",
     "FractionCSP3",
+    # Extended 18 descriptors for uniqueness
+    "ExactMolWt",
+    "NumAliphaticRings",
+    "NumSaturatedRings",
+    "NumAromaticHeterocycles",
+    "NumAromaticCarbocycles",
+    "NumAliphaticHeterocycles",
+    "NumAliphaticCarbocycles",
+    "NumSaturatedHeterocycles",
+    "NumSaturatedCarbocycles",
+    "LabuteASA",
+    "BalabanJ",
+    "BertzCT",
+    "Chi0",
+    "Chi1",
+    "Chi2n",
+    "Chi3n",
+    "Chi4n",
+    "HallKierAlpha",
 )
 
 # Lazily initialized descriptor functions (RDKit import is expensive)
@@ -39,9 +61,10 @@ def _get_descriptor_functions() -> Dict[str, Callable]:
     if _descriptor_funcs is not None:
         return _descriptor_funcs
 
-    from rdkit.Chem import Descriptors
+    from rdkit.Chem import Descriptors, GraphDescriptors
 
     _descriptor_funcs = {
+        # Original 12 descriptors
         "MolWt": Descriptors.MolWt,
         "HeavyAtomCount": Descriptors.HeavyAtomCount,
         "NumHeteroatoms": Descriptors.NumHeteroatoms,
@@ -54,6 +77,25 @@ def _get_descriptor_functions() -> Dict[str, Callable]:
         "MolLogP": Descriptors.MolLogP,
         "NumRotatableBonds": Descriptors.NumRotatableBonds,
         "FractionCSP3": Descriptors.FractionCSP3,
+        # Extended descriptors for uniqueness
+        "ExactMolWt": Descriptors.ExactMolWt,
+        "NumAliphaticRings": Descriptors.NumAliphaticRings,
+        "NumSaturatedRings": Descriptors.NumSaturatedRings,
+        "NumAromaticHeterocycles": Descriptors.NumAromaticHeterocycles,
+        "NumAromaticCarbocycles": Descriptors.NumAromaticCarbocycles,
+        "NumAliphaticHeterocycles": Descriptors.NumAliphaticHeterocycles,
+        "NumAliphaticCarbocycles": Descriptors.NumAliphaticCarbocycles,
+        "NumSaturatedHeterocycles": Descriptors.NumSaturatedHeterocycles,
+        "NumSaturatedCarbocycles": Descriptors.NumSaturatedCarbocycles,
+        "LabuteASA": Descriptors.LabuteASA,
+        "BalabanJ": GraphDescriptors.BalabanJ,
+        "BertzCT": GraphDescriptors.BertzCT,
+        "Chi0": GraphDescriptors.Chi0,
+        "Chi1": GraphDescriptors.Chi1,
+        "Chi2n": GraphDescriptors.Chi2n,
+        "Chi3n": GraphDescriptors.Chi3n,
+        "Chi4n": GraphDescriptors.Chi4n,
+        "HallKierAlpha": GraphDescriptors.HallKierAlpha,
     }
 
     return _descriptor_funcs

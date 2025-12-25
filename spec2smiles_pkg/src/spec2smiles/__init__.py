@@ -2,7 +2,5 @@
 
 __version__ = "0.1.0"
 
-from spec2smiles.core.config import PipelineConfig
-from spec2smiles.models.pipeline import IntegratedPipeline
-
-__all__ = ["PipelineConfig", "IntegratedPipeline", "__version__"]
+# Lazy imports to avoid circular dependencies
+__all__ = ["__version__"]

@@ -1,0 +1,23 @@
+{
+  "episode": 200,
+  "train": {
+    "mean_reward": 0.4242867265690311,
+    "mean_tanimoto": 0.0,
+    "validity_rate": 0.9644913627639156,
+    "exact_match_rate": 0.0
+  },
+  "val": {
+    "mean_reward": 0.4355753374099731,
+    "validity_rate": 0.98,
+    "exact_match_rate": 0.0,
+    "mean_tanimoto": 0.0,
+    "mean_steps": 1.98
+  },
+  "update": {
+    "policy_loss": -0.009199012960995049,
+    "value_loss": 0.000992605254919688,
+    "entropy": 1.0383370766512323,
+    "kl_div": 0.039371193584167595
+  },
+  "elapsed_minutes": 82.07960339387257
+}

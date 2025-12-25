@@ -19,7 +19,7 @@ class PipelineService:
 
     Combines:
     - Spectrum preprocessing
-    - Part A: Spectrum -> Descriptors (LGBMEnsemble)
+    - Part A: Spectrum -> Descriptors (Hybrid CNN-Transformer)
     - Part B: Descriptors -> SMILES candidates (ConditionalVAE)
     - Candidate ranking via Tanimoto similarity
     """

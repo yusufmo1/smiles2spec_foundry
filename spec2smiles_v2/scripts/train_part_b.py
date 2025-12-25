@@ -2,10 +2,12 @@
 """Train Part B (Descriptors -> SMILES) model.
 
 Usage:
-    python scripts/train_part_b.py [--config config.yml] [--verbose]
+    python scripts/train_part_b.py [--model vae|direct] [--augment] [--n-augment N]
 
 Or via Makefile:
     make train-part-b-vae
+    make train-part-b-direct
+    make train-part-b-augmented
 """
 
 import argparse
@@ -20,6 +22,7 @@ from src.config import settings, reload_config
 from src.domain.descriptors import calculate_descriptors
 from src.services.data_loader import DataLoaderService
 from src.services.part_b import PartBService
+from src.utils.paths import validate_input_dir
 
 
 def main():
@@ -29,6 +32,25 @@ def main():
         type=Path,
         default=None,
         help="Path to config.yml file"
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        choices=["vae", "direct"],
+        default=None,
+        help="Model type: 'vae' (ConditionalVAE) or 'direct' (DirectDecoder)"
+    )
+    parser.add_argument(
+        "--augment",
+        action="store_true",
+        default=False,
+        help="Enable SMILES augmentation (6x data via random atom ordering)"
+    )
+    parser.add_argument(
+        "--n-augment",
+        type=int,
+        default=5,
+        help="Number of augmented SMILES per molecule (default: 5 = 6x total)"
     )
     parser.add_argument(
         "--verbose",
@@ -43,11 +65,19 @@ def main():
     if args.config:
         settings = reload_config(args.config)
 
+    # Validate input directory exists
+    validate_input_dir(settings.input_path, "Dataset")
+
+    # Determine model type (CLI arg overrides config)
+    model_type = args.model or settings.part_b_model
+
     print("=" * 60)
     print(f"Training Part B (Descriptors -> SMILES)")
     print("=" * 60)
-    print(f"Dataset: {settings.dataset}")
-    print(f"Device:  {settings.torch_device}")
+    print(f"Dataset:    {settings.dataset}")
+    print(f"Model:      {model_type} ({'DirectDecoder' if model_type == 'direct' else 'ConditionalVAE'})")
+    print(f"Augment:    {'Yes (' + str(args.n_augment) + 'x)' if args.augment else 'No'}")
+    print(f"Device:     {settings.torch_device}")
     print()
 
     # Load data
@@ -110,13 +140,14 @@ def main():
     print(f"  Val:   {len(val_smiles)} samples")
     print()
 
-    # Initialize Part B service
-    service = PartBService()
+    # Initialize Part B service with model type
+    service = PartBService(model_type=model_type)
 
-    # Prepare data (build vocabulary and encode)
+    # Prepare data (build vocabulary, encode, and optionally augment)
     print("Preparing training data...")
     encoded_train, filtered_train_desc, train_indices = service.prepare_data(
-        train_smiles, train_descriptors, verbose=args.verbose
+        train_smiles, train_descriptors, verbose=args.verbose,
+        augment=args.augment, n_augment=args.n_augment if args.augment else 0,
     )
 
     print(f"Valid training samples: {len(train_indices)}/{len(train_smiles)}")
@@ -140,7 +171,8 @@ def main():
     log_dir.mkdir(parents=True, exist_ok=True)
 
     # Train model
-    print("\nTraining Conditional VAE...")
+    model_name = "DirectDecoder" if model_type == "direct" else "ConditionalVAE"
+    print(f"\nTraining {model_name}...")
     history = service.train(
         encoded_train,
         scaled_train_desc,
@@ -166,6 +198,9 @@ def main():
 
     with open(metrics_path, "w") as f:
         json.dump({
+            "model_type": model_type,
+            "augmented": args.augment,
+            "n_augment": args.n_augment if args.augment else 0,
             "final_train_loss": history["train_loss"][-1],
             "final_val_loss": history["val_loss"][-1] if history["val_loss"] else None,
             "n_epochs": len(history["train_loss"]),

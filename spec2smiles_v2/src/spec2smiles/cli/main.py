@@ -17,7 +17,7 @@ def cli():
     electron ionization mass spectra:
 
     \b
-    1. Part A: Spectrum -> Molecular Descriptors (LightGBM ensemble)
+    1. Part A: Spectrum -> Molecular Descriptors (Hybrid CNN-Transformer)
     2. Part B: Descriptors -> SMILES candidates (Conditional VAE)
 
     Use 'spec2smiles COMMAND --help' for more information on each command.

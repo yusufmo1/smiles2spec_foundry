@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """Train Part A (Spectrum -> Descriptors) model.
 
+Uses the Hybrid CNN-Transformer architecture.
+
 Usage:
-    python scripts/train_part_a.py [--model lgbm|transformer] [--config config.yml]
+    python scripts/train_part_a.py [--config config.yml]
 
 Or via Makefile:
-    make train-part-a-lgbm
-    make train-part-a-transformer
+    make train-part-a
 """
 
 import argparse
@@ -22,21 +23,16 @@ from src.domain.spectrum import process_spectrum
 from src.domain.descriptors import calculate_descriptors
 from src.services.data_loader import DataLoaderService
 from src.services.part_a import PartAService
+from src.utils.paths import validate_input_dir
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Train Part A model")
+    parser = argparse.ArgumentParser(description="Train Part A model (Hybrid CNN-Transformer)")
     parser.add_argument(
         "--config",
         type=Path,
         default=None,
         help="Path to config.yml file"
-    )
-    parser.add_argument(
-        "--model",
-        choices=["lgbm", "transformer"],
-        default=None,
-        help="Model type (overrides config)"
     )
     parser.add_argument(
         "--verbose",
@@ -51,13 +47,13 @@ def main():
     if args.config:
         settings = reload_config(args.config)
 
-    # Use command line override or config default
-    model_type = args.model or settings.part_a_model
+    # Validate input directory exists
+    validate_input_dir(settings.input_path, "Dataset")
 
     print("=" * 60)
     print(f"Training Part A (Spectrum -> Descriptors)")
     print("=" * 60)
-    print(f"Model:   {model_type}")
+    print(f"Model:   Hybrid CNN-Transformer")
     print(f"Dataset: {settings.dataset}")
     print(f"Device:  {settings.torch_device}")
     print()
@@ -134,8 +130,8 @@ def main():
     print()
 
     # Train model
-    print(f"Training {model_type.upper()} model...")
-    service = PartAService(model_type=model_type)
+    print("Training Hybrid CNN-Transformer model...")
+    service = PartAService()
 
     # Setup log directory for live epoch logging
     log_dir = Path("logs")
@@ -159,11 +155,11 @@ def main():
     service.save(output_dir)
 
     # Save metrics
-    metrics_path = settings.metrics_path / f"part_a_{model_type}_metrics.json"
+    metrics_path = settings.metrics_path / "part_a_metrics.json"
     metrics_path.parent.mkdir(parents=True, exist_ok=True)
 
     full_metrics = {
-        "model_type": model_type,
+        "model_type": "hybrid",
         "summary": summary,
         "per_descriptor": metrics,
     }
