@@ -1,0 +1,17 @@
+{
+  "model_type": "DirectDecoder",
+  "vocab_size": 44,
+  "descriptor_dim": 30,
+  "hidden_dim": 512,
+  "n_layers": 4,
+  "test_metrics": {
+    "exact_match_rate": 0.19117647058823528,
+    "formula_match_rate": 0.625,
+    "mean_tanimoto": 0.6451138884649849,
+    "median_tanimoto": 0.6666666666666666,
+    "mean_validity": 0.9997058823529412,
+    "total_evaluated": 272
+  },
+  "n_train": 2176,
+  "n_test": 272
+}

@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import List, Literal, Optional
 
 import torch
-import yaml
+
+from src.config.loader import dict_to_dataclass, find_config_path, load_yaml
 
 
 @dataclass
@@ -37,21 +38,13 @@ class LGBMConfig:
     def to_lgbm_params(self, seed: int = 42) -> dict:
         """Convert to LightGBM parameter dictionary."""
         return {
-            "objective": "regression",
-            "metric": "rmse",
-            "boosting_type": "gbdt",
-            "n_estimators": self.n_estimators,
-            "num_leaves": self.num_leaves,
-            "learning_rate": self.learning_rate,
-            "feature_fraction": self.feature_fraction,
-            "bagging_fraction": self.bagging_fraction,
-            "bagging_freq": self.bagging_freq,
-            "reg_alpha": self.reg_alpha,
-            "reg_lambda": self.reg_lambda,
-            "min_child_samples": self.min_child_samples,
-            "n_jobs": self.n_jobs,
-            "verbose": -1,
-            "random_state": seed,
+            "objective": "regression", "metric": "rmse", "boosting_type": "gbdt",
+            "n_estimators": self.n_estimators, "num_leaves": self.num_leaves,
+            "learning_rate": self.learning_rate, "feature_fraction": self.feature_fraction,
+            "bagging_fraction": self.bagging_fraction, "bagging_freq": self.bagging_freq,
+            "reg_alpha": self.reg_alpha, "reg_lambda": self.reg_lambda,
+            "min_child_samples": self.min_child_samples, "n_jobs": self.n_jobs,
+            "verbose": -1, "random_state": seed,
         }
 
 
@@ -135,14 +128,11 @@ class SplitConfig:
 @dataclass
 class Settings:
     """Main configuration container."""
-
-    # Paths
     data_input_dir: str = "data/input"
     data_output_dir: str = "data/output"
     dataset: str = "hpj"
     device: Literal["cuda", "mps", "cpu", "auto"] = "auto"
 
-    # Sub-configs
     spectrum: SpectrumConfig = field(default_factory=SpectrumConfig)
     descriptors: List[str] = field(default_factory=lambda: [
         "MolWt", "HeavyAtomCount", "NumHeteroatoms", "NumAromaticRings",
@@ -154,54 +144,35 @@ class Settings:
     inference: InferenceConfig = field(default_factory=InferenceConfig)
     split: SplitConfig = field(default_factory=SplitConfig)
 
-    # Computed properties
+    # Computed properties - spectrum shortcuts
     @property
-    def n_bins(self) -> int:
-        return self.spectrum.n_bins
+    def n_bins(self) -> int: return self.spectrum.n_bins
+    @property
+    def bin_width(self) -> float: return self.spectrum.bin_width
+    @property
+    def max_mz(self) -> float: return self.spectrum.max_mz
+    @property
+    def transform(self) -> str: return self.spectrum.transform
+    @property
+    def normalize(self) -> bool: return self.spectrum.normalize
 
+    # Descriptor properties
     @property
-    def bin_width(self) -> float:
-        return self.spectrum.bin_width
+    def n_descriptors(self) -> int: return len(self.descriptors)
+    @property
+    def descriptor_names(self) -> tuple: return tuple(self.descriptors)
 
+    # Path properties
     @property
-    def max_mz(self) -> float:
-        return self.spectrum.max_mz
-
+    def input_path(self) -> Path: return Path(self.data_input_dir) / self.dataset
     @property
-    def transform(self) -> str:
-        return self.spectrum.transform
-
+    def output_path(self) -> Path: return Path(self.data_output_dir)
     @property
-    def normalize(self) -> bool:
-        return self.spectrum.normalize
-
+    def models_path(self) -> Path: return self.output_path / "models"
     @property
-    def n_descriptors(self) -> int:
-        return len(self.descriptors)
-
+    def metrics_path(self) -> Path: return self.output_path / "metrics"
     @property
-    def descriptor_names(self) -> tuple:
-        return tuple(self.descriptors)
-
-    @property
-    def input_path(self) -> Path:
-        return Path(self.data_input_dir) / self.dataset
-
-    @property
-    def output_path(self) -> Path:
-        return Path(self.data_output_dir)
-
-    @property
-    def models_path(self) -> Path:
-        return self.output_path / "models"
-
-    @property
-    def metrics_path(self) -> Path:
-        return self.output_path / "metrics"
-
-    @property
-    def figures_path(self) -> Path:
-        return self.output_path / "figures"
+    def figures_path(self) -> Path: return self.output_path / "figures"
 
     @property
     def torch_device(self) -> torch.device:
@@ -213,169 +184,93 @@ class Settings:
             return torch.device("cpu")
         return torch.device(self.device)
 
-    # Convenience accessors
+    # Model config accessors
     @property
-    def part_a_model(self) -> str:
-        return self.part_a.model
+    def part_a_model(self) -> str: return self.part_a.model
+    @property
+    def lgbm(self) -> LGBMConfig: return self.part_a.lgbm
+    @property
+    def transformer(self) -> TransformerConfig: return self.part_a.transformer
+    @property
+    def hybrid(self) -> HybridConfig: return self.part_a.hybrid
+    @property
+    def vae(self) -> VAEConfig: return self.part_b.vae
 
+    # Split config accessors
     @property
-    def lgbm(self) -> LGBMConfig:
-        return self.part_a.lgbm
+    def train_ratio(self) -> float: return self.split.train
+    @property
+    def val_ratio(self) -> float: return self.split.val
+    @property
+    def test_ratio(self) -> float: return self.split.test
+    @property
+    def random_seed(self) -> int: return self.split.seed
 
+    # Inference config accessors
     @property
-    def transformer(self) -> TransformerConfig:
-        return self.part_a.transformer
-
+    def n_candidates(self) -> int: return self.inference.n_candidates
     @property
-    def hybrid(self) -> HybridConfig:
-        return self.part_a.hybrid
-
-    @property
-    def vae(self) -> VAEConfig:
-        return self.part_b.vae
-
-    # Legacy compatibility
-    @property
-    def train_ratio(self) -> float:
-        return self.split.train
-
-    @property
-    def val_ratio(self) -> float:
-        return self.split.val
-
-    @property
-    def test_ratio(self) -> float:
-        return self.split.test
-
-    @property
-    def random_seed(self) -> int:
-        return self.split.seed
-
-    @property
-    def n_candidates(self) -> int:
-        return self.inference.n_candidates
-
-    @property
-    def temperature(self) -> float:
-        return self.inference.temperature
+    def temperature(self) -> float: return self.inference.temperature
 
     def to_lgbm_params(self) -> dict:
         """Get LightGBM parameters."""
         return self.lgbm.to_lgbm_params(self.split.seed)
 
 
-def _dict_to_dataclass(cls, data: dict):
-    """Recursively convert dict to dataclass."""
-    if data is None:
-        return cls()
-
-    field_types = {f.name: f.type for f in cls.__dataclass_fields__.values()}
-    kwargs = {}
-
-    for key, value in data.items():
-        if key in field_types:
-            field_type = field_types[key]
-            # Handle nested dataclasses
-            if hasattr(field_type, "__dataclass_fields__") and isinstance(value, dict):
-                kwargs[key] = _dict_to_dataclass(field_type, value)
-            else:
-                kwargs[key] = value
-
-    return cls(**kwargs)
-
-
 def load_config(config_path: Optional[Path] = None) -> Settings:
-    """Load configuration from YAML file.
-
-    Args:
-        config_path: Path to config file. Defaults to config.yml in project root.
-
-    Returns:
-        Settings object with loaded configuration.
-    """
-    if config_path is None:
-        # Find config.yml relative to this file or current directory
-        possible_paths = [
-            Path("config.yml"),
-            Path(__file__).parent.parent.parent / "config.yml",
-        ]
-        for path in possible_paths:
-            if path.exists():
-                config_path = path
-                break
-
-    if config_path is None or not config_path.exists():
+    """Load configuration from YAML file."""
+    path = find_config_path(config_path)
+    if path is None:
         print("Warning: config.yml not found, using defaults")
         return Settings()
 
-    with open(config_path) as f:
-        data = yaml.safe_load(f)
-
-    # Build Settings from YAML
-    settings_kwargs = {}
+    data = load_yaml(path)
+    kwargs = {}
 
     # Simple fields
     if "paths" in data:
-        settings_kwargs["data_input_dir"] = data["paths"].get("data_input", "data/input")
-        settings_kwargs["data_output_dir"] = data["paths"].get("data_output", "data/output")
-
-    if "dataset" in data:
-        settings_kwargs["dataset"] = data["dataset"]
-
-    if "device" in data:
-        settings_kwargs["device"] = data["device"]
-
-    if "descriptors" in data:
-        settings_kwargs["descriptors"] = data["descriptors"]
+        kwargs["data_input_dir"] = data["paths"].get("data_input", "data/input")
+        kwargs["data_output_dir"] = data["paths"].get("data_output", "data/output")
+    for key in ("dataset", "device", "descriptors"):
+        if key in data:
+            kwargs[key] = data[key]
 
     # Nested configs
     if "spectrum" in data:
-        settings_kwargs["spectrum"] = _dict_to_dataclass(SpectrumConfig, data["spectrum"])
+        kwargs["spectrum"] = dict_to_dataclass(SpectrumConfig, data["spectrum"])
 
     if "part_a" in data:
-        part_a_data = data["part_a"]
-        part_a_kwargs = {"model": part_a_data.get("model", "lgbm")}
-
-        if "lgbm" in part_a_data:
-            part_a_kwargs["lgbm"] = _dict_to_dataclass(LGBMConfig, part_a_data["lgbm"])
-        if "transformer" in part_a_data:
-            part_a_kwargs["transformer"] = _dict_to_dataclass(TransformerConfig, part_a_data["transformer"])
-        if "hybrid" in part_a_data:
-            part_a_kwargs["hybrid"] = _dict_to_dataclass(HybridConfig, part_a_data["hybrid"])
-
-        settings_kwargs["part_a"] = PartAConfig(**part_a_kwargs)
+        pa = data["part_a"]
+        pa_kwargs = {"model": pa.get("model", "lgbm")}
+        if "lgbm" in pa:
+            pa_kwargs["lgbm"] = dict_to_dataclass(LGBMConfig, pa["lgbm"])
+        if "transformer" in pa:
+            pa_kwargs["transformer"] = dict_to_dataclass(TransformerConfig, pa["transformer"])
+        if "hybrid" in pa:
+            pa_kwargs["hybrid"] = dict_to_dataclass(HybridConfig, pa["hybrid"])
+        kwargs["part_a"] = PartAConfig(**pa_kwargs)
 
     if "part_b" in data:
-        part_b_data = data["part_b"]
-        part_b_kwargs = {"model": part_b_data.get("model", "vae")}
-
-        if "vae" in part_b_data:
-            part_b_kwargs["vae"] = _dict_to_dataclass(VAEConfig, part_b_data["vae"])
-
-        settings_kwargs["part_b"] = PartBConfig(**part_b_kwargs)
+        pb = data["part_b"]
+        pb_kwargs = {"model": pb.get("model", "vae")}
+        if "vae" in pb:
+            pb_kwargs["vae"] = dict_to_dataclass(VAEConfig, pb["vae"])
+        kwargs["part_b"] = PartBConfig(**pb_kwargs)
 
     if "inference" in data:
-        settings_kwargs["inference"] = _dict_to_dataclass(InferenceConfig, data["inference"])
-
+        kwargs["inference"] = dict_to_dataclass(InferenceConfig, data["inference"])
     if "split" in data:
-        settings_kwargs["split"] = _dict_to_dataclass(SplitConfig, data["split"])
+        kwargs["split"] = dict_to_dataclass(SplitConfig, data["split"])
 
-    return Settings(**settings_kwargs)
+    return Settings(**kwargs)
 
 
-# Global settings instance (loaded on import)
+# Global settings instance
 settings = load_config()
 
 
 def reload_config(config_path: Optional[Path] = None) -> Settings:
-    """Reload configuration from file.
-
-    Args:
-        config_path: Path to config file.
-
-    Returns:
-        New Settings object.
-    """
+    """Reload configuration from file."""
     global settings
     settings = load_config(config_path)
     return settings
