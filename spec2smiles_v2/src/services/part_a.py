@@ -1,46 +1,55 @@
 """Part A service - Spectrum to Descriptors (model-agnostic).
 
-Supports multiple model backends:
+Supports multiple model backends via registry pattern:
 - lgbm: LightGBM ensemble (fast, lightweight)
 - transformer: SpectrumTransformer (deep learning)
+- hybrid: CNN-Transformer hybrid (local + global patterns)
 """
 
 import json
 from pathlib import Path
-from typing import Dict, Literal, Optional, Union
+from typing import Any, Dict, Optional
 
 import numpy as np
 
 from src.config import settings
-from src.models.lgbm_ensemble import LGBMEnsemble
-from src.models.transformer_wrapper import TransformerWrapper
-from src.services.preprocessor import PreprocessorService
+from src.models.registry import ModelRegistry
+from src.services.scaler import ScalerService
 from src.utils.exceptions import ModelError
 
-ModelType = Literal["lgbm", "transformer"]
+# Import models to trigger registration (required for decorator to run)
+import src.models.lgbm_ensemble  # noqa: F401
+import src.models.transformer_wrapper  # noqa: F401
+
+# Model file mapping for save/load
+MODEL_FILES = {
+    "lgbm": "lgbm_ensemble.pkl",
+    "transformer": "transformer.pt",
+    "hybrid": "hybrid.pt",
+}
 
 
 class PartAService:
     """Model-agnostic service for Spectrum -> Descriptors prediction.
 
-    Supports switching between LightGBM and Transformer models via
-    model_type parameter or SPEC2SMILES_PART_A_MODEL env variable.
+    Uses registry pattern for clean model switching. All models share
+    the same interface (fit, predict, evaluate, save, load).
     """
 
     def __init__(
         self,
-        model_type: Optional[ModelType] = None,
-        preprocessor: Optional[PreprocessorService] = None,
+        model_type: Optional[str] = None,
+        scaler: Optional[ScalerService] = None,
     ):
         """Initialize Part A service.
 
         Args:
-            model_type: Model to use ("lgbm" or "transformer"). Defaults to settings.
-            preprocessor: Preprocessor service (created if not provided)
+            model_type: Model to use (lgbm, transformer, hybrid). Defaults to settings.
+            scaler: Scaler service (uses singleton if not provided)
         """
-        self.model_type: ModelType = model_type or settings.part_a_model
-        self.preprocessor = preprocessor or PreprocessorService()
-        self.model: Optional[Union[LGBMEnsemble, TransformerWrapper]] = None
+        self.model_type = model_type or settings.part_a_model
+        self.scaler = scaler or ScalerService.get_instance()
+        self.model: Optional[Any] = None
         self._trained = False
 
     @property
@@ -48,14 +57,10 @@ class PartAService:
         """Check if model is trained."""
         return self._trained
 
-    def _create_model(self) -> Union[LGBMEnsemble, TransformerWrapper]:
-        """Factory method to create model based on model_type."""
-        if self.model_type == "lgbm":
-            return LGBMEnsemble()
-        elif self.model_type == "transformer":
-            return TransformerWrapper()
-        else:
-            raise ModelError(f"Unknown model type: {self.model_type}")
+    def _create_model(self) -> Any:
+        """Create model instance using registry."""
+        model_class = ModelRegistry.get(self.model_type)
+        return model_class()
 
     def train(
         self,
@@ -74,25 +79,36 @@ class PartAService:
             X_val: Optional validation spectra
             y_val: Optional validation descriptors
             verbose: Whether to show progress
-            log_dir: Optional directory for live epoch logging (Transformer only)
+            log_dir: Optional directory for live epoch logging
 
         Returns:
             Dictionary of per-descriptor metrics
         """
         if verbose:
             print(f"Training Part A with model: {self.model_type}")
+            print(f"  Available models: {ModelRegistry.available()}")
 
-        # Fit descriptor scaler on training data
-        self.preprocessor.fit_scaler(y_train)
+        # Fit scaler on training descriptors
+        self.scaler.fit(y_train)
 
-        # Create and train model using factory
+        # Create model via registry
         self.model = self._create_model()
 
-        # TransformerWrapper supports log_dir, LGBMEnsemble does not
-        if self.model_type == "transformer" and log_dir is not None:
-            self.model.fit(X_train, y_train, X_val, y_val, verbose=verbose, log_dir=log_dir)
-        else:
-            self.model.fit(X_train, y_train, X_val, y_val, verbose=verbose)
+        # Train with appropriate parameters based on model type
+        # Check if model supports log_dir (neural models do, LGBM doesn't)
+        if hasattr(self.model, "fit"):
+            fit_params = {
+                "X_train": X_train,
+                "y_train": y_train,
+                "X_val": X_val,
+                "y_val": y_val,
+                "verbose": verbose,
+            }
+            # Add log_dir for models that support it
+            if log_dir is not None and self.model_type in ("transformer", "hybrid"):
+                fit_params["log_dir"] = log_dir
+
+            self.model.fit(**fit_params)
 
         self._trained = True
 
@@ -112,9 +128,6 @@ class PartAService:
 
         Returns:
             Predicted descriptors of shape (n_samples, n_descriptors)
-
-        Raises:
-            ModelError: If model is not trained
         """
         if not self._trained:
             raise ModelError("Model must be trained before prediction")
@@ -130,8 +143,8 @@ class PartAService:
             Scaled predicted descriptors
         """
         predictions = self.predict(X)
-        if self.preprocessor.is_scaler_fitted:
-            return self.preprocessor.transform_descriptors(predictions)
+        if self.scaler.is_fitted:
+            return self.scaler.transform(predictions)
         return predictions
 
     def evaluate(
@@ -186,14 +199,12 @@ class PartAService:
         with open(output_dir / "model_type.json", "w") as f:
             json.dump(metadata, f)
 
-        # Save model based on type
-        if self.model_type == "lgbm":
-            self.model.save(output_dir / "lgbm_ensemble.pkl")
-        else:  # transformer
-            self.model.save(output_dir / "transformer.pt")
+        # Save model using type-specific filename
+        model_file = MODEL_FILES.get(self.model_type, f"{self.model_type}_model.pkl")
+        self.model.save(output_dir / model_file)
 
-        # Save scaler
-        self.preprocessor.save_scaler(output_dir / "descriptor_scaler.pkl")
+        # Save scaler (shared with Part B)
+        self.scaler.save(output_dir / "descriptor_scaler.pkl")
 
     def load(self, model_dir: Path) -> "PartAService":
         """Load trained model and scaler.
@@ -212,29 +223,29 @@ class PartAService:
             with open(metadata_path) as f:
                 metadata = json.load(f)
             self.model_type = metadata["model_type"]
-        elif (model_dir / "lgbm_ensemble.pkl").exists():
-            self.model_type = "lgbm"
-        elif (model_dir / "transformer.pt").exists():
-            self.model_type = "transformer"
         else:
-            raise ModelError(f"No model found in: {model_dir}")
+            # Fallback: detect from file existence
+            for model_name, model_file in MODEL_FILES.items():
+                if (model_dir / model_file).exists():
+                    self.model_type = model_name
+                    break
+            else:
+                raise ModelError(f"No model found in: {model_dir}")
 
-        # Load model based on type
-        if self.model_type == "lgbm":
-            model_path = model_dir / "lgbm_ensemble.pkl"
-            if not model_path.exists():
-                raise ModelError(f"Model not found: {model_path}")
-            self.model = LGBMEnsemble.load(model_path)
-        else:  # transformer
-            model_path = model_dir / "transformer.pt"
-            if not model_path.exists():
-                raise ModelError(f"Model not found: {model_path}")
-            self.model = TransformerWrapper.load(model_path)
+        # Load model using registry
+        model_class = ModelRegistry.get(self.model_type)
+        model_file = MODEL_FILES.get(self.model_type)
+        model_path = model_dir / model_file
 
-        # Load scaler if exists
+        if not model_path.exists():
+            raise ModelError(f"Model not found: {model_path}")
+
+        self.model = model_class.load(model_path)
+
+        # Load scaler
         scaler_path = model_dir / "descriptor_scaler.pkl"
         if scaler_path.exists():
-            self.preprocessor.load_scaler(scaler_path)
+            self.scaler.load(scaler_path)
 
         self._trained = True
         return self

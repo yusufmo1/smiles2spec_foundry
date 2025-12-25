@@ -655,3 +655,143 @@ def train_hybrid_cmd(
         click.echo(f"\nHybrid CNN-Transformer training complete!")
         click.echo(f"Best validation R²: {results['val_r2']:.4f}")
         click.echo(f"Model saved to: {output_dir}")
+
+
+@train.command("part-b-v2")
+@click.option(
+    "--data-dir",
+    "-d",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Directory containing preprocessed train/val/test JSONL files",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Output directory for model and results",
+)
+@click.option(
+    "--fp-dim",
+    type=int,
+    default=2048,
+    help="Morgan fingerprint dimension (default: 2048)",
+)
+@click.option(
+    "--d-model",
+    type=int,
+    default=256,
+    help="Transformer dimension (default: 256)",
+)
+@click.option(
+    "--n-heads",
+    type=int,
+    default=8,
+    help="Number of attention heads (default: 8)",
+)
+@click.option(
+    "--n-encoder-layers",
+    type=int,
+    default=2,
+    help="Number of fingerprint encoder layers (default: 2)",
+)
+@click.option(
+    "--n-decoder-layers",
+    type=int,
+    default=4,
+    help="Number of decoder layers (default: 4)",
+)
+@click.option(
+    "--lr",
+    type=float,
+    default=1e-4,
+    help="Learning rate (default: 1e-4)",
+)
+@click.option(
+    "--epochs",
+    type=int,
+    default=100,
+    help="Maximum epochs (default: 100)",
+)
+@click.option(
+    "--batch-size",
+    type=int,
+    default=32,
+    help="Batch size (default: 32)",
+)
+@click.option(
+    "--device",
+    type=str,
+    default="cuda",
+    help="Device for training (cuda, cpu, mps)",
+)
+@click.option(
+    "--verbose/--quiet",
+    default=True,
+    help="Show training progress",
+)
+def train_part_b_v2_cmd(
+    data_dir: Path,
+    output_dir: Path,
+    fp_dim: int,
+    d_model: int,
+    n_heads: int,
+    n_encoder_layers: int,
+    n_decoder_layers: int,
+    lr: float,
+    epochs: int,
+    batch_size: int,
+    device: str,
+    verbose: bool,
+):
+    """Train Part B v2: Fingerprint-conditioned Transformer.
+
+    Uses Morgan fingerprints (2048-bit) as conditioning instead of 12 descriptors.
+    This provides nearly unique molecular identification (98.8% unique vs 60.7%)
+    enabling much higher exact match rates.
+
+    Key improvements over Part B v1 (VAE with descriptors):
+    - Morgan fingerprints capture structural subunits
+    - Transformer decoder with cross-attention
+    - Beam search and nucleus sampling for generation
+
+    Example:
+        spec2smiles train part-b-v2 -d ./data/processed/hpj -o ./models/part_b_v2
+    """
+    from spec2smiles.models.part_b.transformer_trainer import train_part_b_v2
+
+    if verbose:
+        click.echo("=" * 60)
+        click.echo("TRAINING PART B v2: Fingerprint -> SMILES (Transformer)")
+        click.echo("=" * 60)
+        click.echo(f"\nConfiguration:")
+        click.echo(f"  Fingerprint dim: {fp_dim}")
+        click.echo(f"  Model dim: {d_model}")
+        click.echo(f"  Attention heads: {n_heads}")
+        click.echo(f"  Encoder layers: {n_encoder_layers}")
+        click.echo(f"  Decoder layers: {n_decoder_layers}")
+        click.echo(f"  Learning rate: {lr}")
+        click.echo(f"  Batch size: {batch_size}")
+        click.echo(f"  Max epochs: {epochs}")
+        click.echo(f"  Device: {device}")
+
+    results = train_part_b_v2(
+        data_dir=Path(data_dir),
+        output_dir=Path(output_dir),
+        fp_dim=fp_dim,
+        d_model=d_model,
+        n_heads=n_heads,
+        n_encoder_layers=n_encoder_layers,
+        n_decoder_layers=n_decoder_layers,
+        batch_size=batch_size,
+        n_epochs=epochs,
+        lr=lr,
+        device=device,
+        verbose=verbose,
+    )
+
+    if verbose:
+        click.echo(f"\nPart B v2 training complete!")
+        click.echo(f"Best exact match: {results['best_exact_match']:.2%}")
+        click.echo(f"Model saved to: {output_dir}")

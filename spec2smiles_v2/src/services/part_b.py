@@ -11,20 +11,31 @@ from tqdm import tqdm
 from src.config import settings
 from src.models.selfies_encoder import SELFIESEncoder
 from src.models.vae import ConditionalVAE
+from src.services.scaler import ScalerService
 from src.utils.exceptions import ModelError
 from src.utils.logging import TrainingLogger
 
 
 class PartBService:
-    """Service for training and inference of Descriptors -> SMILES model."""
+    """Service for training and inference of Descriptors -> SMILES model.
 
-    def __init__(self, device: Optional[torch.device] = None):
+    Uses ScalerService for descriptor scaling consistency with Part A.
+    The scaler state is saved with the model for inference reproducibility.
+    """
+
+    def __init__(
+        self,
+        device: Optional[torch.device] = None,
+        scaler: Optional[ScalerService] = None,
+    ):
         """Initialize Part B service.
 
         Args:
             device: PyTorch device (defaults to settings.torch_device)
+            scaler: ScalerService instance (uses singleton if not provided)
         """
         self.device = device or settings.torch_device
+        self.scaler = scaler or ScalerService.get_instance()
         self.encoder: Optional[SELFIESEncoder] = None
         self.model: Optional[ConditionalVAE] = None
         self._trained = False
