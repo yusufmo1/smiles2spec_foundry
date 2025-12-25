@@ -3,9 +3,8 @@ FAST Training script for RL molecule generation.
 
 Key optimizations:
 1. Parallel environments (N_ENVS simultaneous episodes)
-2. Batched policy inference
-3. Reduced rollout steps
-4. Fewer PPO epochs
+2. Proper episode reward tracking
+3. Stable hyperparameters
 """
 
 import argparse
@@ -15,7 +14,7 @@ import sys
 import time
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, Dict, List
+from typing import Dict, List
 
 import numpy as np
 import torch
@@ -37,7 +36,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)s | %(message)s',
     handlers=[
-        logging.FileHandler(log_file),
+        logging.FileHandler(log_file, mode='w'),  # Overwrite log
         logging.StreamHandler(sys.stdout),
     ]
 )
@@ -106,87 +105,57 @@ def build_encoder(smiles_list: List[str]):
     return encoder
 
 
-class ParallelEnvs:
-    """Manages N parallel environments for batched rollouts."""
+def run_episode(env, agent, data_point: Dict, deterministic: bool = False) -> Dict:
+    """Run a single episode and return stats."""
+    obs = env.reset(
+        target_spectrum=data_point["spectrum"],
+        target_descriptors=data_point["descriptors"],
+        target_smiles=data_point["smiles"],
+    )
 
-    def __init__(self, env_class, encoder, config, n_envs: int, data: List[Dict]):
-        self.n_envs = n_envs
-        self.data = data
-        self.envs = [env_class(encoder, config=config) for _ in range(n_envs)]
-        self.encoder = encoder
+    total_reward = 0
+    steps = 0
 
-        # Current state for each env
-        self.obs = [None] * n_envs
-        self.data_points = [None] * n_envs
-        self.dones = [True] * n_envs  # Start as done to trigger reset
+    while True:
+        action, log_prob, value = agent.select_action(obs, deterministic=deterministic)
+        next_obs, reward, done, info = env.step(action)
 
-    def reset_env(self, idx: int):
-        """Reset a single environment with random data point."""
-        data_point = self.data[np.random.randint(len(self.data))]
-        self.data_points[idx] = data_point
-        self.obs[idx] = self.envs[idx].reset(
-            target_spectrum=data_point["spectrum"],
-            target_descriptors=data_point["descriptors"],
-            target_smiles=data_point["smiles"],
-        )
-        self.dones[idx] = False
-        return self.obs[idx]
+        if not deterministic:
+            agent.store_transition(obs, action, log_prob, reward, value, done)
 
-    def step_all(self, actions: List[int]) -> tuple:
-        """Step all environments, auto-resetting done ones."""
-        all_obs = []
-        all_rewards = []
-        all_dones = []
-        all_infos = []
+        total_reward += reward
+        steps += 1
+        obs = next_obs
 
-        for i in range(self.n_envs):
-            if self.dones[i]:
-                # Reset this env
-                obs = self.reset_env(i)
-                all_obs.append(obs)
-                all_rewards.append(0.0)
-                all_dones.append(False)
-                all_infos.append({})
-            else:
-                obs, reward, done, info = self.envs[i].step(actions[i])
-                self.obs[i] = obs
-                self.dones[i] = done
-                all_obs.append(obs)
-                all_rewards.append(reward)
-                all_dones.append(done)
-                all_infos.append(info)
+        if done:
+            break
 
-        return all_obs, all_rewards, all_dones, all_infos
-
-    def get_batch_obs(self) -> Dict[str, torch.Tensor]:
-        """Get batched observations for all envs."""
-        # Stack observations
-        tokens = torch.stack([torch.tensor(o['tokens']) for o in self.obs])
-        spectrum = torch.stack([torch.tensor(o['spectrum']) for o in self.obs])
-        descriptors = torch.stack([torch.tensor(o['descriptors']) for o in self.obs])
-
-        return {
-            'tokens': tokens,
-            'spectrum': spectrum,
-            'descriptors': descriptors,
-        }
+    return {
+        "reward": total_reward,
+        "steps": steps,
+        "valid": info.get("valid", False),
+        "exact_match": info.get("exact_match", False),
+        "tanimoto": info.get("tanimoto", 0.0),
+    }
 
 
 def train_fast(
     dataset: str = "hpj",
-    n_episodes: int = 10000,
-    n_envs: int = 32,  # Parallel environments
-    batch_size: int = 256,
-    rollout_steps: int = 512,  # Reduced from 2048
-    lr: float = 3e-4,
+    n_episodes: int = 5000,
+    n_envs: int = 16,  # Parallel environments (reduced for stability)
+    batch_size: int = 128,
+    rollout_episodes: int = 16,  # Episodes per rollout (not steps)
+    lr: float = 5e-5,  # Lower LR for stability
     gamma: float = 0.99,
     gae_lambda: float = 0.95,
-    n_epochs: int = 2,  # Reduced from 4
-    eval_interval: int = 50,  # More frequent
-    save_interval: int = 200,
+    n_epochs: int = 3,  # Fewer epochs to prevent overfitting
+    eval_interval: int = 100,
+    save_interval: int = 500,
     device: str = "auto",
+    entropy_coef: float = 0.05,  # Initial entropy coefficient
+    entropy_target: float = 2.0,  # Target entropy (log of vocab_size * 0.1)
 ):
-    """Fast training with parallel envs."""
+    """Fast training with parallel episode collection."""
     if device == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
     logger.info(f"Using device: {device}")
@@ -203,13 +172,8 @@ def train_fast(
 
     env_config = EnvConfig(max_length=100)
 
-    # Create parallel environments
-    parallel_envs = ParallelEnvs(
-        MoleculeGameEnv, encoder, env_config,
-        n_envs=n_envs, data=data["train"]
-    )
-
-    # Single env for evaluation
+    # Create N parallel environments
+    envs = [MoleculeGameEnv(encoder, config=env_config) for _ in range(n_envs)]
     eval_env = MoleculeGameEnv(encoder, config=env_config)
 
     policy = MoleculePolicy(
@@ -220,78 +184,59 @@ def train_fast(
         n_layers=2,
     )
 
-    agent_config = AgentConfig()
+    # Max entropy for vocab_size=44 is log(44)≈3.78
+    # Set min_entropy higher to prevent collapse
+    agent_config = AgentConfig(
+        entropy_coef=entropy_coef,
+        entropy_target=entropy_target,
+        min_entropy=2.0,  # Higher threshold - about 50% of max entropy
+        adaptive_entropy=True,
+        clip_eps=0.1,  # Tighter clipping for stability
+    )
     agent = PPOAgent(policy, config=agent_config, lr=lr, device=device)
 
     logger.info("=" * 60)
-    logger.info("FAST Training with Parallel Environments")
+    logger.info("FAST Training with Adaptive Entropy")
     logger.info(f"Episodes: {n_episodes}, Parallel Envs: {n_envs}")
-    logger.info(f"Rollout steps: {rollout_steps}, PPO epochs: {n_epochs}")
+    logger.info(f"Rollout episodes: {rollout_episodes}, PPO epochs: {n_epochs}")
+    logger.info(f"Learning rate: {lr}")
+    logger.info(f"Entropy: coef={entropy_coef}, target={entropy_target}, min=0.5")
+    logger.info(f"Adaptive entropy: ON (prevents policy collapse)")
     logger.info("=" * 60)
-
-    # Initialize all envs
-    for i in range(n_envs):
-        parallel_envs.reset_env(i)
 
     best_val_reward = -float('inf')
     episode_count = 0
-    total_steps = 0
+    all_episode_stats = []
     start_time = time.time()
 
-    episode_stats = []
-
     while episode_count < n_episodes:
-        # Collect rollout from parallel envs
-        rollout_rewards = [[] for _ in range(n_envs)]
-        rollout_valids = [[] for _ in range(n_envs)]
+        # Collect rollout_episodes episodes in parallel
+        rollout_stats = []
 
-        for step in range(rollout_steps // n_envs):
-            # Get batched observations
-            batch_obs = parallel_envs.get_batch_obs()
+        # Run episodes in parallel batches
+        episodes_this_rollout = 0
+        while episodes_this_rollout < rollout_episodes:
+            # Sample data points for each env
+            data_points = [
+                data["train"][np.random.randint(len(data["train"]))]
+                for _ in range(n_envs)
+            ]
 
-            # Batched action selection
-            with torch.no_grad():
-                tokens = batch_obs['tokens'].to(device)
-                spectrum = batch_obs['spectrum'].float().to(device)
-                descriptors = batch_obs['descriptors'].float().to(device)
+            # Run episodes in parallel (each env runs one episode)
+            for i, (env, dp) in enumerate(zip(envs, data_points)):
+                stats = run_episode(env, agent, dp, deterministic=False)
+                rollout_stats.append(stats)
+                all_episode_stats.append(stats)
+                episodes_this_rollout += 1
+                episode_count += 1
 
-                # Get actions for all envs at once
-                actions = []
-                log_probs = []
-                values = []
+                if episode_count >= n_episodes:
+                    break
 
-                for i in range(n_envs):
-                    obs = parallel_envs.obs[i]
-                    action, log_prob, value = agent.select_action(obs, deterministic=False)
-                    actions.append(action)
-                    log_probs.append(log_prob)
-                    values.append(value)
+            if episode_count >= n_episodes:
+                break
 
-            # Step all environments
-            all_obs, all_rewards, all_dones, all_infos = parallel_envs.step_all(actions)
-            total_steps += n_envs
-
-            # Store transitions
-            for i in range(n_envs):
-                if not all_dones[i] or all_rewards[i] != 0:  # Skip auto-reset steps
-                    agent.store_transition(
-                        parallel_envs.obs[i], actions[i], log_probs[i],
-                        all_rewards[i], values[i], all_dones[i]
-                    )
-
-                if all_dones[i] and all_infos[i]:
-                    rollout_rewards[i].append(sum(all_rewards))
-                    rollout_valids[i].append(all_infos[i].get('valid', False))
-                    episode_count += 1
-
-                    episode_stats.append({
-                        'reward': all_rewards[i],
-                        'valid': all_infos[i].get('valid', False),
-                        'tanimoto': all_infos[i].get('tanimoto', 0.0),
-                        'exact_match': all_infos[i].get('exact_match', False),
-                    })
-
-        # PPO update
+        # PPO update after collecting episodes
         if len(agent.buffer['rewards']) > batch_size:
             update_stats = agent.update(
                 n_epochs=n_epochs,
@@ -302,9 +247,9 @@ def train_fast(
         else:
             update_stats = {'policy_loss': 0, 'value_loss': 0, 'entropy': 0}
 
-        # Log progress
-        if episode_count % 10 == 0 and episode_stats:
-            recent = episode_stats[-min(100, len(episode_stats)):]
+        # Log progress every 10 episodes
+        if episode_count % 10 == 0 and rollout_stats:
+            recent = all_episode_stats[-min(100, len(all_episode_stats)):]
             mean_reward = np.mean([s['reward'] for s in recent])
             valid_rate = np.mean([s['valid'] for s in recent])
             tanimoto = np.mean([s['tanimoto'] for s in recent if s['valid']]) if any(s['valid'] for s in recent) else 0
@@ -312,38 +257,29 @@ def train_fast(
             elapsed = time.time() - start_time
             eps_per_min = episode_count / (elapsed / 60) if elapsed > 0 else 0
 
+            # Get current entropy coefficient
+            if agent.log_entropy_coef is not None:
+                current_ent_coef = agent.log_entropy_coef.exp().item()
+            else:
+                current_ent_coef = agent.config.entropy_coef
+
             logger.info(
                 f"Ep {episode_count:5d} | "
                 f"Reward: {mean_reward:.3f} | "
                 f"Tani: {tanimoto:.3f} | "
                 f"Valid: {valid_rate:.1%} | "
                 f"Exact: {exact_rate:.1%} | "
-                f"Speed: {eps_per_min:.1f} ep/min | "
-                f"Time: {elapsed/60:.1f}m"
+                f"Ent: {update_stats['entropy']:.2f} (α={current_ent_coef:.3f}) | "
+                f"Speed: {eps_per_min:.1f} ep/min"
             )
 
         # Evaluation
         if episode_count % eval_interval == 0 and episode_count > 0:
             val_results = []
-            for _ in range(50):  # Quick eval
+            for _ in range(50):
                 data_point = data["val"][np.random.randint(len(data["val"]))]
-                obs = eval_env.reset(
-                    target_spectrum=data_point["spectrum"],
-                    target_descriptors=data_point["descriptors"],
-                    target_smiles=data_point["smiles"],
-                )
-                total_reward = 0
-                while True:
-                    action, _, _ = agent.select_action(obs, deterministic=True)
-                    obs, reward, done, info = eval_env.step(action)
-                    total_reward += reward
-                    if done:
-                        break
-                val_results.append({
-                    'reward': total_reward,
-                    'valid': info.get('valid', False),
-                    'tanimoto': info.get('tanimoto', 0.0),
-                })
+                stats = run_episode(eval_env, agent, data_point, deterministic=True)
+                val_results.append(stats)
 
             val_reward = np.mean([r['reward'] for r in val_results])
             val_valid = np.mean([r['valid'] for r in val_results])
@@ -351,34 +287,80 @@ def train_fast(
 
             logger.info(f"[EVAL] Ep {episode_count}: Reward={val_reward:.3f}, Valid={val_valid:.1%}, Tani={val_tani:.3f}")
 
+            # Save metrics
+            metrics = {
+                "episode": episode_count,
+                "val_reward": val_reward,
+                "val_valid": val_valid,
+                "val_tanimoto": val_tani,
+            }
+            metrics_file = METRICS_DIR / f"episode_{episode_count:06d}.json"
+            with open(metrics_file, 'w') as f:
+                json.dump(metrics, f, indent=2)
+
             if val_reward > best_val_reward:
                 best_val_reward = val_reward
-                agent.save(str(CHECKPOINT_DIR / "best_model.pt"))
+                agent.save(str(CHECKPOINT_DIR / "best_model_fast.pt"))
                 logger.info(f"New best! Reward: {best_val_reward:.3f}")
 
-        # Save checkpoint
+        # Periodic checkpoint
         if episode_count % save_interval == 0 and episode_count > 0:
-            agent.save(str(CHECKPOINT_DIR / f"agent_ep{episode_count:06d}.pt"))
+            agent.save(str(CHECKPOINT_DIR / f"agent_fast_ep{episode_count:06d}.pt"))
             logger.info(f"Saved checkpoint at episode {episode_count}")
 
+    # Final evaluation
     logger.info("=" * 60)
-    logger.info("Training complete!")
+    logger.info("Final evaluation on test set")
+    test_results = []
+    for dp in tqdm(data["test"][:100], desc="Testing"):
+        stats = run_episode(eval_env, agent, dp, deterministic=True)
+        test_results.append(stats)
+
+    test_reward = np.mean([r['reward'] for r in test_results])
+    test_valid = np.mean([r['valid'] for r in test_results])
+    test_tani = np.mean([r['tanimoto'] for r in test_results if r['valid']]) if any(r['valid'] for r in test_results) else 0
+    test_exact = np.mean([r['exact_match'] for r in test_results])
+
+    logger.info(f"Test Results:")
+    logger.info(f"  Reward: {test_reward:.3f}")
+    logger.info(f"  Valid: {test_valid:.1%}")
+    logger.info(f"  Tanimoto: {test_tani:.3f}")
+    logger.info(f"  Exact Match: {test_exact:.1%}")
+
+    # Save final results
+    final_results = {
+        "dataset": dataset,
+        "n_episodes": n_episodes,
+        "test_reward": test_reward,
+        "test_valid": test_valid,
+        "test_tanimoto": test_tani,
+        "test_exact_match": test_exact,
+        "best_val_reward": best_val_reward,
+        "total_time_minutes": (time.time() - start_time) / 60,
+    }
+    results_file = RESULTS_DIR / f"fast_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    with open(results_file, 'w') as f:
+        json.dump(final_results, f, indent=2)
+
+    logger.info(f"Results saved to {results_file}")
     logger.info(f"Total time: {(time.time() - start_time)/60:.1f} minutes")
-    logger.info(f"Best validation reward: {best_val_reward:.3f}")
+    logger.info("Training complete!")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Fast RL training with parallel envs")
+    parser = argparse.ArgumentParser(description="Fast RL training with adaptive entropy")
     parser.add_argument("--dataset", type=str, default="hpj", choices=["hpj", "GNPS"])
-    parser.add_argument("--n_episodes", type=int, default=10000)
-    parser.add_argument("--n_envs", type=int, default=32)
-    parser.add_argument("--batch_size", type=int, default=256)
-    parser.add_argument("--rollout_steps", type=int, default=512)
-    parser.add_argument("--lr", type=float, default=3e-4)
-    parser.add_argument("--n_epochs", type=int, default=2)
-    parser.add_argument("--eval_interval", type=int, default=50)
-    parser.add_argument("--save_interval", type=int, default=200)
+    parser.add_argument("--n_episodes", type=int, default=5000)
+    parser.add_argument("--n_envs", type=int, default=16)
+    parser.add_argument("--batch_size", type=int, default=128)
+    parser.add_argument("--rollout_episodes", type=int, default=16)
+    parser.add_argument("--lr", type=float, default=5e-5)
+    parser.add_argument("--n_epochs", type=int, default=3)
+    parser.add_argument("--eval_interval", type=int, default=100)
+    parser.add_argument("--save_interval", type=int, default=500)
     parser.add_argument("--device", type=str, default="auto")
+    parser.add_argument("--entropy_coef", type=float, default=0.05, help="Initial entropy coefficient")
+    parser.add_argument("--entropy_target", type=float, default=2.0, help="Target entropy level")
 
     args = parser.parse_args()
 
@@ -387,12 +369,14 @@ def main():
         n_episodes=args.n_episodes,
         n_envs=args.n_envs,
         batch_size=args.batch_size,
-        rollout_steps=args.rollout_steps,
+        rollout_episodes=args.rollout_episodes,
         lr=args.lr,
         n_epochs=args.n_epochs,
         eval_interval=args.eval_interval,
         save_interval=args.save_interval,
         device=args.device,
+        entropy_coef=args.entropy_coef,
+        entropy_target=args.entropy_target,
     )
 
 

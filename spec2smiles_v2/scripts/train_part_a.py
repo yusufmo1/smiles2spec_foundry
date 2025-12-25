@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.config import settings, reload_config
 from src.domain.spectrum import process_spectrum
-from src.domain.descriptors import calculate_descriptors
+from src.domain.descriptors import calculate_descriptors, calculate_descriptors_batch
 from src.services.data_loader import DataLoaderService
 from src.services.part_a import PartAService
 from src.utils.paths import validate_input_dir
@@ -82,27 +82,35 @@ def main():
         from tqdm import tqdm
         from sklearn.model_selection import train_test_split
 
+        # Extract SMILES list for parallel descriptor calculation
+        smiles_list = [sample["smiles"] for sample in raw_data]
+
+        # Calculate descriptors in parallel (much faster for large datasets)
+        print(f"Calculating {len(settings.descriptor_names)} descriptors in parallel...")
+        all_descriptors, valid_mask = calculate_descriptors_batch(
+            smiles_list,
+            settings.descriptor_names,
+            return_valid_mask=True
+        )
+
+        # Process spectra only for valid molecules
         spectra = []
         descriptors = []
-        valid_smiles = []
+        desc_idx = 0
 
-        for sample in tqdm(raw_data, desc="Processing samples"):
-            # Process spectrum
-            spectrum = process_spectrum(
-                sample["peaks"],
-                n_bins=settings.n_bins,
-                bin_width=settings.bin_width,
-                max_mz=settings.max_mz,
-                transform=settings.transform,
-                normalize=settings.normalize,
-            )
-
-            # Calculate descriptors
-            desc = calculate_descriptors(sample["smiles"], settings.descriptor_names)
-            if desc is not None:
+        for i, sample in enumerate(tqdm(raw_data, desc="Processing spectra")):
+            if valid_mask[i]:
+                spectrum = process_spectrum(
+                    sample["peaks"],
+                    n_bins=settings.n_bins,
+                    bin_width=settings.bin_width,
+                    max_mz=settings.max_mz,
+                    transform=settings.transform,
+                    normalize=settings.normalize,
+                )
                 spectra.append(spectrum)
-                descriptors.append(desc)
-                valid_smiles.append(sample["smiles"])
+                descriptors.append(all_descriptors[desc_idx])
+                desc_idx += 1
 
         X = np.array(spectra)
         y = np.array(descriptors)

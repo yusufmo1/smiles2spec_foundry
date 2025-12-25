@@ -2,6 +2,7 @@
 
 This module defines the molecular descriptors used in the pipeline
 and provides functions to calculate them from SMILES strings.
+Supports ALL RDKit descriptors dynamically.
 """
 
 from typing import Callable, Dict, List, Optional, Tuple
@@ -51,7 +52,7 @@ _descriptor_funcs: Optional[Dict[str, Callable]] = None
 
 
 def _get_descriptor_functions() -> Dict[str, Callable]:
-    """Lazy initialization of RDKit descriptor functions.
+    """Lazy initialization of ALL RDKit descriptor functions.
 
     Returns:
         Dictionary mapping descriptor names to RDKit functions.
@@ -61,42 +62,10 @@ def _get_descriptor_functions() -> Dict[str, Callable]:
     if _descriptor_funcs is not None:
         return _descriptor_funcs
 
-    from rdkit.Chem import Descriptors, GraphDescriptors
+    from rdkit.Chem import Descriptors
 
-    _descriptor_funcs = {
-        # Original 12 descriptors
-        "MolWt": Descriptors.MolWt,
-        "HeavyAtomCount": Descriptors.HeavyAtomCount,
-        "NumHeteroatoms": Descriptors.NumHeteroatoms,
-        "NumAromaticRings": Descriptors.NumAromaticRings,
-        "RingCount": Descriptors.RingCount,
-        "NOCount": Descriptors.NOCount,
-        "NumHDonors": Descriptors.NumHDonors,
-        "NumHAcceptors": Descriptors.NumHAcceptors,
-        "TPSA": Descriptors.TPSA,
-        "MolLogP": Descriptors.MolLogP,
-        "NumRotatableBonds": Descriptors.NumRotatableBonds,
-        "FractionCSP3": Descriptors.FractionCSP3,
-        # Extended descriptors for uniqueness
-        "ExactMolWt": Descriptors.ExactMolWt,
-        "NumAliphaticRings": Descriptors.NumAliphaticRings,
-        "NumSaturatedRings": Descriptors.NumSaturatedRings,
-        "NumAromaticHeterocycles": Descriptors.NumAromaticHeterocycles,
-        "NumAromaticCarbocycles": Descriptors.NumAromaticCarbocycles,
-        "NumAliphaticHeterocycles": Descriptors.NumAliphaticHeterocycles,
-        "NumAliphaticCarbocycles": Descriptors.NumAliphaticCarbocycles,
-        "NumSaturatedHeterocycles": Descriptors.NumSaturatedHeterocycles,
-        "NumSaturatedCarbocycles": Descriptors.NumSaturatedCarbocycles,
-        "LabuteASA": Descriptors.LabuteASA,
-        "BalabanJ": GraphDescriptors.BalabanJ,
-        "BertzCT": GraphDescriptors.BertzCT,
-        "Chi0": GraphDescriptors.Chi0,
-        "Chi1": GraphDescriptors.Chi1,
-        "Chi2n": GraphDescriptors.Chi2n,
-        "Chi3n": GraphDescriptors.Chi3n,
-        "Chi4n": GraphDescriptors.Chi4n,
-        "HallKierAlpha": GraphDescriptors.HallKierAlpha,
-    }
+    # Build dictionary from ALL RDKit descriptors
+    _descriptor_funcs = {name: func for name, func in Descriptors.descList}
 
     return _descriptor_funcs
 
@@ -133,34 +102,61 @@ def calculate_descriptors(
 
     try:
         values = [funcs[name](mol) for name in descriptor_names]
-        return np.array(values, dtype=np.float32)
+        arr = np.array(values, dtype=np.float64)
+        # Replace inf/nan and clip to float32 range to avoid overflow
+        arr = np.nan_to_num(arr, nan=0.0, posinf=0.0, neginf=0.0)
+        arr = np.clip(arr, -3.4e38, 3.4e38)  # float32 max is ~3.4e38
+        return arr.astype(np.float32)
     except Exception:
         return None
+
+
+def _calc_desc_worker(args):
+    """Worker function for parallel descriptor calculation."""
+    smiles, descriptor_names = args
+    return calculate_descriptors(smiles, descriptor_names)
 
 
 def calculate_descriptors_batch(
     smiles_list: List[str],
     descriptor_names: Tuple[str, ...] = DESCRIPTOR_NAMES,
     return_valid_mask: bool = False,
+    n_jobs: int = -1,
 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-    """Calculate descriptors for multiple molecules.
+    """Calculate descriptors for multiple molecules in parallel.
 
     Args:
         smiles_list: List of SMILES strings
         descriptor_names: Tuple of descriptor names to calculate
         return_valid_mask: Whether to return mask of valid molecules
+        n_jobs: Number of parallel workers (-1 for all CPUs)
 
     Returns:
         Tuple of (descriptors array, valid mask if requested)
         Descriptors array has shape (n_valid, n_descriptors)
     """
+    import os
+    from multiprocessing import Pool, cpu_count
     from tqdm import tqdm
 
+    if n_jobs == -1:
+        n_jobs = cpu_count()
+
+    # Prepare arguments
+    args = [(smiles, descriptor_names) for smiles in smiles_list]
+
+    # Parallel processing with progress bar
     descriptors = []
     valid_mask = []
 
-    for smiles in tqdm(smiles_list, desc="Calculating descriptors"):
-        desc = calculate_descriptors(smiles, descriptor_names)
+    with Pool(n_jobs) as pool:
+        results = list(tqdm(
+            pool.imap(_calc_desc_worker, args, chunksize=100),
+            total=len(smiles_list),
+            desc=f"Calculating descriptors ({n_jobs} workers)"
+        ))
+
+    for desc in results:
         if desc is not None:
             descriptors.append(desc)
             valid_mask.append(True)

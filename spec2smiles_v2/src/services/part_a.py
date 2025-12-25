@@ -77,8 +77,10 @@ class PartAService:
         if verbose:
             print("Training Part A with Hybrid CNN-Transformer model")
 
-        # Fit scaler on training descriptors
+        # Fit scaler on training descriptors and transform
         self.scaler.fit(y_train)
+        y_train_scaled = self.scaler.transform(y_train)
+        y_val_scaled = self.scaler.transform(y_val) if y_val is not None else None
 
         # Create model via registry
         self.model = self._create_model()
@@ -87,9 +89,9 @@ class PartAService:
         if hasattr(self.model, "fit"):
             fit_params = {
                 "X_train": X_train,
-                "y_train": y_train,
+                "y_train": y_train_scaled,
                 "X_val": X_val,
-                "y_val": y_val,
+                "y_val": y_val_scaled,
                 "verbose": verbose,
             }
             # Add log_dir for neural models
@@ -100,11 +102,11 @@ class PartAService:
 
         self._trained = True
 
-        # Evaluate on validation set if provided
-        if X_val is not None and y_val is not None:
-            metrics = self.model.evaluate(X_val, y_val)
+        # Evaluate on validation set if provided (use scaled targets)
+        if X_val is not None and y_val_scaled is not None:
+            metrics = self.model.evaluate(X_val, y_val_scaled)
         else:
-            metrics = self.model.evaluate(X_train, y_train)
+            metrics = self.model.evaluate(X_train, y_train_scaled)
 
         return metrics
 
@@ -119,7 +121,9 @@ class PartAService:
         """
         if not self._trained:
             raise ModelError("Model must be trained before prediction")
-        return self.model.predict(X)
+        # Model predicts in scaled space, inverse transform to original scale
+        scaled_preds = self.model.predict(X)
+        return self.scaler.inverse_transform(scaled_preds)
 
     def predict_scaled(self, X: np.ndarray) -> np.ndarray:
         """Predict and scale descriptors for Part B input.
@@ -142,14 +146,16 @@ class PartAService:
 
         Args:
             X: Test spectra
-            y_true: True descriptors
+            y_true: True descriptors (unscaled)
 
         Returns:
             Dictionary mapping descriptor names to metric dictionaries
         """
         if not self._trained:
             raise ModelError("Model must be trained before evaluation")
-        return self.model.evaluate(X, y_true)
+        # Scale y_true to match model's training space
+        y_true_scaled = self.scaler.transform(y_true)
+        return self.model.evaluate(X, y_true_scaled)
 
     def get_summary_metrics(
         self, X: np.ndarray, y_true: np.ndarray
@@ -158,14 +164,16 @@ class PartAService:
 
         Args:
             X: Test spectra
-            y_true: True descriptors
+            y_true: True descriptors (unscaled)
 
         Returns:
             Dictionary with mean/median R2 and best/worst descriptors
         """
         if not self._trained:
             raise ModelError("Model must be trained before evaluation")
-        return self.model.get_summary_metrics(X, y_true)
+        # Scale y_true to match model's training space
+        y_true_scaled = self.scaler.transform(y_true)
+        return self.model.get_summary_metrics(X, y_true_scaled)
 
     # ===========================================
     # Persistence

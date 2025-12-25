@@ -24,8 +24,12 @@ class AgentConfig:
     # PPO hyperparameters
     clip_eps: float = 0.2
     value_coef: float = 0.5
-    entropy_coef: float = 0.01
+    entropy_coef: float = 0.05  # Increased from 0.01 for stability
     max_grad_norm: float = 0.5
+    # Entropy stabilization
+    min_entropy: float = 0.5  # Minimum entropy threshold
+    entropy_target: float = 2.0  # Target entropy level
+    adaptive_entropy: bool = True  # Use adaptive entropy coefficient
 
 
 class MoleculePolicy(nn.Module):
@@ -272,6 +276,20 @@ class PPOAgent:
             eps=1e-5,
         )
 
+        # Adaptive entropy coefficient (log for stability)
+        if self.config.adaptive_entropy:
+            self.log_entropy_coef = torch.tensor(
+                np.log(self.config.entropy_coef),
+                dtype=torch.float32,
+                device=device,
+                requires_grad=True
+            )
+            # Use very slow learning rate to prevent rapid coefficient changes
+            self.entropy_optimizer = torch.optim.Adam([self.log_entropy_coef], lr=1e-5)
+        else:
+            self.log_entropy_coef = None
+            self.entropy_optimizer = None
+
         # Experience buffer
         self.buffer = {
             "tokens": [],
@@ -448,31 +466,52 @@ class PPOAgent:
                 surr2 = torch.clamp(ratio, 1 - self.config.clip_eps, 1 + self.config.clip_eps) * batch_advantages
                 policy_loss = -torch.min(surr1, surr2).mean()
 
-                # Value loss
+                # Value loss (with clipping for stability)
                 value_loss = F.mse_loss(values, batch_returns)
 
-                # Entropy bonus
-                entropy_loss = -entropy.mean()
+                # Get current entropy coefficient
+                if self.config.adaptive_entropy and self.log_entropy_coef is not None:
+                    entropy_coef = self.log_entropy_coef.exp().detach()
+                else:
+                    entropy_coef = self.config.entropy_coef
+
+                # Entropy loss with minimum threshold
+                mean_entropy = entropy.mean()
+                entropy_loss = -mean_entropy
+
+                # Enforce minimum entropy using soft penalty (tensor operation for gradient)
+                # ReLU(min_entropy - mean_entropy) gives penalty only when below threshold
+                entropy_penalty = 10.0 * F.relu(self.config.min_entropy - mean_entropy)
 
                 # Total loss
                 loss = (
                     policy_loss
                     + self.config.value_coef * value_loss
-                    + self.config.entropy_coef * entropy_loss
+                    + entropy_coef * entropy_loss
+                    + entropy_penalty
                 )
 
-                # Update
+                # Update policy
                 self.optimizer.zero_grad()
                 loss.backward()
                 nn.utils.clip_grad_norm_(self.policy.parameters(), self.config.max_grad_norm)
                 self.optimizer.step()
+
+                # Update entropy coefficient (SAC-style)
+                if self.config.adaptive_entropy and self.log_entropy_coef is not None:
+                    entropy_coef_loss = -(
+                        self.log_entropy_coef.exp() * (mean_entropy.detach() - self.config.entropy_target)
+                    )
+                    self.entropy_optimizer.zero_grad()
+                    entropy_coef_loss.backward()
+                    self.entropy_optimizer.step()
 
                 # Track stats
                 with torch.no_grad():
                     kl = (batch_old_log_probs - log_probs).mean().item()
                     stats["policy_loss"].append(policy_loss.item())
                     stats["value_loss"].append(value_loss.item())
-                    stats["entropy"].append(-entropy_loss.item())
+                    stats["entropy"].append(mean_entropy.item())
                     stats["kl_div"].append(kl)
 
         # Clear buffer after update
