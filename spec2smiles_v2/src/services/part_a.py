@@ -20,6 +20,7 @@ from src.utils.exceptions import ModelError
 # Import models to trigger registration (required for decorator to run)
 import src.models.lgbm_ensemble  # noqa: F401
 import src.models.transformer_wrapper  # noqa: F401
+import src.models.hybrid_wrapper  # noqa: F401
 
 # Model file mapping for save/load
 MODEL_FILES = {

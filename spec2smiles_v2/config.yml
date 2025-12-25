@@ -36,7 +36,7 @@ descriptors:
 
 # Part A: Spectrum -> Descriptors
 part_a:
-  model: lgbm  # lgbm or transformer
+  model: lgbm  # lgbm, transformer, or hybrid
 
   lgbm:
     n_estimators: 1000
@@ -65,6 +65,21 @@ part_a:
     batch_size: 32
     gradient_clip: 1.0
     patience: 30
+
+  # Hybrid CNN-Transformer: combines local + global pattern recognition
+  hybrid:
+    cnn_hidden: 256           # CNN feature dimension
+    transformer_dim: 256      # Transformer model dimension
+    n_heads: 8                # Attention heads
+    n_transformer_layers: 4   # Transformer encoder layers
+    d_ff: 1024                # Feedforward dimension
+    dropout: 0.1
+    learning_rate: 0.0003     # Higher LR with OneCycleLR
+    weight_decay: 0.01
+    max_epochs: 300
+    batch_size: 32
+    gradient_clip: 1.0
+    patience: 40              # Longer patience for complex model
 
 # Part B: Descriptors -> SMILES
 part_b:

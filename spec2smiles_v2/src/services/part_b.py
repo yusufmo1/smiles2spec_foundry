@@ -320,7 +320,13 @@ class PartBService:
     # Persistence
     # ===========================================
     def save(self, output_dir: Path) -> None:
-        """Save trained model and encoder.
+        """Save trained model, encoder, and scaler state.
+
+        The integration package contains everything needed for inference:
+        - Model weights
+        - Encoder vocabulary
+        - Scaler parameters (for descriptor normalization)
+        - Model configuration
 
         Args:
             output_dir: Output directory
@@ -331,10 +337,11 @@ class PartBService:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save as integration package
+        # Save as integration package (includes scaler for reproducibility)
         package = {
             "model_state_dict": self.model.state_dict(),
             "encoder_state": self.encoder.get_state(),
+            "scaler_state": self.scaler.get_state(),  # Critical: save scaler
             "model_config": {
                 "vocab_size": self.model.vocab_size,
                 "descriptor_dim": self.model.descriptor_dim,
@@ -352,7 +359,7 @@ class PartBService:
         self.model.save(output_dir / "vae_model.pt")
 
     def load(self, model_dir: Path) -> "PartBService":
-        """Load trained model and encoder.
+        """Load trained model, encoder, and scaler state.
 
         Args:
             model_dir: Directory containing model files
@@ -371,6 +378,10 @@ class PartBService:
             # Load encoder
             self.encoder = SELFIESEncoder.from_state(package["encoder_state"])
 
+            # Load scaler state (critical for consistent scaling)
+            if "scaler_state" in package:
+                self.scaler.from_state(package["scaler_state"])
+
             # Load model
             config = package["model_config"]
             self.model = ConditionalVAE(
@@ -385,7 +396,7 @@ class PartBService:
             self.model.to(self.device)
             self.model.eval()
         else:
-            # Load from separate files
+            # Load from separate files (legacy format)
             encoder_path = model_dir / "encoder.pkl"
             if not encoder_path.exists():
                 raise ModelError(f"Encoder not found: {encoder_path}")
@@ -393,6 +404,11 @@ class PartBService:
             with open(encoder_path, "rb") as f:
                 encoder_state = pickle.load(f)
             self.encoder = SELFIESEncoder.from_state(encoder_state)
+
+            # Try to load scaler from Part A directory
+            scaler_path = model_dir / "descriptor_scaler.pkl"
+            if scaler_path.exists():
+                self.scaler.load(scaler_path)
 
             vae_path = model_dir / "vae_model.pt"
             if not vae_path.exists():

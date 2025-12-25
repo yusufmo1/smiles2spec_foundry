@@ -5,12 +5,14 @@ Usage:
     python scripts/visualize.py [--config config.yml] [--output-dir figures]
     python scripts/visualize.py --part-a-only
     python scripts/visualize.py --part-b-only
+    python scripts/visualize.py --hybrid-only
     python scripts/visualize.py --skip-missing
 
 Or via Makefile:
     make visualize
     make visualize-part-a
     make visualize-part-b
+    make visualize-hybrid
 """
 
 import argparse
@@ -163,6 +165,76 @@ def find_latest_epoch_log(log_dir: Path, model_name: str) -> Optional[Path]:
     return logs[0] if logs else None
 
 
+def plot_hybrid_training(log_path: Path, output_dir: Path) -> bool:
+    """Plot hybrid CNN-Transformer training curves from epoch log CSV.
+
+    Args:
+        log_path: Path to epoch log CSV (e.g., train_hybrid_*_epochs.csv)
+        output_dir: Directory to save figures
+
+    Returns:
+        True if plot was generated, False if log missing
+    """
+    if not log_path.exists():
+        print(f"  [SKIP] Hybrid epoch log not found: {log_path}")
+        return False
+
+    # Read CSV epoch log
+    epochs, train_loss, val_loss, train_r2, val_r2, lr = [], [], [], [], [], []
+    with open(log_path, newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            epochs.append(int(row["epoch"]))
+            train_loss.append(float(row["train_loss"]))
+            val_loss.append(float(row["val_loss"]))
+            train_r2.append(float(row["train_r2"]))
+            val_r2.append(float(row["val_r2"]))
+            lr.append(float(row["lr"]))
+
+    if not epochs:
+        print(f"  [SKIP] Empty epoch log: {log_path}")
+        return False
+
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+    # Plot 1: Loss curves
+    ax = axes[0]
+    ax.plot(epochs, train_loss, label="Train Loss", color="#1f77b4")
+    ax.plot(epochs, val_loss, label="Val Loss", color="#ff7f0e")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Loss (MSE)")
+    ax.set_title("Hybrid CNN-Transformer: Training Loss")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    # Plot 2: R² curves
+    ax = axes[1]
+    ax.plot(epochs, train_r2, label="Train R²", color="#2ca02c")
+    ax.plot(epochs, val_r2, label="Val R²", color="#d62728")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("R²")
+    ax.set_title("R² Performance")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    ax.set_ylim(0, 1)
+
+    # Plot 3: Learning rate schedule (OneCycleLR)
+    ax = axes[2]
+    ax.plot(epochs, lr, color="#9467bd")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("Learning Rate")
+    ax.set_title("OneCycleLR Schedule")
+    ax.grid(True, alpha=0.3)
+    ax.ticklabel_format(style="scientific", axis="y", scilimits=(0, 0))
+
+    plt.tight_layout()
+    output_path = output_dir / "part_a_hybrid_training.png"
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    print(f"  [OK] {output_path}")
+    return True
+
+
 def generate_part_a_plots(output_dir: Optional[Path] = None, skip_missing: bool = False) -> None:
     """Generate all Part A visualizations.
 
@@ -179,12 +251,18 @@ def generate_part_a_plots(output_dir: Optional[Path] = None, skip_missing: bool 
     metrics_path = settings.metrics_path / "part_a_metrics.json"
     plot_part_a_parity(metrics_path, output_dir)
 
-    # Training curves (transformer only)
-    log_path = find_latest_epoch_log(Path("logs"), "transformer")
-    if log_path:
-        plot_transformer_training(log_path, output_dir)
-    elif not skip_missing:
-        print("  [SKIP] No transformer epoch log found (LightGBM has no epoch-level logging)")
+    # Training curves for neural models
+    transformer_log = find_latest_epoch_log(Path("logs"), "transformer")
+    hybrid_log = find_latest_epoch_log(Path("logs"), "hybrid")
+
+    if transformer_log:
+        plot_transformer_training(transformer_log, output_dir)
+
+    if hybrid_log:
+        plot_hybrid_training(hybrid_log, output_dir)
+
+    if not transformer_log and not hybrid_log and not skip_missing:
+        print("  [SKIP] No neural model epoch logs found (LightGBM has no epoch-level logging)")
 
 
 # =============================================================================
@@ -412,6 +490,31 @@ def generate_pipeline_plots(output_dir: Optional[Path] = None, skip_missing: boo
 
 
 # =============================================================================
+# Hybrid Model Visualizations
+# =============================================================================
+
+
+def generate_hybrid_plots(output_dir: Optional[Path] = None, skip_missing: bool = False) -> None:
+    """Generate hybrid model-specific visualizations.
+
+    Args:
+        output_dir: Output directory (defaults to settings.figures_path)
+        skip_missing: If True, silently skip missing files
+    """
+    output_dir = output_dir or settings.figures_path
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print("Generating Hybrid model visualizations...")
+
+    # Training curves
+    hybrid_log = find_latest_epoch_log(Path("logs"), "hybrid")
+    if hybrid_log:
+        plot_hybrid_training(hybrid_log, output_dir)
+    elif not skip_missing:
+        print("  [SKIP] No hybrid epoch log found")
+
+
+# =============================================================================
 # Combined Generation Functions (for training scripts)
 # =============================================================================
 
@@ -476,6 +579,11 @@ Examples:
         help="Generate pipeline results plots only"
     )
     parser.add_argument(
+        "--hybrid-only",
+        action="store_true",
+        help="Generate hybrid model plots only"
+    )
+    parser.add_argument(
         "--skip-missing",
         action="store_true",
         help="Skip if metrics/log files are missing"
@@ -507,6 +615,8 @@ Examples:
         generate_part_b_plots(output_dir, args.skip_missing)
     elif args.pipeline_only:
         generate_pipeline_plots(output_dir, args.skip_missing)
+    elif args.hybrid_only:
+        generate_hybrid_plots(output_dir, args.skip_missing)
     else:
         generate_all_plots(output_dir, args.skip_missing)
 

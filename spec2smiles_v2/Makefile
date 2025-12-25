@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-a-lgbm train-part-a-transformer train-part-b train-part-b-vae train-full train-full-lgbm-vae train-full-transformer-vae predict evaluate visualize visualize-part-a visualize-part-b visualize-pipeline clean clean-logs lint format help
+.PHONY: install train-part-a train-part-a-lgbm train-part-a-transformer train-part-a-hybrid train-part-b train-part-b-vae train-full train-full-lgbm-vae train-full-transformer-vae train-full-hybrid-vae predict evaluate visualize visualize-part-a visualize-part-b visualize-pipeline visualize-hybrid clean clean-logs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -15,13 +15,15 @@ help:
 	@echo "  Training (Part A - Spectrum -> Descriptors):"
 	@echo "    make train-part-a-lgbm        LightGBM ensemble (fast)"
 	@echo "    make train-part-a-transformer Transformer (deep learning)"
+	@echo "    make train-part-a-hybrid      CNN-Transformer hybrid (local+global)"
 	@echo ""
 	@echo "  Training (Part B - Descriptors -> SMILES):"
 	@echo "    make train-part-b-vae         Conditional VAE with SELFIES"
 	@echo ""
 	@echo "  Training (Full Pipeline):"
-	@echo "    make train-full-lgbm-vae      LightGBM -> VAE"
-	@echo "    make train-full-transformer-vae Transformer -> VAE"
+	@echo "    make train-full-lgbm-vae         LightGBM -> VAE"
+	@echo "    make train-full-transformer-vae  Transformer -> VAE"
+	@echo "    make train-full-hybrid-vae       Hybrid CNN-Transformer -> VAE"
 	@echo ""
 	@echo "  Inference:"
 	@echo "    make predict          Run predictions"
@@ -34,6 +36,7 @@ help:
 	@echo "    make visualize-part-a    Generate Part A figures only"
 	@echo "    make visualize-part-b    Generate Part B figures only"
 	@echo "    make visualize-pipeline  Generate pipeline results figures"
+	@echo "    make visualize-hybrid    Generate hybrid model visualizations"
 	@echo ""
 	@echo "  Development:"
 	@echo "    make lint             Run linter (ruff)"
@@ -64,6 +67,9 @@ train-part-a-lgbm:
 train-part-a-transformer:
 	poetry run python scripts/train_part_a.py --model transformer $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_a_transformer_$$(date +%Y%m%d_%H%M%S).log
 
+train-part-a-hybrid:
+	poetry run python scripts/train_part_a.py --model hybrid $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_a_hybrid_$$(date +%Y%m%d_%H%M%S).log
+
 # Training Part B: Descriptors -> SMILES
 train-part-b: train-part-b-vae  # Default to VAE
 
@@ -78,6 +84,9 @@ train-full-lgbm-vae:
 
 train-full-transformer-vae:
 	$(MAKE) train-part-a-transformer CONFIG=$(CONFIG) && $(MAKE) train-part-b-vae CONFIG=$(CONFIG)
+
+train-full-hybrid-vae:
+	$(MAKE) train-part-a-hybrid CONFIG=$(CONFIG) && $(MAKE) train-part-b-vae CONFIG=$(CONFIG)
 
 # Inference
 predict:
@@ -98,6 +107,9 @@ visualize-part-b:
 
 visualize-pipeline:
 	poetry run python scripts/visualize.py --pipeline-only $(CONFIG_FLAG)
+
+visualize-hybrid:
+	poetry run python scripts/visualize.py --hybrid-only $(CONFIG_FLAG)
 
 # Development
 lint:

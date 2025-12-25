@@ -73,10 +73,28 @@ class TransformerConfig:
 
 
 @dataclass
+class HybridConfig:
+    """Configuration for HybridCNNTransformer model."""
+    cnn_hidden: int = 256
+    transformer_dim: int = 256
+    n_heads: int = 8
+    n_transformer_layers: int = 4
+    d_ff: int = 1024
+    dropout: float = 0.1
+    learning_rate: float = 3e-4
+    weight_decay: float = 0.01
+    max_epochs: int = 300
+    batch_size: int = 32
+    gradient_clip: float = 1.0
+    patience: int = 40
+
+
+@dataclass
 class PartAConfig:
-    model: Literal["lgbm", "transformer"] = "lgbm"
+    model: Literal["lgbm", "transformer", "hybrid"] = "lgbm"
     lgbm: LGBMConfig = field(default_factory=LGBMConfig)
     transformer: TransformerConfig = field(default_factory=TransformerConfig)
+    hybrid: HybridConfig = field(default_factory=HybridConfig)
 
 
 @dataclass
@@ -209,6 +227,10 @@ class Settings:
         return self.part_a.transformer
 
     @property
+    def hybrid(self) -> HybridConfig:
+        return self.part_a.hybrid
+
+    @property
     def vae(self) -> VAEConfig:
         return self.part_b.vae
 
@@ -318,6 +340,8 @@ def load_config(config_path: Optional[Path] = None) -> Settings:
             part_a_kwargs["lgbm"] = _dict_to_dataclass(LGBMConfig, part_a_data["lgbm"])
         if "transformer" in part_a_data:
             part_a_kwargs["transformer"] = _dict_to_dataclass(TransformerConfig, part_a_data["transformer"])
+        if "hybrid" in part_a_data:
+            part_a_kwargs["hybrid"] = _dict_to_dataclass(HybridConfig, part_a_data["hybrid"])
 
         settings_kwargs["part_a"] = PartAConfig(**part_a_kwargs)
 
