@@ -1,0 +1,36 @@
+{
+  "model": "HybridCNNTransformer",
+  "n_params": 32410630,
+  "config": {
+    "n_bins": 500,
+    "n_descriptors": 12,
+    "cnn_hidden": 512,
+    "transformer_dim": 512,
+    "n_heads": 8,
+    "n_transformer_layers": 6,
+    "d_ff": 2048,
+    "dropout": 0.1,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.01,
+    "warmup_steps": 200,
+    "max_epochs": 300,
+    "batch_size": 64,
+    "gradient_clip": 1.0,
+    "patience": 50
+  },
+  "best_val_r2": 0.793602446715037,
+  "per_descriptor_r2": {
+    "MolWt": 0.9413246996700764,
+    "HeavyAtomCount": 0.9390218444168568,
+    "NumHeteroatoms": 0.7788350284099579,
+    "NumAromaticRings": 0.8773606866598129,
+    "RingCount": 0.8547755479812622,
+    "NOCount": 0.7616961896419525,
+    "NumHDonors": 0.4500020742416382,
+    "NumHAcceptors": 0.680840790271759,
+    "TPSA": 0.6698444783687592,
+    "MolLogP": 0.8899329975247383,
+    "NumRotatableBonds": 0.8240312933921814,
+    "FractionCSP3": 0.8555637300014496
+  }
+}

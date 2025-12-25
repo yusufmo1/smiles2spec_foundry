@@ -1,0 +1,96 @@
+# SPEC2SMILES Pipeline Configuration
+
+# Paths
+paths:
+  data_input: data/input
+  data_output: data/output
+
+# Dataset
+dataset: hpj
+
+# Device: cuda, mps, cpu, auto
+device: auto
+
+# Spectrum Processing
+spectrum:
+  n_bins: 500
+  bin_width: 1.0
+  max_mz: 500.0
+  transform: sqrt  # sqrt, log, none
+  normalize: true
+
+# Molecular Descriptors
+descriptors:
+  - MolWt
+  - HeavyAtomCount
+  - NumHeteroatoms
+  - NumAromaticRings
+  - RingCount
+  - NOCount
+  - NumHDonors
+  - NumHAcceptors
+  - TPSA
+  - MolLogP
+  - NumRotatableBonds
+  - FractionCSP3
+
+# Part A: Spectrum -> Descriptors
+part_a:
+  model: lgbm  # lgbm or transformer
+
+  lgbm:
+    n_estimators: 1000
+    num_leaves: 31
+    learning_rate: 0.05
+    feature_fraction: 0.9
+    bagging_fraction: 0.8
+    bagging_freq: 5
+    reg_alpha: 0.1
+    reg_lambda: 0.1
+    early_stopping_rounds: 50
+    min_child_samples: 20
+    n_jobs: 8
+
+  transformer:
+    d_model: 256
+    n_heads: 8
+    n_layers: 6
+    d_ff: 1024
+    patch_size: 10
+    dropout: 0.1
+    learning_rate: 0.0001
+    weight_decay: 0.01
+    warmup_steps: 500
+    max_epochs: 200
+    batch_size: 32
+    gradient_clip: 1.0
+    patience: 30
+
+# Part B: Descriptors -> SMILES
+part_b:
+  model: vae
+
+  vae:
+    latent_dim: 128
+    hidden_dim: 256
+    n_layers: 2
+    dropout: 0.2
+    max_seq_len: 100
+    learning_rate: 0.001
+    n_epochs: 100
+    batch_size: 64
+    kl_cycle_length: 20
+    gradient_clip: 1.0
+
+# Inference
+inference:
+  n_candidates: 50
+  temperature: 0.7
+  top_p: 0.9
+
+# Data Split
+split:
+  train: 0.8
+  val: 0.1
+  test: 0.1
+  seed: 42
