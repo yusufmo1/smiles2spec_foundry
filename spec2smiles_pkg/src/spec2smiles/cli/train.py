@@ -241,3 +241,218 @@ def train_full(
         click.echo(f"Part A model: {part_a_dir}")
         click.echo(f"Part B model: {part_b_dir}")
         click.echo(f"Config saved: {output_dir / 'config.yaml'}")
+
+
+@train.command("transformer")
+@click.option(
+    "--data-dir",
+    "-d",
+    type=click.Path(exists=True, path_type=Path),
+    required=True,
+    help="Directory containing preprocessed train/val/test JSONL files",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(path_type=Path),
+    required=True,
+    help="Output directory for model and results",
+)
+@click.option(
+    "--d-model",
+    type=int,
+    default=256,
+    help="Model dimension (default: 256)",
+)
+@click.option(
+    "--n-heads",
+    type=int,
+    default=8,
+    help="Number of attention heads (default: 8)",
+)
+@click.option(
+    "--n-layers",
+    type=int,
+    default=6,
+    help="Number of transformer layers (default: 6)",
+)
+@click.option(
+    "--d-ff",
+    type=int,
+    default=1024,
+    help="Feed-forward dimension (default: 1024)",
+)
+@click.option(
+    "--patch-size",
+    type=int,
+    default=10,
+    help="Spectrum bins per patch (default: 10)",
+)
+@click.option(
+    "--dropout",
+    type=float,
+    default=0.1,
+    help="Dropout rate (default: 0.1)",
+)
+@click.option(
+    "--lr",
+    type=float,
+    default=1e-4,
+    help="Learning rate (default: 1e-4)",
+)
+@click.option(
+    "--epochs",
+    type=int,
+    default=200,
+    help="Maximum epochs (default: 200)",
+)
+@click.option(
+    "--batch-size",
+    type=int,
+    default=32,
+    help="Batch size (default: 32)",
+)
+@click.option(
+    "--patience",
+    type=int,
+    default=30,
+    help="Early stopping patience (default: 30)",
+)
+@click.option(
+    "--device",
+    type=str,
+    default="cuda",
+    help="Device for training (cuda, cpu, mps)",
+)
+@click.option(
+    "--verbose/--quiet",
+    default=True,
+    help="Show training progress",
+)
+def train_transformer_cmd(
+    data_dir: Path,
+    output_dir: Path,
+    d_model: int,
+    n_heads: int,
+    n_layers: int,
+    d_ff: int,
+    patch_size: int,
+    dropout: float,
+    lr: float,
+    epochs: int,
+    batch_size: int,
+    patience: int,
+    device: str,
+    verbose: bool,
+):
+    """Train Spectrum Transformer (Part A alternative).
+
+    Trains a Transformer model that predicts all molecular descriptors
+    jointly using multi-task learning and self-attention.
+
+    This is an alternative to the LightGBM ensemble that may achieve
+    higher accuracy by learning cross-descriptor correlations.
+
+    Example:
+        spec2smiles train transformer -d ./data/processed/hpj -o ./models/transformer
+        spec2smiles train transformer -d ./data/processed/hpj -o ./models/transformer --d-model 512 --n-layers 8
+    """
+    import json
+    import numpy as np
+    from spec2smiles.models.part_a.transformer import SpectrumTransformerConfig
+    from spec2smiles.models.part_a.transformer_trainer import train_transformer
+    from spec2smiles.core.config import DescriptorConfig
+
+    if verbose:
+        click.echo("=" * 60)
+        click.echo("TRAINING SPECTRUM TRANSFORMER: Spectrum -> Descriptors")
+        click.echo("=" * 60)
+
+    # Load data
+    if verbose:
+        click.echo(f"Loading data from {data_dir}...")
+
+    data_dir = Path(data_dir)
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Load train/val data
+    train_data = []
+    with open(data_dir / "train_data.jsonl") as f:
+        for line in f:
+            train_data.append(json.loads(line))
+
+    val_data = []
+    with open(data_dir / "val_data.jsonl") as f:
+        for line in f:
+            val_data.append(json.loads(line))
+
+    # Get descriptor names from config
+    desc_config = DescriptorConfig()
+    descriptor_names = list(desc_config.names)
+
+    # Extract spectra and descriptors
+    X_train = np.array([d["spectrum"] for d in train_data], dtype=np.float32)
+    y_train = np.array(
+        [[d["descriptors_dict"][name] for name in descriptor_names] for d in train_data],
+        dtype=np.float32,
+    )
+
+    X_val = np.array([d["spectrum"] for d in val_data], dtype=np.float32)
+    y_val = np.array(
+        [[d["descriptors_dict"][name] for name in descriptor_names] for d in val_data],
+        dtype=np.float32,
+    )
+
+    if verbose:
+        click.echo(f"  Train: {len(X_train)} samples")
+        click.echo(f"  Val: {len(X_val)} samples")
+        click.echo(f"  Spectrum bins: {X_train.shape[1]}")
+        click.echo(f"  Descriptors: {len(descriptor_names)}")
+
+    # Create config
+    config = SpectrumTransformerConfig(
+        n_bins=X_train.shape[1],
+        n_descriptors=len(descriptor_names),
+        d_model=d_model,
+        n_heads=n_heads,
+        n_layers=n_layers,
+        d_ff=d_ff,
+        patch_size=patch_size,
+        dropout=dropout,
+        learning_rate=lr,
+        max_epochs=epochs,
+        batch_size=batch_size,
+        patience=patience,
+    )
+
+    if verbose:
+        click.echo(f"\nTransformer configuration:")
+        click.echo(f"  d_model: {d_model}")
+        click.echo(f"  n_heads: {n_heads}")
+        click.echo(f"  n_layers: {n_layers}")
+        click.echo(f"  d_ff: {d_ff}")
+        click.echo(f"  patch_size: {patch_size}")
+        click.echo(f"  dropout: {dropout}")
+        click.echo(f"  learning_rate: {lr}")
+        click.echo(f"  batch_size: {batch_size}")
+        click.echo(f"  max_epochs: {epochs}")
+        click.echo(f"  patience: {patience}")
+        click.echo(f"  device: {device}")
+
+    # Train
+    results = train_transformer(
+        X_train=X_train,
+        y_train=y_train,
+        X_val=X_val,
+        y_val=y_val,
+        descriptor_names=descriptor_names,
+        output_dir=output_dir,
+        config=config,
+        device=device,
+    )
+
+    if verbose:
+        click.echo(f"\nTransformer training complete!")
+        click.echo(f"Best validation R²: {results['val_r2']:.4f}")
+        click.echo(f"Model saved to: {output_dir}")
