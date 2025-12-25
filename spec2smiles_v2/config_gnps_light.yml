@@ -1,4 +1,5 @@
-# SPEC2SMILES Pipeline Configuration - GNPS with ALL RDKit Descriptors
+# SPEC2SMILES Pipeline Configuration - GNPS with ALL RDKit Descriptors (LIGHT MODEL)
+# Sized appropriately for ~23k samples (~400k params vs 20M+ in full model)
 
 paths:
   data_input: data/input
@@ -222,20 +223,21 @@ descriptors:
   - fr_unbrch_alkane
   - fr_urea
 
-# Part A: Larger model for 217 outputs
+# Part A: LIGHT model sized for 23k samples (~400k params)
+# Rule: 10-100x more samples than parameters
 part_a:
-  cnn_hidden: 512
-  transformer_dim: 512
-  n_heads: 8
-  n_transformer_layers: 6
-  d_ff: 2048
-  dropout: 0.1
-  learning_rate: 0.001    # Higher LR for larger batch
+  cnn_hidden: 128        # was 512
+  transformer_dim: 128   # was 512
+  n_heads: 4             # was 8
+  n_transformer_layers: 2  # was 6
+  d_ff: 256              # was 2048
+  dropout: 0.2           # was 0.1 (higher for regularization)
+  learning_rate: 0.002   # Higher for larger batch
   weight_decay: 0.01
-  max_epochs: 300
-  batch_size: 1024        # Much larger for H200 GPU
+  max_epochs: 200        # was 300 (smaller model trains faster)
+  batch_size: 2048       # Very large for H200 GPU (small model = more room)
   gradient_clip: 1.0
-  patience: 50
+  patience: 30           # was 50 (smaller model converges faster)
 
 part_b:
   model: vae

@@ -1,0 +1,128 @@
+# SPEC2SMILES Pipeline - GNPS with OPTIMAL 69 descriptors (R² >= 0.5)
+# Uses light model architecture that performed best
+
+paths:
+  data_input: data/input
+  data_output: data/output
+
+dataset: gnps
+device: auto
+
+spectrum:
+  n_bins: 500
+  bin_width: 1.0
+  max_mz: 500.0
+  transform: sqrt
+  normalize: true
+
+# 69 descriptors with R² >= 0.5 (sorted by performance)
+descriptors:
+  - fr_thiocyan        # 0.876
+  - Chi2n              # 0.760
+  - Chi1n              # 0.759
+  - Chi0n              # 0.756
+  - Chi0v              # 0.754
+  - Chi2v              # 0.752
+  - Chi1v              # 0.752
+  - NumValenceElectrons # 0.750
+  - Chi3n              # 0.749
+  - LabuteASA          # 0.749
+  - Chi0               # 0.748
+  - MolMR              # 0.747
+  - HeavyAtomCount     # 0.746
+  - Chi1               # 0.743
+  - Kappa1             # 0.741
+  - ExactMolWt
+  - MolWt
+  - fr_phos_acid
+  - Chi3v
+  - HeavyAtomMolWt
+  - Chi4n
+  - Chi4v
+  - SMR_VSA5
+  - SMR_VSA4
+  - NumAtomStereoCenters
+  - NumSaturatedCarbocycles
+  - Kappa2
+  - SMR_VSA1
+  - SlogP_VSA4
+  - fr_phos_ester
+  - NumAliphaticCarbocycles
+  - Phi
+  - SlogP_VSA5
+  - NumHAcceptors
+  - NOCount
+  - EState_VSA10
+  - NumHeteroatoms
+  - PEOE_VSA1
+  - EState_VSA1
+  - SlogP_VSA2
+  - TPSA
+  - SPS
+  - NumSaturatedRings
+  - PEOE_VSA7
+  - qed
+  - Kappa3
+  - NumAliphaticRings
+  - fr_C_O_noCOO
+  - VSA_EState3
+  - AvgIpc
+  - SlogP_VSA3
+  - HallKierAlpha
+  - fr_amide
+  - VSA_EState2
+  - NumAmideBonds
+  - FractionCSP3
+  - fr_Al_OH
+  - fr_ether
+  - fr_C_O
+  - fr_Al_OH_noTert
+  - SMR_VSA3
+  - PEOE_VSA10
+  - SMR_VSA9
+  - NumRotatableBonds
+  - NumHDonors
+  - SlogP_VSA11
+  - NumAromaticRings
+  - RingCount
+  - fr_isothiocyan
+
+# Light model - proven best for GNPS dataset
+part_a:
+  cnn_hidden: 128
+  transformer_dim: 128
+  n_heads: 4
+  n_transformer_layers: 2
+  d_ff: 256
+  dropout: 0.2
+  learning_rate: 0.0005   # Lower LR for stability with large batch
+  weight_decay: 0.01
+  max_epochs: 200
+  batch_size: 2048
+  gradient_clip: 1.0
+  patience: 30
+
+part_b:
+  model: vae
+  vae:
+    latent_dim: 128
+    hidden_dim: 256
+    n_layers: 2
+    dropout: 0.2
+    max_seq_len: 100
+    learning_rate: 0.001
+    n_epochs: 100
+    batch_size: 64
+    kl_cycle_length: 20
+    gradient_clip: 1.0
+
+inference:
+  n_candidates: 50
+  temperature: 0.7
+  top_p: 0.9
+
+split:
+  train: 0.8
+  val: 0.1
+  test: 0.1
+  seed: 42

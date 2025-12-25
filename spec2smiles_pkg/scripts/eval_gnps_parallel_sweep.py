@@ -104,7 +104,7 @@ def generate_parallel_topp(
     total_samples = batch_size * n_samples
 
     # Start with SOS token
-    tokens = torch.full((total_samples, 1), SELFIESEncoder.SOS_IDX,
+    tokens = torch.full((total_samples, 1), SELFIESEncoder.START_IDX,
                        dtype=torch.long, device=device)
 
     finished = torch.zeros(total_samples, dtype=torch.bool, device=device)
@@ -159,7 +159,7 @@ def generate_parallel_topp(
         tokens = torch.cat([tokens, next_token], dim=1)
 
         # Update finished
-        finished = finished | (next_token.squeeze(-1) == SELFIESEncoder.EOS_IDX)
+        finished = finished | (next_token.squeeze(-1) == SELFIESEncoder.END_IDX)
 
     # Reshape: (batch, n_samples, seq_len)
     tokens = tokens.reshape(batch_size, n_samples, -1)
@@ -261,7 +261,7 @@ def main():
     TOP_P_VALUES = [0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.99]
     TEMPERATURE_VALUES = [0.5, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2]
     N_SAMPLES = 20  # Per config
-    BATCH_SIZE = 128  # Adjust based on VRAM
+    BATCH_SIZE = 128  # H200 has 141GB VRAM - go big
 
     print(f"\nSweep configuration:")
     print(f"  top_p values: {TOP_P_VALUES}")
