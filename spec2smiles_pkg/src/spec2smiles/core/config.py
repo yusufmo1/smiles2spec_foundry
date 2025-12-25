@@ -55,7 +55,7 @@ class PartAConfig:
     reg_lambda: float = 0.1
     early_stopping_rounds: int = 50
     min_child_samples: int = 20
-    n_jobs: int = -1
+    n_jobs: int = 8
     verbose: int = -1
 
     def to_lgbm_params(self) -> dict:

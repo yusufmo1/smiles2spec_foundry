@@ -371,7 +371,7 @@ def visualize_all(
 
             fig = plot_part_a_feature_importance(
                 feature_importances=feature_importances,
-                descriptor_names=descriptor_names,
+                descriptors_to_compare=descriptor_names,
             )
             save_figure(fig, output_dir / f"part_a_feature_importance.{format}", dpi=dpi)
             click.echo(f"  - Saved part_a_feature_importance.{format}")
