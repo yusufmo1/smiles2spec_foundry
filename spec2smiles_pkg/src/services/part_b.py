@@ -50,7 +50,7 @@ class PartBService:
             Tuple of (encoded_tokens, filtered_descriptors, valid_indices)
         """
         # Initialize encoder and build vocabulary
-        self.encoder = SELFIESEncoder(max_len=settings.vae_max_seq_len)
+        self.encoder = SELFIESEncoder(max_len=settings.vae.max_seq_len)
         _, valid_indices = self.encoder.build_vocab_from_smiles(smiles_list, verbose=verbose)
 
         # Encode SMILES to tokens
@@ -87,20 +87,21 @@ class PartBService:
             raise ModelError("Encoder not initialized. Call prepare_data first.")
 
         # Create model
+        cfg = settings.vae
         self.model = ConditionalVAE(
             vocab_size=self.encoder.vocab_size,
             descriptor_dim=descriptors.shape[1],
-            latent_dim=settings.vae_latent_dim,
-            hidden_dim=settings.vae_hidden_dim,
-            n_layers=settings.vae_n_layers,
-            dropout=settings.vae_dropout,
-            max_len=settings.vae_max_seq_len,
+            latent_dim=cfg.latent_dim,
+            hidden_dim=cfg.hidden_dim,
+            n_layers=cfg.n_layers,
+            dropout=cfg.dropout,
+            max_len=cfg.max_seq_len,
         )
         self.model.to(self.device)
 
         # Training loop
         optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=settings.vae_learning_rate
+            self.model.parameters(), lr=cfg.learning_rate
         )
 
         history = {"train_loss": [], "val_loss": [], "kl_loss": [], "recon_loss": []}
@@ -108,8 +109,8 @@ class PartBService:
         patience_counter = 0
         patience = 10
 
-        n_epochs = settings.vae_n_epochs
-        batch_size = settings.vae_batch_size
+        n_epochs = cfg.n_epochs
+        batch_size = cfg.batch_size
 
         for epoch in range(n_epochs):
             self.model.train()
@@ -154,14 +155,14 @@ class PartBService:
                 )
 
                 # Cyclical KL annealing
-                cycle_pos = epoch % settings.vae_kl_cycle_length
-                beta = min(1.0, cycle_pos / (settings.vae_kl_cycle_length / 2))
+                cycle_pos = epoch % cfg.kl_cycle_length
+                beta = min(1.0, cycle_pos / (cfg.kl_cycle_length / 2))
 
                 loss = recon_loss + beta * kl_loss
 
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(
-                    self.model.parameters(), settings.vae_gradient_clip
+                    self.model.parameters(), cfg.gradient_clip
                 )
                 optimizer.step()
 

@@ -1,0 +1,36 @@
+{
+  "model": "SpectrumTransformer",
+  "n_params": 33104908,
+  "config": {
+    "n_bins": 500,
+    "n_descriptors": 12,
+    "d_model": 512,
+    "n_heads": 8,
+    "n_layers": 8,
+    "d_ff": 2048,
+    "patch_size": 10,
+    "dropout": 0.1,
+    "learning_rate": 0.0001,
+    "weight_decay": 0.01,
+    "warmup_steps": 500,
+    "max_epochs": 300,
+    "batch_size": 64,
+    "gradient_clip": 1.0,
+    "patience": 50
+  },
+  "best_val_r2": 0.6079796229799589,
+  "per_descriptor_r2": {
+    "MolWt": 0.8424162715673447,
+    "HeavyAtomCount": 0.8534106761217117,
+    "NumHeteroatoms": 0.4873676896095276,
+    "NumAromaticRings": 0.8197683691978455,
+    "RingCount": 0.7093984484672546,
+    "NOCount": 0.4554086923599243,
+    "NumHDonors": 0.20917654037475586,
+    "NumHAcceptors": 0.43603038787841797,
+    "TPSA": 0.36626964807510376,
+    "MolLogP": 0.733195036649704,
+    "NumRotatableBonds": 0.6525441110134125,
+    "FractionCSP3": 0.7307696044445038
+  }
+}

@@ -1,33 +1,61 @@
-"""Part A service - Spectrum to Descriptors using LightGBM ensemble."""
+"""Part A service - Spectrum to Descriptors (model-agnostic).
 
+Supports multiple model backends:
+- lgbm: LightGBM ensemble (fast, lightweight)
+- transformer: SpectrumTransformer (deep learning)
+"""
+
+import json
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Literal, Optional, Union
 
 import numpy as np
 
 from src.config import settings
 from src.models.lgbm_ensemble import LGBMEnsemble
+from src.models.transformer_wrapper import TransformerWrapper
 from src.services.preprocessor import PreprocessorService
 from src.utils.exceptions import ModelError
 
+ModelType = Literal["lgbm", "transformer"]
+
 
 class PartAService:
-    """Service for training and inference of Spectrum -> Descriptors model."""
+    """Model-agnostic service for Spectrum -> Descriptors prediction.
 
-    def __init__(self, preprocessor: Optional[PreprocessorService] = None):
+    Supports switching between LightGBM and Transformer models via
+    model_type parameter or SPEC2SMILES_PART_A_MODEL env variable.
+    """
+
+    def __init__(
+        self,
+        model_type: Optional[ModelType] = None,
+        preprocessor: Optional[PreprocessorService] = None,
+    ):
         """Initialize Part A service.
 
         Args:
+            model_type: Model to use ("lgbm" or "transformer"). Defaults to settings.
             preprocessor: Preprocessor service (created if not provided)
         """
+        self.model_type: ModelType = model_type or settings.part_a_model
         self.preprocessor = preprocessor or PreprocessorService()
-        self.model: Optional[LGBMEnsemble] = None
+        self.model: Optional[Union[LGBMEnsemble, TransformerWrapper]] = None
         self._trained = False
 
     @property
     def is_trained(self) -> bool:
         """Check if model is trained."""
         return self._trained
+
+    def _create_model(self) -> Union[LGBMEnsemble, TransformerWrapper]:
+        """Factory method to create model based on model_type."""
+        if self.model_type == "lgbm":
+            return LGBMEnsemble()
+        elif self.model_type == "transformer":
+            return TransformerWrapper()
+        else:
+            raise ModelError(f"Unknown model type: {self.model_type}")
 
     def train(
         self,
@@ -37,7 +65,7 @@ class PartAService:
         y_val: Optional[np.ndarray] = None,
         verbose: bool = True,
     ) -> Dict[str, Dict[str, float]]:
-        """Train LightGBM ensemble on spectral data.
+        """Train model on spectral data.
 
         Args:
             X_train: Training spectra of shape (n_samples, n_bins)
@@ -49,11 +77,14 @@ class PartAService:
         Returns:
             Dictionary of per-descriptor metrics
         """
+        if verbose:
+            print(f"Training Part A with model: {self.model_type}")
+
         # Fit descriptor scaler on training data
         self.preprocessor.fit_scaler(y_train)
 
-        # Create and train model
-        self.model = LGBMEnsemble()
+        # Create and train model using factory
+        self.model = self._create_model()
         self.model.fit(X_train, y_train, X_val, y_val, verbose=verbose)
         self._trained = True
 
@@ -142,8 +173,16 @@ class PartAService:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Save model
-        self.model.save(output_dir / "lgbm_ensemble.pkl")
+        # Save model type metadata
+        metadata = {"model_type": self.model_type}
+        with open(output_dir / "model_type.json", "w") as f:
+            json.dump(metadata, f)
+
+        # Save model based on type
+        if self.model_type == "lgbm":
+            self.model.save(output_dir / "lgbm_ensemble.pkl")
+        else:  # transformer
+            self.model.save(output_dir / "transformer.pt")
 
         # Save scaler
         self.preprocessor.save_scaler(output_dir / "descriptor_scaler.pkl")
@@ -159,11 +198,30 @@ class PartAService:
         """
         model_dir = Path(model_dir)
 
-        # Load model
-        model_path = model_dir / "lgbm_ensemble.pkl"
-        if not model_path.exists():
-            raise ModelError(f"Model not found: {model_path}")
-        self.model = LGBMEnsemble.load(model_path)
+        # Detect model type from metadata or files
+        metadata_path = model_dir / "model_type.json"
+        if metadata_path.exists():
+            with open(metadata_path) as f:
+                metadata = json.load(f)
+            self.model_type = metadata["model_type"]
+        elif (model_dir / "lgbm_ensemble.pkl").exists():
+            self.model_type = "lgbm"
+        elif (model_dir / "transformer.pt").exists():
+            self.model_type = "transformer"
+        else:
+            raise ModelError(f"No model found in: {model_dir}")
+
+        # Load model based on type
+        if self.model_type == "lgbm":
+            model_path = model_dir / "lgbm_ensemble.pkl"
+            if not model_path.exists():
+                raise ModelError(f"Model not found: {model_path}")
+            self.model = LGBMEnsemble.load(model_path)
+        else:  # transformer
+            model_path = model_dir / "transformer.pt"
+            if not model_path.exists():
+                raise ModelError(f"Model not found: {model_path}")
+            self.model = TransformerWrapper.load(model_path)
 
         # Load scaler if exists
         scaler_path = model_dir / "descriptor_scaler.pkl"
