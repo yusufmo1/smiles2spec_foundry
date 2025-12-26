@@ -80,11 +80,25 @@ class AugmentConfig:
 
 
 @dataclass
+class DescriptorAugmentConfig:
+    """Configuration for descriptor noise augmentation.
+
+    Adds Gaussian noise matching LightGBM prediction errors during training.
+    This helps Part B generalize to imperfect descriptor predictions.
+    """
+    enabled: bool = False
+    noise_prob: float = 0.5  # Probability of adding noise per sample
+    noise_scale: float = 1.0  # Multiplier for RMSE (1.0 = full error)
+    rmse_path: Optional[str] = None  # Path to Part A metrics JSON
+
+
+@dataclass
 class PartBConfig:
     model: Literal["vae", "direct"] = "vae"
     vae: VAEConfig = field(default_factory=VAEConfig)
     direct: DirectDecoderConfig = field(default_factory=DirectDecoderConfig)
     augment: AugmentConfig = field(default_factory=AugmentConfig)
+    descriptor_augment: DescriptorAugmentConfig = field(default_factory=DescriptorAugmentConfig)
 
 
 @dataclass
@@ -186,6 +200,16 @@ class Settings:
     @property
     def n_augment(self) -> int: return self.part_b.augment.n_augment
 
+    # Descriptor augmentation accessors
+    @property
+    def desc_augment_enabled(self) -> bool: return self.part_b.descriptor_augment.enabled
+    @property
+    def desc_noise_prob(self) -> float: return self.part_b.descriptor_augment.noise_prob
+    @property
+    def desc_noise_scale(self) -> float: return self.part_b.descriptor_augment.noise_scale
+    @property
+    def desc_rmse_path(self) -> Optional[str]: return self.part_b.descriptor_augment.rmse_path
+
     # Split config accessors
     @property
     def train_ratio(self) -> float: return self.split.train
@@ -237,6 +261,10 @@ def load_config(config_path: Optional[Path] = None) -> Settings:
             pb_kwargs["direct"] = dict_to_dataclass(DirectDecoderConfig, pb["direct"])
         if "augment" in pb:
             pb_kwargs["augment"] = dict_to_dataclass(AugmentConfig, pb["augment"])
+        if "descriptor_augment" in pb:
+            pb_kwargs["descriptor_augment"] = dict_to_dataclass(
+                DescriptorAugmentConfig, pb["descriptor_augment"]
+            )
         kwargs["part_b"] = PartBConfig(**pb_kwargs)
 
     if "inference" in data:

@@ -58,6 +58,31 @@ def main():
         default=True,
         help="Show training progress"
     )
+    # Descriptor augmentation (noise injection)
+    parser.add_argument(
+        "--desc-augment",
+        action="store_true",
+        default=False,
+        help="Enable descriptor noise augmentation (simulates LightGBM errors)"
+    )
+    parser.add_argument(
+        "--noise-prob",
+        type=float,
+        default=0.5,
+        help="Probability of adding noise per sample (default: 0.5)"
+    )
+    parser.add_argument(
+        "--noise-scale",
+        type=float,
+        default=1.0,
+        help="Noise scale relative to RMSE (default: 1.0 = full error)"
+    )
+    parser.add_argument(
+        "--rmse-path",
+        type=Path,
+        default=None,
+        help="Path to Part A metrics JSON (auto-detected if not provided)"
+    )
     args = parser.parse_args()
 
     # Reload config if custom path provided
@@ -71,12 +96,26 @@ def main():
     # Determine model type (CLI arg overrides config)
     model_type = args.model or settings.part_b_model
 
+    # Determine RMSE path for descriptor augmentation
+    rmse_path = args.rmse_path
+    if args.desc_augment and rmse_path is None:
+        # Auto-detect Part A metrics
+        rmse_path = settings.metrics_path / "part_a_lgbm_metrics.json"
+        if not rmse_path.exists():
+            print(f"Warning: RMSE metrics not found at {rmse_path}")
+            print("  Run Part A evaluation first or provide --rmse-path")
+            rmse_path = None
+
     print("=" * 60)
     print(f"Training Part B (Descriptors -> SMILES)")
     print("=" * 60)
     print(f"Dataset:    {settings.dataset}")
     print(f"Model:      {model_type} ({'DirectDecoder' if model_type == 'direct' else 'ConditionalVAE'})")
-    print(f"Augment:    {'Yes (' + str(args.n_augment) + 'x)' if args.augment else 'No'}")
+    print(f"SMILES Aug: {'Yes (' + str(args.n_augment) + 'x)' if args.augment else 'No'}")
+    if args.desc_augment:
+        print(f"Desc Aug:   Yes (p={args.noise_prob}, scale={args.noise_scale})")
+    else:
+        print(f"Desc Aug:   No")
     print(f"Device:     {settings.torch_device}")
     print()
 
@@ -140,8 +179,15 @@ def main():
     print(f"  Val:   {len(val_smiles)} samples")
     print()
 
-    # Initialize Part B service with model type
-    service = PartBService(model_type=model_type)
+    # Initialize Part B service with model type and descriptor augmentation
+    service = PartBService(
+        model_type=model_type,
+        desc_augment=args.desc_augment,
+        noise_prob=args.noise_prob,
+        noise_scale=args.noise_scale,
+        rmse_path=rmse_path,
+        descriptor_names=settings.descriptor_names,
+    )
 
     # Scale descriptors FIRST (before encoding/filtering) - matching pkg behavior
     # This ensures scaler sees full distribution, not just filtered subset
@@ -202,8 +248,11 @@ def main():
     with open(metrics_path, "w") as f:
         json.dump({
             "model_type": model_type,
-            "augmented": args.augment,
-            "n_augment": args.n_augment if args.augment else 0,
+            "smiles_augmented": args.augment,
+            "n_smiles_augment": args.n_augment if args.augment else 0,
+            "desc_augmented": args.desc_augment,
+            "noise_prob": args.noise_prob if args.desc_augment else None,
+            "noise_scale": args.noise_scale if args.desc_augment else None,
             "final_train_loss": history["train_loss"][-1],
             "final_val_loss": history["val_loss"][-1] if history["val_loss"] else None,
             "n_epochs": len(history["train_loss"]),

@@ -17,6 +17,7 @@ def _get_settings():
     from src.config.settings import settings  # Import from settings.py directly, not __init__.py
     return settings
 from src.data.augment import augment_dataset
+from src.data.descriptor_augment import DescriptorAugmenter
 from src.models.direct_decoder import DirectDecoder
 from src.models.selfies_encoder import SELFIESEncoder
 from src.models.vae import ConditionalVAE
@@ -37,6 +38,11 @@ class PartBService:
         device: Optional[torch.device] = None,
         scaler: Optional[ScalerService] = None,
         model_type: Optional[str] = None,
+        desc_augment: bool = False,
+        noise_prob: float = 0.5,
+        noise_scale: float = 1.0,
+        rmse_path: Optional[Union[str, Path]] = None,
+        descriptor_names: Optional[List[str]] = None,
     ):
         """Initialize Part B service.
 
@@ -44,6 +50,11 @@ class PartBService:
             device: PyTorch device (defaults to _get_settings().torch_device)
             scaler: ScalerService instance (uses singleton if not provided)
             model_type: "vae" or "direct" (defaults to _get_settings().part_b_model)
+            desc_augment: Enable descriptor noise augmentation during training
+            noise_prob: Probability of adding noise per sample (0-1)
+            noise_scale: Noise scale relative to RMSE (1.0 = full error)
+            rmse_path: Path to Part A metrics JSON with per-descriptor RMSE
+            descriptor_names: List of descriptor names in order used by Part B
         """
         self.device = device or _get_settings().torch_device
         self.scaler = scaler or ScalerService.get_instance()
@@ -51,6 +62,19 @@ class PartBService:
         self.encoder: Optional[SELFIESEncoder] = None
         self.model: Optional[Union[ConditionalVAE, DirectDecoder]] = None
         self._trained = False
+
+        # Descriptor augmentation
+        self.desc_augment = desc_augment
+        self.noise_prob = noise_prob
+        self.noise_scale = noise_scale
+        self.descriptor_augmenter: Optional[DescriptorAugmenter] = None
+
+        if desc_augment and rmse_path is not None:
+            descriptor_names = descriptor_names or _get_settings().descriptor_names
+            self.descriptor_augmenter = DescriptorAugmenter.from_metrics(
+                rmse_path, descriptor_names
+            )
+            print(f"  Descriptor augmenter: {self.descriptor_augmenter}")
 
     @property
     def is_trained(self) -> bool:
@@ -192,6 +216,12 @@ class PartBService:
                 tokens = torch.LongTensor(encoded_tokens[batch_indices]).to(self.device)
                 desc = torch.FloatTensor(descriptors[batch_indices]).to(self.device)
 
+                # Apply descriptor augmentation (noise injection)
+                if self.descriptor_augmenter is not None:
+                    desc = self.descriptor_augmenter.augment(
+                        desc, p_noise=self.noise_prob, noise_scale=self.noise_scale
+                    )
+
                 optimizer.zero_grad()
 
                 # Forward pass
@@ -322,6 +352,13 @@ class PartBService:
             epoch_loss = 0.0
             for batch_tokens, batch_desc in train_loader:
                 batch_tokens, batch_desc = batch_tokens.to(self.device), batch_desc.to(self.device)
+
+                # Apply descriptor augmentation (noise injection)
+                if self.descriptor_augmenter is not None:
+                    batch_desc = self.descriptor_augmenter.augment(
+                        batch_desc, p_noise=self.noise_prob, noise_scale=self.noise_scale
+                    )
+
                 optimizer.zero_grad()
                 logits, targets = self.model(batch_tokens, batch_desc)
                 loss = criterion(logits.reshape(-1, self.encoder.vocab_size), targets.reshape(-1))
