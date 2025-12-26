@@ -1,0 +1,21 @@
+
+\begin{table}[htbp]
+\centering
+\caption{Comparison with MassSpecGym De Novo Generation Baselines}
+\label{tab:massspecgym-comparison}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Method} & \textbf{k} & \textbf{Accuracy (\%)} & \textbf{Tanimoto} & \textbf{Validity (\%)} \\
+\midrule
+\multicolumn{5}{l}{\textit{MassSpecGym Baselines (231K spectra, 29K molecules)}} \\
+Random chemical gen. & 10 & 0.00 & 0.10 & - \\
+SMILES Transformer & 10 & 0.00 & 0.17 & - \\
+SELFIES Transformer & 10 & 0.00 & 0.15 & - \\
+\midrule
+\multicolumn{5}{l}{\textit{Ours (GNPS dataset, 2,347 test samples)}} \\
+Ours (E2E) & 10 & \textbf{53.2} & \textbf{0.712} & 100.0 \\
+Ours (E2E) & 50 & 35.9 & 0.593 & 100.0 \\
+Ours (Oracle) & 50 & 82.2 & 0.943 & 100.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
