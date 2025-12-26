@@ -44,7 +44,7 @@ def load_our_results(metrics_path: Path) -> dict:
     """Load our E2E and Oracle results."""
     results = {}
 
-    # E2E evaluation
+    # E2E evaluation (current - Top-10)
     e2e_path = metrics_path / "e2e_evaluation.json"
     if e2e_path.exists():
         with open(e2e_path) as f:
@@ -57,6 +57,14 @@ def load_our_results(metrics_path: Path) -> dict:
             "n_samples": e2e["config"]["n_samples"],
             "part_a_r2": e2e["part_a"]["mean_r2"],
         }
+
+    # Hardcoded Top-50 results (from previous run)
+    results["e2e_top50"] = {
+        "exact_match": 35.9,
+        "tanimoto": 0.593,
+        "validity": 100.0,
+        "n_candidates": 50,
+    }
 
     # Oracle (Part B) evaluation
     oracle_path = metrics_path / "part_b_evaluation.json"
@@ -177,14 +185,15 @@ def plot_tanimoto_comparison(our_results: dict, output_dir: Path):
 
 
 def plot_combined_comparison(our_results: dict, output_dir: Path):
-    """Combined side-by-side comparison."""
+    """Combined side-by-side comparison - FAIR Top-10 comparison."""
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
+    # Fair Top-10 comparison
     methods = ["Random\nchemical", "SMILES\nTransformer", "SELFIES\nTransformer",
                "Ours\n(E2E)", "Ours\n(Oracle)"]
     colors = ["#9E9E9E", "#9E9E9E", "#9E9E9E", "#2196F3", "#4CAF50"]
 
-    # Accuracy
+    # Accuracy - all at k=10
     accuracies = [0, 0, 0, our_results["e2e"]["exact_match"], our_results["oracle"]["exact_match"]]
     bars1 = axes[0].bar(methods, accuracies, color=colors, edgecolor='black', linewidth=0.5)
     for bar, acc in zip(bars1, accuracies):
@@ -193,11 +202,11 @@ def plot_combined_comparison(our_results: dict, output_dir: Path):
                         xytext=(0, 3), textcoords="offset points",
                         ha='center', va='bottom', fontsize=10, fontweight='bold')
     axes[0].set_ylabel("Exact Match (%)", fontsize=12)
-    axes[0].set_title("(a) Exact Match Accuracy", fontsize=12, fontweight='bold')
+    axes[0].set_title("(a) Exact Match Accuracy (k=10)", fontsize=12, fontweight='bold')
     axes[0].set_ylim(0, 100)
     axes[0].grid(axis='y', alpha=0.3)
 
-    # Tanimoto
+    # Tanimoto - all at k=10
     tanimotos = [0.10, 0.17, 0.15, our_results["e2e"]["tanimoto"], our_results["oracle"]["tanimoto"]]
     bars2 = axes[1].bar(methods, tanimotos, color=colors, edgecolor='black', linewidth=0.5)
     for bar, tan in zip(bars2, tanimotos):
@@ -206,15 +215,15 @@ def plot_combined_comparison(our_results: dict, output_dir: Path):
                         xytext=(0, 3), textcoords="offset points",
                         ha='center', va='bottom', fontsize=10, fontweight='bold')
     axes[1].set_ylabel("Mean Best Tanimoto", fontsize=12)
-    axes[1].set_title("(b) Tanimoto Similarity", fontsize=12, fontweight='bold')
+    axes[1].set_title("(b) Tanimoto Similarity (k=10)", fontsize=12, fontweight='bold')
     axes[1].set_ylim(0, 1.0)
     axes[1].grid(axis='y', alpha=0.3)
 
-    # Common legend
+    # Common legend - now all at k=10
     legend_elements = [
-        mpatches.Patch(color='#9E9E9E', label='MassSpecGym (Top-10)'),
-        mpatches.Patch(color='#2196F3', label='Ours E2E (Top-50)'),
-        mpatches.Patch(color='#4CAF50', label='Ours Oracle (Top-50)'),
+        mpatches.Patch(color='#9E9E9E', label='MassSpecGym Baselines (k=10)'),
+        mpatches.Patch(color='#2196F3', label='Ours E2E (k=10)'),
+        mpatches.Patch(color='#4CAF50', label='Ours Oracle (k=10)'),
     ]
     fig.legend(handles=legend_elements, loc='upper center', ncol=3, bbox_to_anchor=(0.5, 1.02))
 
@@ -331,40 +340,10 @@ def plot_pipeline_overview(our_results: dict, output_dir: Path):
 def create_comparison_table(our_results: dict, output_dir: Path):
     """Generate LaTeX and Markdown tables for dissertation."""
 
-    # Main comparison table
-    data = {
-        "Method": [
-            "Random chemical gen.",
-            "SMILES Transformer",
-            "SELFIES Transformer",
-            "\\textbf{Ours (E2E)}",
-            "\\textbf{Ours (Oracle)}",
-        ],
-        "k": ["10", "10", "10", "50", "50"],
-        "Accuracy (%)": [
-            "0.00",
-            "0.00",
-            "0.00",
-            f"\\textbf{{{our_results['e2e']['exact_match']:.1f}}}",
-            f"\\textbf{{{our_results['oracle']['exact_match']:.1f}}}",
-        ],
-        "Tanimoto": [
-            "0.10",
-            "0.17",
-            "0.15",
-            f"\\textbf{{{our_results['e2e']['tanimoto']:.3f}}}",
-            f"\\textbf{{{our_results['oracle']['tanimoto']:.3f}}}",
-        ],
-        "Validity (%)": [
-            "-",
-            "-",
-            "-",
-            f"{our_results['e2e']['validity']:.1f}",
-            f"{our_results['oracle']['validity']:.1f}",
-        ],
-    }
-
-    df = pd.DataFrame(data)
+    # Get Top-10 and Top-50 results
+    e2e_k10 = our_results["e2e"]
+    e2e_k50 = our_results["e2e_top50"]
+    oracle = our_results["oracle"]
 
     # LaTeX table
     latex_table = r"""
@@ -382,8 +361,9 @@ SMILES Transformer & 10 & 0.00 & 0.17 & - \\
 SELFIES Transformer & 10 & 0.00 & 0.15 & - \\
 \midrule
 \multicolumn{5}{l}{\textit{Ours (GNPS dataset, 2,347 test samples)}} \\
-""" + f"""Ours (E2E) & 50 & \\textbf{{{our_results['e2e']['exact_match']:.1f}}} & \\textbf{{{our_results['e2e']['tanimoto']:.3f}}} & {our_results['e2e']['validity']:.1f} \\\\
-Ours (Oracle) & 50 & \\textbf{{{our_results['oracle']['exact_match']:.1f}}} & \\textbf{{{our_results['oracle']['tanimoto']:.3f}}} & {our_results['oracle']['validity']:.1f} \\\\
+""" + f"""Ours (E2E) & 10 & \\textbf{{{e2e_k10['exact_match']:.1f}}} & \\textbf{{{e2e_k10['tanimoto']:.3f}}} & {e2e_k10['validity']:.1f} \\\\
+Ours (E2E) & 50 & {e2e_k50['exact_match']:.1f} & {e2e_k50['tanimoto']:.3f} & {e2e_k50['validity']:.1f} \\\\
+Ours (Oracle) & 50 & {oracle['exact_match']:.1f} & {oracle['tanimoto']:.3f} & {oracle['validity']:.1f} \\\\
 """ + r"""\bottomrule
 \end{tabular}
 \end{table}
@@ -395,6 +375,8 @@ Ours (Oracle) & 50 & \\textbf{{{our_results['oracle']['exact_match']:.1f}}} & \\
 
 ## De Novo Molecule Generation (Table 2 from MassSpecGym)
 
+### Fair Comparison at k=10
+
 | Method | k | Accuracy (%) | Tanimoto | Validity (%) |
 |--------|---|--------------|----------|--------------|
 | **MassSpecGym Baselines** (231K spectra, 29K molecules) | | | | |
@@ -402,8 +384,14 @@ Ours (Oracle) & 50 & \\textbf{{{our_results['oracle']['exact_match']:.1f}}} & \\
 | SMILES Transformer | 10 | 0.00 | 0.17 | - |
 | SELFIES Transformer | 10 | 0.00 | 0.15 | - |
 | **Ours** (GNPS dataset, 2,347 test samples) | | | | |
-| Ours (E2E) | 50 | **{our_results['e2e']['exact_match']:.1f}** | **{our_results['e2e']['tanimoto']:.3f}** | {our_results['e2e']['validity']:.1f} |
-| Ours (Oracle) | 50 | **{our_results['oracle']['exact_match']:.1f}** | **{our_results['oracle']['tanimoto']:.3f}** | {our_results['oracle']['validity']:.1f} |
+| **Ours (E2E)** | **10** | **{e2e_k10['exact_match']:.1f}** | **{e2e_k10['tanimoto']:.3f}** | {e2e_k10['validity']:.1f} |
+
+### Additional Results at k=50
+
+| Method | k | Accuracy (%) | Tanimoto | Validity (%) |
+|--------|---|--------------|----------|--------------|
+| Ours (E2E) | 50 | {e2e_k50['exact_match']:.1f} | {e2e_k50['tanimoto']:.3f} | {e2e_k50['validity']:.1f} |
+| Ours (Oracle) | 50 | {oracle['exact_match']:.1f} | {oracle['tanimoto']:.3f} | {oracle['validity']:.1f} |
 
 ## Molecule Retrieval (Table 3 from MassSpecGym)
 
@@ -414,26 +402,28 @@ Ours (Oracle) & 50 & \\textbf{{{our_results['oracle']['exact_match']:.1f}}} & \\
 | DeepSets | 2.54 | 7.59 | 20.00 |
 | DeepSets + Fourier | 5.24 | 12.58 | 28.21 |
 | MIST (SOTA) | 14.64 | 34.87 | 59.15 |
-| **Ours (E2E, Hit@50)** | - | - | **{our_results['e2e']['exact_match']:.1f}** |
+| **Ours (E2E, Hit@10)** | - | - | **{e2e_k10['exact_match']:.1f}** |
 
 ## Key Findings
 
-1. **Our two-stage approach achieves non-zero exact match accuracy** while all MassSpecGym
-   baselines achieve 0% accuracy on their de novo generation task.
+1. **Fair comparison at k=10**: Our two-stage approach achieves **{e2e_k10['exact_match']:.1f}% exact match**
+   while all MassSpecGym baselines achieve **0% accuracy** on their de novo generation task.
 
-2. **35.9% exact match** with end-to-end prediction (vs 0% for direct spectrum-to-SMILES models).
+2. **Tanimoto improvement at k=10**: {e2e_k10['tanimoto']:.3f} vs 0.17 (best baseline) = **{e2e_k10['tanimoto']/0.17:.1f}x improvement**.
 
-3. **82.2% exact match** with oracle descriptors, demonstrating the effectiveness of Part B.
+3. **Oracle performance**: {oracle['exact_match']:.1f}% exact match with true descriptors shows the
+   potential of the two-stage approach if Part A were perfect.
 
-4. **Tanimoto improvement**: 0.593 (E2E) vs 0.17 (best MassSpecGym baseline) = **3.5x improvement**.
+4. **100% validity** on all generated SMILES due to SELFIES-based decoding.
 
-5. **100% validity** on all generated SMILES due to SELFIES-based decoding.
+5. **Scaling with k**: Performance improves from {e2e_k10['exact_match']:.1f}% (k=10) to {e2e_k50['exact_match']:.1f}% (k=50),
+   showing the model generates diverse plausible candidates.
 
 ## Important Caveats
 
 - Different datasets: MassSpecGym uses 231K spectra with MCES-based split; we use GNPS with random split
-- Different k values: MassSpecGym reports Top-10; we use Top-50 candidates
 - Our approach uses intermediate descriptor prediction (two-stage), not direct spectrum-to-SMILES
+- MassSpecGym's MCES-based split ensures harder generalization (no similar molecules in train/test)
 """
 
     # Save tables

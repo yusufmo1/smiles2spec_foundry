@@ -1,0 +1,13 @@
+============================================================
+TRAINING PART A: Spectrum -> Descriptors
+============================================================
+Loading data from ../spec2smiles/data/processed/hpj...
+  Train: 2176 samples
+  Val: 272 samples
+  Test: 272 samples
+
+Training LightGBM ensemble...
+Training LightGBM models:   0%|          | 0/12 [00:00<?, ?it/s]/home/yusuf/smiles2spec_foundry/spec2smiles_pkg/.venv/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM models:   8%|▊         | 1/12 [02:30<27:30, 150.07s/it]/home/yusuf/smiles2spec_foundry/spec2smiles_pkg/.venv/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
