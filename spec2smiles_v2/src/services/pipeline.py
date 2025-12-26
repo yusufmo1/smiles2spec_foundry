@@ -27,7 +27,7 @@ class PipelineService:
     def __init__(self):
         """Initialize pipeline services."""
         self.preprocessor = PreprocessorService()
-        self.part_a = PartAService(preprocessor=self.preprocessor)
+        self.part_a = PartAService()
         self.part_b = PartBService()
         self._loaded = False
 

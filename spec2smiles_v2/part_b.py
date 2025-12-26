@@ -9,13 +9,7 @@ import torch
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
-# Access settings via getter function to ensure we always get the current (reloaded) settings
-from src.config.settings import settings as _default_settings
-
-def _get_settings():
-    """Get current settings (works with reload_config)."""
-    from src.config.settings import settings  # Import from settings.py directly, not __init__.py
-    return settings
+from src.config import settings
 from src.data.augment import augment_dataset
 from src.models.direct_decoder import DirectDecoder
 from src.models.selfies_encoder import SELFIESEncoder
@@ -41,13 +35,13 @@ class PartBService:
         """Initialize Part B service.
 
         Args:
-            device: PyTorch device (defaults to _get_settings().torch_device)
+            device: PyTorch device (defaults to settings.torch_device)
             scaler: ScalerService instance (uses singleton if not provided)
-            model_type: "vae" or "direct" (defaults to _get_settings().part_b_model)
+            model_type: "vae" or "direct" (defaults to settings.part_b_model)
         """
-        self.device = device or _get_settings().torch_device
+        self.device = device or settings.torch_device
         self.scaler = scaler or ScalerService.get_instance()
-        self.model_type = model_type or _get_settings().part_b_model
+        self.model_type = model_type or settings.part_b_model
         self.encoder: Optional[SELFIESEncoder] = None
         self.model: Optional[Union[ConditionalVAE, DirectDecoder]] = None
         self._trained = False
@@ -71,14 +65,14 @@ class PartBService:
             smiles_list: List of SMILES strings
             descriptors: Descriptor array of shape (n_samples, n_descriptors)
             verbose: Whether to show progress
-            augment: Whether to augment data (defaults to _get_settings().augment_enabled)
-            n_augment: Number of augmentations per sample (defaults to _get_settings().n_augment)
+            augment: Whether to augment data (defaults to settings.augment_enabled)
+            n_augment: Number of augmentations per sample (defaults to settings.n_augment)
 
         Returns:
             Tuple of (encoded_tokens, filtered_descriptors, valid_indices)
         """
-        augment = augment if augment is not None else _get_settings().augment_enabled
-        n_augment = n_augment if n_augment is not None else _get_settings().n_augment
+        augment = augment if augment is not None else settings.augment_enabled
+        n_augment = n_augment if n_augment is not None else settings.n_augment
 
         # Apply SMILES augmentation if enabled
         if augment and n_augment > 0:
@@ -89,7 +83,7 @@ class PartBService:
                 print(f"  Augmented dataset size: {len(smiles_list)}")
 
         # Get max_seq_len from appropriate config
-        max_len = _get_settings().vae.max_seq_len if self.model_type == "vae" else _get_settings().direct.max_seq_len
+        max_len = settings.vae.max_seq_len if self.model_type == "vae" else settings.direct.max_seq_len
 
         # Initialize encoder and build vocabulary
         self.encoder = SELFIESEncoder(max_len=max_len)
@@ -134,7 +128,7 @@ class PartBService:
             return self._train_direct(encoded_tokens, descriptors, val_tokens, val_descriptors, verbose, log_dir)
 
         # VAE training (default)
-        cfg = _get_settings().vae
+        cfg = settings.vae
         self.model = ConditionalVAE(
             vocab_size=self.encoder.vocab_size,
             descriptor_dim=descriptors.shape[1],
@@ -284,7 +278,7 @@ class PartBService:
         verbose: bool, log_dir: Optional[Path],
     ) -> Dict[str, List[float]]:
         """Train DirectDecoder model."""
-        cfg = _get_settings().direct
+        cfg = settings.direct
         self.model = DirectDecoder(
             vocab_size=self.encoder.vocab_size,
             descriptor_dim=descriptors.shape[1],
@@ -300,19 +294,11 @@ class PartBService:
             print(f"DirectDecoder: {n_params:,} parameters")
 
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=cfg.learning_rate, weight_decay=0.01)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cfg.n_epochs)
         criterion = torch.nn.CrossEntropyLoss(ignore_index=SELFIESEncoder.PAD_IDX, label_smoothing=cfg.label_smoothing)
 
         train_dataset = TensorDataset(torch.LongTensor(tokens), torch.FloatTensor(descriptors))
         train_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, shuffle=True)
-
-        # OneCycleLR scheduler (matching pkg) with per-batch stepping
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            optimizer,
-            max_lr=cfg.learning_rate,
-            epochs=cfg.n_epochs,
-            steps_per_epoch=len(train_loader),
-            pct_start=0.1,  # 10% warmup
-        )
 
         history = {"train_loss": [], "val_loss": []}
         best_val_loss, patience_counter = float("inf"), 0
@@ -328,9 +314,9 @@ class PartBService:
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), cfg.gradient_clip)
                 optimizer.step()
-                scheduler.step()  # Per-batch stepping for OneCycleLR
                 epoch_loss += loss.item()
 
+            scheduler.step()
             train_loss = epoch_loss / len(train_loader)
             history["train_loss"].append(train_loss)
 

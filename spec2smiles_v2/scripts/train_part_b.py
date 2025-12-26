@@ -143,28 +143,31 @@ def main():
     # Initialize Part B service with model type
     service = PartBService(model_type=model_type)
 
+    # Scale descriptors FIRST (before encoding/filtering) - matching pkg behavior
+    # This ensures scaler sees full distribution, not just filtered subset
+    print("Scaling descriptors...")
+    scaled_train_descriptors = service.scaler.fit_transform(train_descriptors)
+    scaled_val_descriptors = service.scaler.transform(val_descriptors)
+
     # Prepare data (build vocabulary, encode, and optionally augment)
+    # Pass pre-scaled descriptors
     print("Preparing training data...")
-    encoded_train, filtered_train_desc, train_indices = service.prepare_data(
-        train_smiles, train_descriptors, verbose=args.verbose,
+    encoded_train, scaled_train_desc, train_indices = service.prepare_data(
+        train_smiles, scaled_train_descriptors, verbose=args.verbose,
         augment=args.augment, n_augment=args.n_augment if args.augment else 0,
     )
 
     print(f"Valid training samples: {len(train_indices)}/{len(train_smiles)}")
     print(f"Vocabulary size: {service.encoder.vocab_size}")
 
-    # Prepare validation data
-    encoded_val, filtered_val_desc, val_indices = service.encoder.batch_encode(
+    # Prepare validation data (with pre-scaled descriptors)
+    encoded_val, scaled_val_desc, val_indices = service.encoder.batch_encode(
         val_smiles, verbose=False
     )
-    filtered_val_desc = val_descriptors[[i for i, s in enumerate(val_smiles)
-                                          if service.encoder.smiles_to_selfies(s) is not None]]
-
-    # Scale descriptors
-    from sklearn.preprocessing import StandardScaler
-    scaler = StandardScaler()
-    scaled_train_desc = scaler.fit_transform(filtered_train_desc)
-    scaled_val_desc = scaler.transform(filtered_val_desc) if len(filtered_val_desc) > 0 else None
+    # Filter scaled val descriptors to valid SELFIES indices
+    valid_val_indices = [i for i, s in enumerate(val_smiles)
+                         if service.encoder.smiles_to_selfies(s) is not None]
+    scaled_val_desc = scaled_val_descriptors[valid_val_indices] if valid_val_indices else None
 
     # Setup log directory for live epoch logging
     log_dir = Path("logs")

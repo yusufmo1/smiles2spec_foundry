@@ -62,21 +62,22 @@ part_a:
   gradient_clip: 1.0
   patience: 30
 
-# Part B: DirectDecoder (Large model ~57M params)
+# Part B: DirectDecoder (Small model ~17M params)
+# Uses OneCycleLR scheduler + weight_decay=0.01 (matching pkg)
 part_b:
   model: direct
   direct:
-    hidden_dim: 768
-    n_layers: 6
-    n_heads: 12
+    hidden_dim: 512          # Small model (was 768)
+    n_layers: 4              # Small model (was 6)
+    n_heads: 8               # Small model (was 12)
     dropout: 0.1
     max_seq_len: 100
-    learning_rate: 0.0003
-    n_epochs: 200
-    batch_size: 64
+    learning_rate: 0.0003    # Match pkg (was 0.0001)
+    n_epochs: 100
+    batch_size: 128          # Match pkg (was 64)
     label_smoothing: 0.1
     gradient_clip: 1.0
-    patience: 30
+    patience: 30             # Match pkg (was 15)
 
 inference:
   n_candidates: 50

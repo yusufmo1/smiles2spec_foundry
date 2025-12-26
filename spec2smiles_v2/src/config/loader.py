@@ -49,6 +49,7 @@ def find_config_path(config_path: Optional[Path] = None) -> Optional[Path]:
         Path to config file, or None if not found
     """
     if config_path is not None:
+        config_path = Path(config_path)  # Handle both str and Path
         return config_path if config_path.exists() else None
 
     possible_paths = [
