@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-b train-part-b-vae train-part-b-direct train-part-b-vae-augmented train-part-b-direct-augmented train-full predict evaluate eval-nucleus eval-nucleus-sweep visualize visualize-part-a visualize-part-b visualize-pipeline visualize-hybrid clean clean-output clean-logs init-dirs lint format help
+.PHONY: install train-part-a train-part-b train-part-b-vae train-part-b-direct train-part-b-vae-augmented train-part-b-direct-augmented train-full predict evaluate eval-nucleus eval-nucleus-sweep viz viz-part-a viz-part-b viz-pipeline viz-benchmark visualize clean clean-output clean-logs init-dirs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -33,11 +33,11 @@ help:
 	@echo "    make eval-nucleus-sweep  Parameter sweep for nucleus sampling"
 	@echo ""
 	@echo "  Visualization:"
-	@echo "    make visualize           Generate all visualization figures"
-	@echo "    make visualize-part-a    Generate Part A figures only"
-	@echo "    make visualize-part-b    Generate Part B figures only"
-	@echo "    make visualize-pipeline  Generate pipeline results figures"
-	@echo "    make visualize-hybrid    Generate hybrid model visualizations"
+	@echo "    make viz                 Generate all figures"
+	@echo "    make viz-part-a          Part A figures only"
+	@echo "    make viz-part-b          Part B figures only"
+	@echo "    make viz-pipeline        Pipeline comparison figures"
+	@echo "    make viz-benchmark       MassSpecGym benchmark comparison"
 	@echo ""
 	@echo "  Development:"
 	@echo "    make lint             Run linter (ruff)"
@@ -98,20 +98,22 @@ eval-nucleus:
 eval-nucleus-sweep:
 	poetry run python scripts/eval_nucleus.py --sweep $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/eval_nucleus_sweep_$$(date +%Y%m%d_%H%M%S).log
 
-visualize:
+viz: ## Regenerate all figures
 	poetry run python scripts/visualize.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/visualize_$$(date +%Y%m%d_%H%M%S).log
 
-visualize-part-a:
-	poetry run python scripts/visualize.py --part-a-only $(CONFIG_FLAG)
+viz-part-a: ## Part A figures only
+	poetry run python scripts/visualize.py --part-a $(CONFIG_FLAG)
 
-visualize-part-b:
-	poetry run python scripts/visualize.py --part-b-only $(CONFIG_FLAG)
+viz-part-b: ## Part B figures only
+	poetry run python scripts/visualize.py --part-b $(CONFIG_FLAG)
 
-visualize-pipeline:
-	poetry run python scripts/visualize.py --pipeline-only $(CONFIG_FLAG)
+viz-pipeline: ## Pipeline comparison figures
+	poetry run python scripts/visualize.py --pipeline $(CONFIG_FLAG)
 
-visualize-hybrid:
-	poetry run python scripts/visualize.py --hybrid-only $(CONFIG_FLAG)
+viz-benchmark: ## MassSpecGym benchmark comparison
+	poetry run python scripts/visualize.py --benchmark $(CONFIG_FLAG)
+
+visualize: viz  ## Backwards compatibility alias
 
 # Development
 lint:
