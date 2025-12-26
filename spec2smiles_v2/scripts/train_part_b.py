@@ -83,6 +83,13 @@ def main():
         default=None,
         help="Path to Part A metrics JSON (auto-detected if not provided)"
     )
+    # Option 1: Train on predicted descriptors (recommended for E2E)
+    parser.add_argument(
+        "--use-predicted-descriptors",
+        action="store_true",
+        default=False,
+        help="Train on Part A predicted descriptors instead of true descriptors"
+    )
     args = parser.parse_args()
 
     # Reload config if custom path provided
@@ -112,10 +119,12 @@ def main():
     print(f"Dataset:    {settings.dataset}")
     print(f"Model:      {model_type} ({'DirectDecoder' if model_type == 'direct' else 'ConditionalVAE'})")
     print(f"SMILES Aug: {'Yes (' + str(args.n_augment) + 'x)' if args.augment else 'No'}")
-    if args.desc_augment:
+    if args.use_predicted_descriptors:
+        print(f"Desc Mode:  PREDICTED (Option 1 - train on Part A predictions)")
+    elif args.desc_augment:
         print(f"Desc Aug:   Yes (p={args.noise_prob}, scale={args.noise_scale})")
     else:
-        print(f"Desc Aug:   No")
+        print(f"Desc Aug:   No (using TRUE descriptors)")
     print(f"Device:     {settings.torch_device}")
     print()
 
@@ -179,6 +188,31 @@ def main():
     print(f"  Val:   {len(val_smiles)} samples")
     print()
 
+    # Option 1: Load predicted descriptors if requested
+    if args.use_predicted_descriptors:
+        pred_train_path = processed_dir / "train_predicted_descriptors.npy"
+        pred_val_path = processed_dir / "val_predicted_descriptors.npy"
+
+        if not pred_train_path.exists():
+            print(f"Error: Predicted descriptors not found at {pred_train_path}")
+            print("Run generate_predicted_descriptors.py first")
+            sys.exit(1)
+
+        print("Loading predicted descriptors (Option 1)...")
+        # Keep TRUE descriptors for scaler fitting
+        true_train_descriptors = train_descriptors.copy()
+
+        # Load predicted descriptors for training
+        train_descriptors = np.load(pred_train_path)
+        val_descriptors = np.load(pred_val_path)
+
+        print(f"  Loaded train predictions: {train_descriptors.shape}")
+        print(f"  Loaded val predictions: {val_descriptors.shape}")
+
+        # Calculate prediction error for diagnostics
+        pred_error = np.sqrt(np.mean((train_descriptors - true_train_descriptors) ** 2))
+        print(f"  Train RMSE (pred vs true): {pred_error:.4f}")
+
     # Initialize Part B service with model type and descriptor augmentation
     service = PartBService(
         model_type=model_type,
@@ -192,8 +226,17 @@ def main():
     # Scale descriptors FIRST (before encoding/filtering) - matching pkg behavior
     # This ensures scaler sees full distribution, not just filtered subset
     print("Scaling descriptors...")
-    scaled_train_descriptors = service.scaler.fit_transform(train_descriptors)
-    scaled_val_descriptors = service.scaler.transform(val_descriptors)
+
+    if args.use_predicted_descriptors:
+        # CRITICAL: Fit scaler on TRUE descriptors, then transform PREDICTED
+        # This maintains consistency with inference where scaler was fitted on true values
+        print("  Fitting scaler on TRUE descriptors (for consistency with inference)...")
+        service.scaler.fit(true_train_descriptors)
+        scaled_train_descriptors = service.scaler.transform(train_descriptors)
+        scaled_val_descriptors = service.scaler.transform(val_descriptors)
+    else:
+        scaled_train_descriptors = service.scaler.fit_transform(train_descriptors)
+        scaled_val_descriptors = service.scaler.transform(val_descriptors)
 
     # Prepare data (build vocabulary, encode, and optionally augment)
     # Pass pre-scaled descriptors
@@ -250,6 +293,7 @@ def main():
             "model_type": model_type,
             "smiles_augmented": args.augment,
             "n_smiles_augment": args.n_augment if args.augment else 0,
+            "use_predicted_descriptors": args.use_predicted_descriptors,
             "desc_augmented": args.desc_augment,
             "noise_prob": args.noise_prob if args.desc_augment else None,
             "noise_scale": args.noise_scale if args.desc_augment else None,
