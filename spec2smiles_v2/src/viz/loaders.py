@@ -44,3 +44,22 @@ def read_epoch_log(log_path: Path) -> dict:
                 if key in row:
                     data[key].append(float(row[key]))
     return data
+
+
+def load_e2e_predictions(metrics_dir: Path) -> list:
+    """Load E2E predictions with all candidates.
+
+    Returns list of dicts with keys:
+    - true_smiles, true_canonical
+    - all_candidates (list of SMILES)
+    - best_candidate, best_tanimoto
+    - exact_match
+    """
+    path = metrics_dir / "e2e_predictions_lgbm.jsonl"
+    if not path.exists():
+        return []
+    predictions = []
+    with open(path) as f:
+        for line in f:
+            predictions.append(json.loads(line))
+    return predictions

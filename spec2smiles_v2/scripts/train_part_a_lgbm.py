@@ -242,6 +242,20 @@ def main():
     with open(output_dir / "models.pkl", "wb") as f:
         pickle.dump(models, f)
 
+    # Generate and save test set predictions for visualization
+    print("\nGenerating test predictions for visualization...")
+    y_pred_test = np.zeros_like(y_test)
+    for idx, name in enumerate(descriptor_names):
+        model = models[name]
+        y_pred_test[:, idx] = model.predict(X_test)
+
+    # Save predictions as numpy arrays
+    predictions_dir = settings.metrics_path
+    predictions_dir.mkdir(parents=True, exist_ok=True)
+    np.save(predictions_dir / "part_a_lgbm_y_true.npy", y_test)
+    np.save(predictions_dir / "part_a_lgbm_y_pred.npy", y_pred_test)
+    print(f"  Saved test predictions: {y_test.shape}")
+
     # Save metrics
     metrics_path = settings.metrics_path / "part_a_lgbm_metrics.json"
     metrics_path.parent.mkdir(parents=True, exist_ok=True)

@@ -9,25 +9,73 @@ from .constants import COLORS
 from .loaders import find_latest_log, read_epoch_log
 
 
-def plot_metrics(metrics: dict, output_dir: Path) -> bool:
-    """Plot R² scores for all descriptors."""
-    if "part_a_hybrid" not in metrics:
-        print("  [SKIP] Part A hybrid metrics not found")
+def plot_metrics(metrics: dict, output_dir: Path, metrics_dir: Path = None) -> bool:
+    """Plot true vs predicted scatter plots for all descriptors."""
+    if "part_a_lgbm" not in metrics:
+        print("  [SKIP] Part A LightGBM metrics not found")
         return False
 
-    per_desc = metrics["part_a_hybrid"].get("per_descriptor", {})
-    fig, axes = plt.subplots(3, 4, figsize=(16, 12))
+    # Try to load prediction data
+    if metrics_dir is None:
+        metrics_dir = output_dir.parent / "metrics"
+
+    y_true_path = metrics_dir / "part_a_lgbm_y_true.npy"
+    y_pred_path = metrics_dir / "part_a_lgbm_y_pred.npy"
+
+    if not y_true_path.exists() or not y_pred_path.exists():
+        print("  [SKIP] Prediction data not found - run train_part_a_lgbm.py first")
+        return False
+
+    y_true = np.load(y_true_path)
+    y_pred = np.load(y_pred_path)
+
+    per_desc = metrics["part_a_lgbm"].get("per_descriptor", {})
+    descriptor_names = list(per_desc.keys())
+
+    # Sort by R² (best first)
+    r2_values = [per_desc[name].get("R2", per_desc[name].get("r2", 0)) for name in descriptor_names]
+    sorted_idx = np.argsort(r2_values)[::-1]
+    descriptor_names = [descriptor_names[i] for i in sorted_idx]
+
+    # Create 4x4 grid for top 16 descriptors (or less)
+    n_plots = min(16, len(descriptor_names))
+    n_cols = 4
+    n_rows = (n_plots + n_cols - 1) // n_cols
+
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(16, 4 * n_rows))
     axes = axes.flatten()
 
-    for i, (name, data) in enumerate(list(per_desc.items())[:12]):
+    for i in range(n_plots):
         ax = axes[i]
-        r2 = data.get("R2", data.get("r2", 0))
-        rmse = data.get("RMSE", data.get("rmse", 0))
-        ax.set_title(f"{name}\nR² = {r2:.3f}, RMSE = {rmse:.2f}")
-        ax.set_xlabel("True")
-        ax.set_ylabel("Predicted")
-        ax.text(0.05, 0.95, f"R² = {r2:.3f}", transform=ax.transAxes, va="top")
+        name = descriptor_names[i]
 
+        # Find original index for this descriptor
+        orig_idx = list(per_desc.keys()).index(name)
+
+        y_t = y_true[:, orig_idx]
+        y_p = y_pred[:, orig_idx]
+
+        r2 = per_desc[name].get("R2", per_desc[name].get("r2", 0))
+        rmse = per_desc[name].get("RMSE", per_desc[name].get("rmse", 0))
+
+        # Scatter plot
+        ax.scatter(y_t, y_p, alpha=0.5, s=10, color=COLORS["lgbm"])
+
+        # Perfect prediction line
+        min_val = min(y_t.min(), y_p.min())
+        max_val = max(y_t.max(), y_p.max())
+        ax.plot([min_val, max_val], [min_val, max_val], "r--", linewidth=1, label="Perfect")
+
+        ax.set_xlabel("True", fontsize=9)
+        ax.set_ylabel("Predicted", fontsize=9)
+        ax.set_title(f"{name}\nR² = {r2:.3f}, RMSE = {rmse:.2f}", fontsize=10)
+        ax.grid(True, alpha=0.3)
+
+    # Hide unused subplots
+    for i in range(n_plots, len(axes)):
+        axes[i].axis("off")
+
+    plt.suptitle("Part A (LightGBM): True vs Predicted Descriptors", fontsize=14, fontweight="bold")
     plt.tight_layout()
     plt.savefig(output_dir / "part_a_metrics.png", dpi=150, bbox_inches="tight")
     plt.close()
@@ -138,12 +186,13 @@ def plot_comparison(metrics: dict, output_dir: Path) -> bool:
     return True
 
 
-def generate_part_a(metrics: dict, output_dir: Path, log_dir: Path = None) -> None:
+def generate_part_a(metrics: dict, output_dir: Path, log_dir: Path = None, metrics_dir: Path = None) -> None:
     """Generate all Part A visualizations."""
     output_dir.mkdir(parents=True, exist_ok=True)
     log_dir = log_dir or Path("logs")
+    metrics_dir = metrics_dir or output_dir.parent / "metrics"
 
     print("Generating Part A visualizations...")
-    plot_metrics(metrics, output_dir)
+    plot_metrics(metrics, output_dir, metrics_dir)
     plot_training(log_dir, output_dir)
     plot_comparison(metrics, output_dir)

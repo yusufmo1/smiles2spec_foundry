@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-b train-part-b-vae train-part-b-direct train-part-b-vae-augmented train-part-b-direct-augmented train-full predict evaluate eval-nucleus eval-nucleus-sweep viz viz-part-a viz-part-b viz-pipeline viz-benchmark visualize clean clean-output clean-logs init-dirs lint format help
+.PHONY: install train-part-a train-part-b train-part-b-vae train-part-b-direct train-part-b-vae-augmented train-part-b-direct-augmented train-full predict evaluate eval-nucleus eval-nucleus-sweep viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis visualize clean clean-output clean-logs init-dirs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -38,6 +38,7 @@ help:
 	@echo "    make viz-part-b          Part B figures only"
 	@echo "    make viz-pipeline        Pipeline comparison figures"
 	@echo "    make viz-benchmark       MassSpecGym benchmark comparison"
+	@echo "    make viz-analysis        Hit@K and Tanimoto analysis"
 	@echo ""
 	@echo "  Development:"
 	@echo "    make lint             Run linter (ruff)"
@@ -112,6 +113,9 @@ viz-pipeline: ## Pipeline comparison figures
 
 viz-benchmark: ## MassSpecGym benchmark comparison
 	poetry run python scripts/visualize.py --benchmark $(CONFIG_FLAG)
+
+viz-analysis: ## Hit@K and Tanimoto analysis figures
+	poetry run python scripts/visualize.py --analysis $(CONFIG_FLAG)
 
 visualize: viz  ## Backwards compatibility alias
 
