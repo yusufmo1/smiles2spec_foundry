@@ -178,7 +178,7 @@ def main():
         sys.exit(1)
 
     print("Loading model...")
-    service = PartBService(model_type="direct")
+    service = PartBService()
     service.load(model_dir)
 
     if not isinstance(service.model, DirectDecoder):

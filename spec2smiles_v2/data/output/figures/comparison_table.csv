@@ -2,5 +2,5 @@ Method,k,Accuracy (%),Tanimoto,Validity (%)
 Random,10,0.00,0.10,-
 SMILES Transformer,10,0.00,0.17,-
 SELFIES Transformer,10,0.00,0.15,-
-Ours (E2E),10,53.2,0.712,100.0
+Ours (E2E),10,36.1,0.575,100.0
 Ours (Oracle),10,82.2,0.943,100.0
