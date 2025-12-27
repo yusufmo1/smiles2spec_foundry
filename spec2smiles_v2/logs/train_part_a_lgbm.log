@@ -1,0 +1,126 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+============================================================
+Training Part A (Spectrum -> Descriptors) with LightGBM
+============================================================
+Dataset:     gnps
+Descriptors: 28
+Workers:     32
+
+Loading and preprocessing raw data...
+Loaded 23481/23630 valid samples
+Calculating 28 descriptors in parallel...
+Calculating descriptors (32 workers):   0%|          | 0/23481 [00:00<?, ?it/s]Calculating descriptors (32 workers):   0%|          | 1/23481 [00:16<110:28:31, 16.94s/it]Calculating descriptors (32 workers):   3%|▎         | 601/23481 [00:47<27:09, 14.04it/s]  Calculating descriptors (32 workers):  31%|███       | 7201/23481 [00:48<01:11, 229.09it/s]Calculating descriptors (32 workers):  76%|███████▌  | 17901/23481 [00:48<00:07, 716.45it/s]Calculating descriptors (32 workers):  98%|█████████▊| 23101/23481 [00:49<00:00, 1024.97it/s]Calculating descriptors (32 workers): 100%|██████████| 23481/23481 [00:49<00:00, 475.48it/s] 
+Processing spectra:   0%|          | 0/23481 [00:00<?, ?it/s]Processing spectra:   1%|          | 200/23481 [00:00<00:11, 1945.18it/s]Processing spectra:   2%|▏         | 395/23481 [00:00<00:18, 1230.91it/s]Processing spectra:   3%|▎         | 603/23481 [00:00<00:15, 1522.90it/s]Processing spectra:   9%|▊         | 2008/23481 [00:00<00:03, 5650.38it/s]Processing spectra:  12%|█▏        | 2746/23481 [00:00<00:03, 6001.00it/s]Processing spectra:  15%|█▍        | 3500/23481 [00:00<00:03, 6467.36it/s]Processing spectra:  18%|█▊        | 4192/23481 [00:00<00:03, 4926.08it/s]Processing spectra:  20%|██        | 4765/23481 [00:01<00:08, 2279.36it/s]Processing spectra:  22%|██▏       | 5186/23481 [00:01<00:08, 2222.98it/s]Processing spectra:  24%|██▎       | 5539/23481 [00:01<00:08, 2024.75it/s]Processing spectra:  25%|██▍       | 5830/23481 [00:02<00:09, 1907.78it/s]Processing spectra:  26%|██▌       | 6080/23481 [00:02<00:09, 1828.53it/s]Processing spectra:  27%|██▋       | 6387/23481 [00:02<00:08, 2039.39it/s]Processing spectra:  28%|██▊       | 6690/23481 [00:02<00:07, 2231.79it/s]Processing spectra:  30%|██▉       | 6954/23481 [00:03<00:14, 1106.02it/s]Processing spectra:  31%|███       | 7288/23481 [00:03<00:11, 1390.86it/s]Processing spectra:  33%|███▎      | 7638/23481 [00:03<00:09, 1718.90it/s]Processing spectra:  34%|███▎      | 7909/23481 [00:03<00:14, 1076.75it/s]Processing spectra:  35%|███▍      | 8114/23481 [00:04<00:14, 1048.13it/s]Processing spectra:  36%|███▌      | 8397/23481 [00:04<00:11, 1292.57it/s]Processing spectra:  37%|███▋      | 8602/23481 [00:04<00:12, 1155.84it/s]Processing spectra:  37%|███▋      | 8772/23481 [00:04<00:12, 1178.99it/s]Processing spectra:  38%|███▊      | 8972/23481 [00:04<00:10, 1325.65it/s]Processing spectra:  39%|███▉      | 9174/23481 [00:04<00:09, 1466.16it/s]Processing spectra:  40%|███▉      | 9388/23481 [00:04<00:08, 1617.75it/s]Processing spectra:  41%|████▏     | 9700/23481 [00:04<00:06, 1982.27it/s]Processing spectra:  42%|████▏     | 9927/23481 [00:05<00:06, 1947.72it/s]Processing spectra:  43%|████▎     | 10168/23481 [00:05<00:06, 2064.22it/s]Processing spectra:  44%|████▍     | 10390/23481 [00:05<00:06, 1993.51it/s]Processing spectra:  45%|████▌     | 10603/23481 [00:05<00:06, 2028.68it/s]Processing spectra:  46%|████▌     | 10815/23481 [00:05<00:06, 2051.46it/s]Processing spectra:  47%|████▋     | 11027/23481 [00:05<00:07, 1681.02it/s]Processing spectra:  48%|████▊     | 11210/23481 [00:05<00:07, 1678.24it/s]Processing spectra:  49%|████▊     | 11401/23481 [00:05<00:06, 1732.96it/s]Processing spectra:  49%|████▉     | 11583/23481 [00:05<00:06, 1741.51it/s]Processing spectra:  50%|█████     | 11764/23481 [00:06<00:06, 1749.27it/s]Processing spectra:  51%|█████     | 11945/23481 [00:06<00:06, 1762.72it/s]Processing spectra:  52%|█████▏    | 12257/23481 [00:06<00:05, 2150.00it/s]Processing spectra:  53%|█████▎    | 12492/23481 [00:06<00:04, 2206.78it/s]Processing spectra:  55%|█████▍    | 12807/23481 [00:06<00:04, 2481.82it/s]Processing spectra:  56%|█████▌    | 13131/23481 [00:06<00:03, 2704.09it/s]Processing spectra:  57%|█████▋    | 13443/23481 [00:06<00:03, 2825.87it/s]Processing spectra:  59%|█████▊    | 13748/23481 [00:06<00:03, 2881.93it/s]Processing spectra:  60%|██████    | 14105/23481 [00:06<00:03, 3084.38it/s]Processing spectra:  61%|██████▏   | 14433/23481 [00:06<00:02, 3138.00it/s]Processing spectra:  63%|██████▎   | 14784/23481 [00:07<00:02, 3248.37it/s]Processing spectra:  65%|██████▍   | 15234/23481 [00:07<00:02, 3621.69it/s]Processing spectra:  67%|██████▋   | 15814/23481 [00:07<00:01, 4262.20it/s]Processing spectra:  70%|███████   | 16443/23481 [00:07<00:01, 4866.56it/s]Processing spectra:  73%|███████▎  | 17143/23481 [00:07<00:01, 5501.50it/s]Processing spectra:  75%|███████▌  | 17694/23481 [00:07<00:01, 5089.97it/s]Processing spectra:  78%|███████▊  | 18210/23481 [00:08<00:02, 2117.00it/s]Processing spectra:  79%|███████▉  | 18597/23481 [00:08<00:03, 1577.58it/s]Processing spectra:  80%|████████  | 18894/23481 [00:09<00:03, 1158.01it/s]Processing spectra:  81%|████████▏ | 19119/23481 [00:09<00:05, 857.87it/s] Processing spectra:  82%|████████▏ | 19289/23481 [00:10<00:05, 737.13it/s]Processing spectra:  83%|████████▎ | 19421/23481 [00:10<00:06, 674.70it/s]Processing spectra:  83%|████████▎ | 19527/23481 [00:10<00:06, 605.06it/s]Processing spectra:  84%|████████▎ | 19613/23481 [00:10<00:06, 600.90it/s]Processing spectra:  84%|████████▍ | 19691/23481 [00:10<00:06, 594.37it/s]Processing spectra:  84%|████████▍ | 19762/23481 [00:11<00:06, 567.38it/s]Processing spectra:  84%|████████▍ | 19826/23481 [00:11<00:06, 566.11it/s]Processing spectra:  85%|████████▍ | 19888/23481 [00:11<00:06, 566.62it/s]Processing spectra:  85%|████████▌ | 19959/23481 [00:11<00:05, 596.27it/s]Processing spectra:  85%|████████▌ | 20023/23481 [00:11<00:05, 592.79it/s]Processing spectra:  86%|████████▌ | 20099/23481 [00:11<00:05, 629.48it/s]Processing spectra:  87%|████████▋ | 20409/23481 [00:11<00:02, 1258.99it/s]Processing spectra:  88%|████████▊ | 20547/23481 [00:11<00:02, 1041.04it/s]Processing spectra:  88%|████████▊ | 20666/23481 [00:12<00:02, 975.15it/s] Processing spectra:  88%|████████▊ | 20774/23481 [00:12<00:03, 857.20it/s]Processing spectra:  89%|████████▉ | 20869/23481 [00:12<00:03, 861.77it/s]Processing spectra:  89%|████████▉ | 20962/23481 [00:12<00:02, 861.04it/s]Processing spectra:  90%|████████▉ | 21053/23481 [00:12<00:03, 776.72it/s]Processing spectra:  90%|█████████ | 21135/23481 [00:12<00:03, 745.01it/s]Processing spectra:  90%|█████████ | 21212/23481 [00:12<00:03, 709.49it/s]Processing spectra:  91%|█████████ | 21300/23481 [00:13<00:02, 744.89it/s]Processing spectra:  91%|█████████ | 21377/23481 [00:13<00:02, 737.97it/s]Processing spectra:  91%|█████████▏| 21462/23481 [00:13<00:02, 767.94it/s]Processing spectra:  92%|█████████▏| 21546/23481 [00:13<00:02, 785.73it/s]Processing spectra:  92%|█████████▏| 21639/23481 [00:13<00:02, 826.44it/s]Processing spectra:  93%|█████████▎| 21815/23481 [00:13<00:01, 1091.73it/s]Processing spectra:  94%|█████████▎| 22008/23481 [00:13<00:01, 1333.36it/s]Processing spectra:  94%|█████████▍| 22144/23481 [00:13<00:01, 918.31it/s] Processing spectra:  95%|█████████▍| 22295/23481 [00:13<00:01, 1048.82it/s]Processing spectra:  96%|█████████▌| 22524/23481 [00:14<00:00, 1347.92it/s]Processing spectra:  97%|█████████▋| 22679/23481 [00:14<00:00, 1177.54it/s]Processing spectra:  97%|█████████▋| 22814/23481 [00:14<00:00, 1057.59it/s]Processing spectra:  98%|█████████▊| 22935/23481 [00:14<00:00, 1090.33it/s]Processing spectra:  99%|█████████▊| 23172/23481 [00:14<00:00, 1395.32it/s]Processing spectra: 100%|█████████▉| 23436/23481 [00:14<00:00, 1714.22it/s]Processing spectra: 100%|██████████| 23481/23481 [00:14<00:00, 1595.12it/s]
+Valid samples: 23424
+
+Data split:
+  Train: 18739 samples
+  Val:   2342 samples
+  Test:  2343 samples
+
+Training 28 LightGBM models...
+Training LightGBM (8 workers):   0%|          | 0/28 [00:00<?, ?it/s]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):   4%|▎         | 1/28 [00:19<08:44, 19.43s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):   7%|▋         | 2/28 [00:55<12:39, 29.22s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  25%|██▌       | 7/28 [00:57<02:03,  5.88s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  32%|███▏      | 9/28 [01:19<02:24,  7.63s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  36%|███▌      | 10/28 [01:38<02:53,  9.65s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  39%|███▉      | 11/28 [01:44<02:32,  8.96s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  46%|████▋     | 13/28 [01:47<01:31,  6.13s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  50%|█████     | 14/28 [01:53<01:25,  6.11s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  61%|██████    | 17/28 [02:13<01:09,  6.30s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  64%|██████▍   | 18/28 [02:20<01:04,  6.46s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  68%|██████▊   | 19/28 [02:29<01:03,  7.11s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  71%|███████▏  | 20/28 [02:42<01:07,  8.45s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  75%|███████▌  | 21/28 [02:44<00:46,  6.70s/it]Training LightGBM (8 workers):  82%|████████▏ | 23/28 [02:44<00:19,  3.99s/it]Training LightGBM (8 workers):  86%|████████▌ | 24/28 [02:50<00:18,  4.53s/it]Training LightGBM (8 workers):  89%|████████▉ | 25/28 [03:02<00:18,  6.29s/it]Training LightGBM (8 workers):  93%|█████████▎| 26/28 [03:08<00:12,  6.14s/it]Training LightGBM (8 workers):  96%|█████████▋| 27/28 [03:11<00:05,  5.43s/it]Training LightGBM (8 workers): 100%|██████████| 28/28 [03:21<00:00,  6.65s/it]Training LightGBM (8 workers): 100%|██████████| 28/28 [03:21<00:00,  7.20s/it]
+
+============================================================
+Results (sorted by R²)
+============================================================
+Rank  Descriptor                             R²        MAE
+------------------------------------------------------------
+1     fr_phos_ester                      0.7230     0.0313 🟢
+2     Chi3n                              0.7183     1.3746 🟢
+3     Chi2n                              0.7141     1.6622 🟢
+4     NumAtomStereoCenters               0.6964     2.1216 🟡
+5     SMR_VSA1                           0.6724     9.3602 🟡
+6     SMR_VSA4                           0.6676     6.2729 🟡
+7     NumSaturatedCarbocycles            0.6565     0.4800 🟡
+8     SMR_VSA5                           0.6564    20.8535 🟡
+9     EState_VSA10                       0.6558     6.9309 🟡
+10    PEOE_VSA7                          0.6299    13.1708 🟡
+11    NumSaturatedRings                  0.6237     0.7294 🟡
+12    fr_Al_OH                           0.6202     1.0885 🟡
+13    VSA_EState3                        0.6178    12.6938 🟡
+14    PEOE_VSA10                         0.6152     8.9596 🟡
+15    SPS                                0.6148     6.6009 🟡
+16    fr_ether                           0.6066     0.9768 🟡
+17    SMR_VSA3                           0.5978     3.4124 🟡
+18    qed                                0.5949     0.1179 🟡
+19    SlogP_VSA5                         0.5931    16.0008 🟡
+20    AvgIpc                             0.5908     0.2084 🟡
+21    FractionCSP3                       0.5876     0.1307 🟡
+22    SlogP_VSA3                         0.5873     6.6313 🟡
+23    Kappa2                             0.5599     2.5658 🟡
+24    RingCount                          0.5541     0.8747 🟡
+25    SlogP_VSA11                        0.5513     4.5745 🟡
+26    VSA_EState2                        0.5506    10.4173 🟡
+27    HallKierAlpha                      0.5499     0.6198 🟡
+28    NumAromaticRings                   0.5330     0.5922 🟡
+------------------------------------------------------------
+Mean R²:   0.6192
+Median R²: 0.6150
+Max R²:    0.7230
+Min R²:    0.5330
+R² >= 0.7: 3 descriptors
+R² >= 0.8: 0 descriptors
+
+Models saved to data/output/models/part_a_lgbm
+Metrics saved to data/output/metrics/part_a_lgbm_metrics.json
+
+Done!

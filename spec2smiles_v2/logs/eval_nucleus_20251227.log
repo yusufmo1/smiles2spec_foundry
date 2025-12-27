@@ -1,0 +1,11 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+Device: cuda
+Loading test data...
+Test set: 2343 molecules
+Loading model...
+Model: 57,564,777 parameters
+
+Evaluating with n=100, temp=0.8, top_p=0.9
+Nucleus (n=100, t=0.8):   0%|          | 0/74 [00:00<?, ?it/s]

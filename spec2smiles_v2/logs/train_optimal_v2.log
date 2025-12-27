@@ -1,0 +1,109 @@
+============================================================
+Training Part A (Spectrum -> Descriptors)
+============================================================
+Model:   Hybrid CNN-Transformer
+Dataset: gnps
+Device:  cuda
+
+Loading and preprocessing raw data...
+Loaded 23481/23630 valid samples
+Calculating 69 descriptors in parallel...
+Calculating descriptors (24 workers):   0%|          | 0/23481 [00:00<?, ?it/s]Calculating descriptors (24 workers):   0%|          | 1/23481 [00:05<38:38:58,  5.93s/it]Calculating descriptors (24 workers):   3%|▎         | 601/23481 [00:06<02:56, 129.89it/s]Calculating descriptors (24 workers):  14%|█▍        | 3401/23481 [00:10<00:42, 467.52it/s]Calculating descriptors (24 workers):  19%|█▉        | 4501/23481 [00:12<00:39, 484.98it/s]Calculating descriptors (24 workers):  20%|█▉        | 4601/23481 [00:15<01:01, 307.97it/s]Calculating descriptors (24 workers):  31%|███       | 7201/23481 [00:21<00:43, 372.52it/s]Calculating descriptors (24 workers):  51%|█████     | 11901/23481 [00:21<00:12, 936.85it/s]Calculating descriptors (24 workers):  56%|█████▌    | 13076/23481 [00:25<00:16, 647.12it/s]Calculating descriptors (24 workers):  59%|█████▉    | 13886/23481 [00:26<00:13, 694.74it/s]Calculating descriptors (24 workers):  63%|██████▎   | 14701/23481 [00:26<00:10, 825.94it/s]Calculating descriptors (24 workers):  65%|██████▌   | 15322/23481 [00:30<00:16, 480.72it/s]Calculating descriptors (24 workers):  68%|██████▊   | 16001/23481 [00:30<00:12, 577.50it/s]Calculating descriptors (24 workers):  70%|██████▉   | 16391/23481 [00:31<00:12, 583.00it/s]Calculating descriptors (24 workers):  71%|███████   | 16682/23481 [00:31<00:11, 603.43it/s]Calculating descriptors (24 workers):  73%|███████▎  | 17201/23481 [00:33<00:11, 523.81it/s]Calculating descriptors (24 workers):  76%|███████▌  | 17901/23481 [00:38<00:21, 257.29it/s]Calculating descriptors (24 workers):  98%|█████████▊| 23101/23481 [00:39<00:00, 1019.46it/s]Calculating descriptors (24 workers): 100%|██████████| 23481/23481 [00:39<00:00, 592.47it/s] 
+Processing spectra:   0%|          | 0/23481 [00:00<?, ?it/s]Processing spectra:   1%|          | 191/23481 [00:00<00:12, 1876.44it/s]Processing spectra:   2%|▏         | 379/23481 [00:00<00:21, 1085.78it/s]Processing spectra:   2%|▏         | 506/23481 [00:00<00:20, 1098.15it/s]Processing spectra:   7%|▋         | 1712/23481 [00:00<00:04, 4475.69it/s]Processing spectra:  12%|█▏        | 2719/23481 [00:00<00:03, 6183.71it/s]Processing spectra:  15%|█▍        | 3433/23481 [00:00<00:03, 5882.50it/s]Processing spectra:  17%|█▋        | 4087/23481 [00:01<00:04, 4263.29it/s]Processing spectra:  20%|█▉        | 4613/23481 [00:01<00:09, 2043.36it/s]Processing spectra:  21%|██▏       | 4998/23481 [00:01<00:09, 2040.29it/s]Processing spectra:  23%|██▎       | 5326/23481 [00:02<00:09, 1955.85it/s]Processing spectra:  24%|██▍       | 5605/23481 [00:02<00:10, 1780.88it/s]Processing spectra:  25%|██▍       | 5839/23481 [00:02<00:10, 1714.97it/s]Processing spectra:  26%|██▌       | 6047/23481 [00:02<00:10, 1635.92it/s]Processing spectra:  27%|██▋       | 6339/23481 [00:02<00:09, 1868.60it/s]Processing spectra:  28%|██▊       | 6633/23481 [00:02<00:08, 2088.61it/s]Processing spectra:  29%|██▉       | 6874/23481 [00:03<00:17, 952.20it/s] Processing spectra:  31%|███       | 7283/23481 [00:03<00:12, 1340.63it/s]Processing spectra:  32%|███▏      | 7529/23481 [00:03<00:10, 1506.65it/s]Processing spectra:  33%|███▎      | 7774/23481 [00:03<00:12, 1297.13it/s]Processing spectra:  34%|███▍      | 7974/23481 [00:04<00:17, 888.51it/s] Processing spectra:  35%|███▍      | 8127/23481 [00:04<00:15, 967.13it/s]Processing spectra:  36%|███▌      | 8397/23481 [00:04<00:12, 1233.27it/s]Processing spectra:  37%|███▋      | 8584/23481 [00:04<00:14, 1061.55it/s]Processing spectra:  37%|███▋      | 8737/23481 [00:04<00:13, 1104.93it/s]Processing spectra:  38%|███▊      | 8912/23481 [00:05<00:11, 1223.75it/s]Processing spectra:  39%|███▊      | 9089/23481 [00:05<00:10, 1337.55it/s]Processing spectra:  39%|███▉      | 9269/23481 [00:05<00:09, 1444.38it/s]Processing spectra:  41%|████      | 9538/23481 [00:05<00:07, 1753.88it/s]Processing spectra:  42%|████▏     | 9781/23481 [00:05<00:07, 1930.26it/s]Processing spectra:  43%|████▎     | 10016/23481 [00:05<00:06, 2043.43it/s]Processing spectra:  44%|████▎     | 10234/23481 [00:05<00:06, 2060.91it/s]Processing spectra:  45%|████▍     | 10458/23481 [00:05<00:06, 2111.19it/s]Processing spectra:  46%|████▌     | 10684/23481 [00:05<00:05, 2153.94it/s]Processing spectra:  46%|████▋     | 10917/23481 [00:05<00:05, 2195.79it/s]Processing spectra:  47%|████▋     | 11141/23481 [00:06<00:05, 2130.65it/s]Processing spectra:  48%|████▊     | 11361/23481 [00:06<00:05, 2150.54it/s]Processing spectra:  49%|████▉     | 11579/23481 [00:06<00:05, 2125.22it/s]Processing spectra:  50%|█████     | 11794/23481 [00:06<00:05, 2054.60it/s]Processing spectra:  52%|█████▏    | 12126/23481 [00:06<00:04, 2411.85it/s]Processing spectra:  53%|█████▎    | 12455/23481 [00:06<00:04, 2655.59it/s]Processing spectra:  55%|█████▍    | 12838/23481 [00:06<00:03, 2995.94it/s]Processing spectra:  56%|█████▋    | 13233/23481 [00:06<00:03, 3271.70it/s]Processing spectra:  58%|█████▊    | 13605/23481 [00:06<00:02, 3393.78it/s]Processing spectra:  60%|█████▉    | 14009/23481 [00:06<00:02, 3583.44it/s]Processing spectra:  61%|██████▏   | 14392/23481 [00:07<00:02, 3652.36it/s]Processing spectra:  63%|██████▎   | 14791/23481 [00:07<00:02, 3751.79it/s]Processing spectra:  65%|██████▌   | 15323/23481 [00:07<00:01, 4218.94it/s]Processing spectra:  68%|██████▊   | 15985/23481 [00:07<00:01, 4934.33it/s]Processing spectra:  71%|███████   | 16657/23481 [00:07<00:01, 5462.70it/s]Processing spectra:  74%|███████▎  | 17274/23481 [00:07<00:01, 5666.48it/s]Processing spectra:  76%|███████▋  | 17935/23481 [00:07<00:01, 4092.67it/s]Processing spectra:  78%|███████▊  | 18411/23481 [00:08<00:02, 2341.31it/s]Processing spectra:  80%|███████▉  | 18776/23481 [00:09<00:03, 1250.05it/s]Processing spectra:  81%|████████  | 19045/23481 [00:09<00:04, 897.12it/s] Processing spectra:  82%|████████▏ | 19246/23481 [00:10<00:05, 745.55it/s]Processing spectra:  83%|████████▎ | 19399/23481 [00:10<00:06, 668.96it/s]Processing spectra:  83%|████████▎ | 19519/23481 [00:10<00:06, 586.96it/s]Processing spectra:  84%|████████▎ | 19613/23481 [00:11<00:06, 581.72it/s]Processing spectra:  84%|████████▍ | 19696/23481 [00:11<00:06, 572.67it/s]Processing spectra:  84%|████████▍ | 19770/23481 [00:11<00:06, 546.73it/s]Processing spectra:  84%|████████▍ | 19835/23481 [00:11<00:06, 541.89it/s]Processing spectra:  85%|████████▍ | 19896/23481 [00:11<00:06, 537.68it/s]Processing spectra:  85%|████████▌ | 19960/23481 [00:11<00:06, 554.90it/s]Processing spectra:  85%|████████▌ | 20020/23481 [00:11<00:06, 546.19it/s]Processing spectra:  86%|████████▌ | 20086/23481 [00:11<00:05, 570.90it/s]Processing spectra:  86%|████████▌ | 20147/23481 [00:12<00:05, 577.79it/s]Processing spectra:  87%|████████▋ | 20447/23481 [00:12<00:02, 1200.87it/s]Processing spectra:  88%|████████▊ | 20579/23481 [00:12<00:02, 999.39it/s] Processing spectra:  88%|████████▊ | 20693/23481 [00:12<00:03, 921.58it/s]Processing spectra:  89%|████████▊ | 20796/23481 [00:12<00:03, 806.95it/s]Processing spectra:  89%|████████▉ | 20886/23481 [00:12<00:03, 804.41it/s]Processing spectra:  89%|████████▉ | 20973/23481 [00:12<00:03, 816.83it/s]Processing spectra:  90%|████████▉ | 21060/23481 [00:13<00:03, 721.62it/s]Processing spectra:  90%|█████████ | 21137/23481 [00:13<00:03, 694.87it/s]Processing spectra:  90%|█████████ | 21210/23481 [00:13<00:03, 667.64it/s]Processing spectra:  91%|█████████ | 21291/23481 [00:13<00:03, 702.62it/s]Processing spectra:  91%|█████████ | 21364/23481 [00:13<00:03, 674.40it/s]Processing spectra:  91%|█████████▏| 21444/23481 [00:13<00:02, 707.01it/s]Processing spectra:  92%|█████████▏| 21517/23481 [00:13<00:02, 709.92it/s]Processing spectra:  92%|█████████▏| 21611/23481 [00:13<00:02, 773.85it/s]Processing spectra:  93%|█████████▎| 21738/23481 [00:13<00:01, 912.09it/s]Processing spectra:  93%|█████████▎| 21924/23481 [00:14<00:01, 1182.96it/s]Processing spectra:  94%|█████████▍| 22045/23481 [00:14<00:01, 793.32it/s] Processing spectra:  94%|█████████▍| 22186/23481 [00:14<00:01, 926.63it/s]Processing spectra:  95%|█████████▌| 22336/23481 [00:14<00:01, 1061.39it/s]Processing spectra:  96%|█████████▌| 22544/23481 [00:14<00:00, 1316.62it/s]Processing spectra:  97%|█████████▋| 22692/23481 [00:14<00:00, 1094.97it/s]Processing spectra:  97%|█████████▋| 22819/23481 [00:15<00:00, 946.43it/s] Processing spectra:  98%|█████████▊| 22935/23481 [00:15<00:00, 989.39it/s]Processing spectra:  99%|█████████▉| 23188/23481 [00:15<00:00, 1353.30it/s]Processing spectra: 100%|██████████| 23481/23481 [00:15<00:00, 1539.10it/s]
+/root/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-XhsybQeG-py3.10/lib/python3.10/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+Valid samples after processing: 23424
+
+Data split:
+  Train: 18739 samples
+  Val:   2342 samples
+  Test:  2343 samples
+
+Training Hybrid CNN-Transformer model...
+Training Part A with Hybrid CNN-Transformer model
+HybridCNNTransformer initialized with 1,147,263 parameters
+  - CNN hidden: 128, Transformer dim: 128
+  - Heads: 4, Layers: 2
+  - Device: cuda
+Epoch   1 | Train: 1.3411 | Val: 1.0852 | R²: -0.0632 *
+Epoch   2 | Train: 1.1588 | Val: 1.0558 | R²: -0.0337 *
+Epoch   3 | Train: 1.0857 | Val: 1.0360 | R²: -0.0129 *
+Epoch   4 | Train: 1.0409 | Val: 1.0277 | R²: -0.0045 *
+Epoch   5 | Train: 1.0146 | Val: 1.0226 | R²: 0.0005 *
+Epoch   6 | Train: 0.9975 | Val: 1.0129 | R²: 0.0106 *
+Epoch   7 | Train: 0.9760 | Val: 0.9822 | R²: 0.0426 *
+Epoch   8 | Train: 0.9443 | Val: 0.9335 | R²: 0.0934 *
+Epoch   9 | Train: 0.9077 | Val: 0.9053 | R²: 0.1229 *
+Epoch  10 | Train: 0.8818 | Val: 0.8762 | R²: 0.1530 *
+Epoch  11 | Train: 0.8596 | Val: 1.0549 | R²: -0.0337
+Epoch  12 | Train: 0.8411 | Val: 0.8496 | R²: 0.1805 *
+Epoch  14 | Train: 0.8193 | Val: 0.8266 | R²: 0.2040 *
+Epoch  15 | Train: 0.7992 | Val: 0.7976 | R²: 0.2335 *
+Epoch  16 | Train: 0.7733 | Val: 0.7674 | R²: 0.2648 *
+Epoch  19 | Train: 0.7495 | Val: 0.7647 | R²: 0.2673 *
+Epoch  20 | Train: 0.7138 | Val: 0.7320 | R²: 0.3009 *
+Epoch  21 | Train: 0.6940 | Val: 0.7175 | R²: 0.3159 *
+Epoch  25 | Train: 0.6466 | Val: 0.7027 | R²: 0.3303 *
+Epoch  26 | Train: 0.6359 | Val: 0.6517 | R²: 0.3834 *
+Epoch  28 | Train: 0.6184 | Val: 0.6282 | R²: 0.4070 *
+Epoch  31 | Train: 0.6031 | Val: 0.6504 | R²: 0.3837
+Epoch  33 | Train: 0.5834 | Val: 0.6057 | R²: 0.4305 *
+Epoch  36 | Train: 0.5707 | Val: 0.6619 | R²: 0.3722
+Epoch  41 | Train: 0.5522 | Val: 0.6416 | R²: 0.3929
+Epoch  44 | Train: 0.5427 | Val: 0.5903 | R²: 0.4459 *
+Epoch  46 | Train: 0.5318 | Val: 0.6427 | R²: 0.3903
+Epoch  51 | Train: 0.5156 | Val: 0.5930 | R²: 0.4440
+Epoch  52 | Train: 0.5115 | Val: 0.5645 | R²: 0.4718 *
+Epoch  56 | Train: 0.4919 | Val: 0.6219 | R²: 0.4133
+Epoch  58 | Train: 0.4937 | Val: 0.5600 | R²: 0.4759 *
+Epoch  61 | Train: 0.4893 | Val: 0.6177 | R²: 0.4176
+Epoch  66 | Train: 0.4746 | Val: 0.5522 | R²: 0.4836 *
+Epoch  67 | Train: 0.4697 | Val: 0.5466 | R²: 0.4892 *
+Epoch  71 | Train: 0.4647 | Val: 0.5779 | R²: 0.4559
+Epoch  73 | Train: 0.4527 | Val: 0.5263 | R²: 0.5090 *
+Epoch  76 | Train: 0.4532 | Val: 0.5391 | R²: 0.4951
+Epoch  81 | Train: 0.4431 | Val: 0.5439 | R²: 0.4912
+Epoch  85 | Train: 0.4340 | Val: 0.5236 | R²: 0.5114 *
+Epoch  86 | Train: 0.4325 | Val: 0.5210 | R²: 0.5135 *
+Epoch  91 | Train: 0.4224 | Val: 0.5218 | R²: 0.5126
+Epoch  96 | Train: 0.4139 | Val: 0.5455 | R²: 0.4889
+Epoch  99 | Train: 0.4131 | Val: 0.5192 | R²: 0.5157 *
+Epoch 100 | Train: 0.4144 | Val: 0.5124 | R²: 0.5219 *
+Epoch 101 | Train: 0.4078 | Val: 0.5173 | R²: 0.5164
+Epoch 106 | Train: 0.4000 | Val: 0.5178 | R²: 0.5173
+Epoch 109 | Train: 0.3999 | Val: 0.5079 | R²: 0.5268 *
+Epoch 111 | Train: 0.4001 | Val: 0.5163 | R²: 0.5190
+Epoch 114 | Train: 0.3915 | Val: 0.5065 | R²: 0.5271 *
+Epoch 116 | Train: 0.3920 | Val: 0.5080 | R²: 0.5269
+Epoch 121 | Train: 0.3855 | Val: 0.5053 | R²: 0.5292 *
+Epoch 124 | Train: 0.3835 | Val: 0.5013 | R²: 0.5332 *
+Epoch 125 | Train: 0.3829 | Val: 0.4938 | R²: 0.5401 *
+Epoch 126 | Train: 0.3813 | Val: 0.4934 | R²: 0.5412 *
+Epoch 131 | Train: 0.3767 | Val: 0.4989 | R²: 0.5351
+Epoch 136 | Train: 0.3740 | Val: 0.5031 | R²: 0.5313
+Epoch 141 | Train: 0.3710 | Val: 0.5145 | R²: 0.5195
+Epoch 146 | Train: 0.3678 | Val: 0.5079 | R²: 0.5261
+Epoch 151 | Train: 0.3648 | Val: 0.5007 | R²: 0.5327
+Epoch 156 | Train: 0.3630 | Val: 0.4998 | R²: 0.5341
+
+Early stopping at epoch 156
+
+Training complete. Best Val R²: 0.5412
+
+Evaluating on test set...
+
+Test Results:
+  Mean R²:   0.5294
+  Median R²: 0.5426
+  Best:      Chi2n (R² = 0.6901)
+  Worst:     fr_thiocyan (R² = 0.0000)
+
+Saving model to data/output/models/part_a...
+Metrics saved to data/output/metrics/part_a_metrics.json
+
+Generating visualizations...
+Generating Part A visualizations...
+  [OK] data/output/figures/part_a_metrics.png
+  [OK] data/output/figures/part_a_hybrid_training.png
+
+Done!
