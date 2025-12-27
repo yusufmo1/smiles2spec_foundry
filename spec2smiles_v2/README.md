@@ -9,20 +9,21 @@ Spectrum (peaks) → [Part A] → Descriptors → [Part B] → SMILES candidates
 ```
 
 ### Part A: Spectrum → Descriptors
-- **Hybrid CNN-Transformer**: Combines local (CNN) and global (Transformer) pattern recognition
+- **LightGBM**: Gradient boosting ensemble (R²=0.80)
+- **Hybrid CNN-Transformer**: Alternative neural network approach
 
 ### Part B: Descriptors → SMILES
-- **VAE**: Conditional Variational Autoencoder with SELFIES encoding
+- **DirectDecoder**: Transformer-based autoregressive decoder with SELFIES encoding
 
 ## Project Structure
 
 ```
-spec2smiles_pkg/
-├── pyproject.toml          # Poetry configuration
+spec2smiles_v2/
+├── pyproject.toml           # Poetry configuration
 ├── Makefile                 # Build commands
-├── .env.example             # Environment variable template
+├── config.yml               # Main configuration
 ├── data/
-│   ├── input/hpj/           # Input spectral data
+│   ├── input/gnps/          # Input spectral data
 │   └── output/              # Models, metrics, figures
 ├── src/
 │   ├── config/              # Pydantic settings
@@ -39,23 +40,23 @@ spec2smiles_pkg/
 # Install dependencies
 make install
 
-# Train Part A (Hybrid CNN-Transformer)
+# Train Part A (LightGBM - recommended)
+make train-part-a-lgbm
+
+# Train Part A (Hybrid CNN-Transformer - alternative)
 make train-part-a
 
-# Train Part B
-make train-part-b-vae
+# Train Part B (DirectDecoder)
+make train-part-b
 
 # Or train full pipeline
 make train-full
 
-# Run predictions
-make predict
-
-# Evaluate performance
+# Run end-to-end evaluation
 make evaluate
 
 # Generate visualizations
-make visualize
+make viz
 ```
 
 ## Configuration
@@ -64,15 +65,23 @@ All settings are in `config.yml`:
 
 ```yaml
 # Dataset and device
-dataset: hpj
+dataset: gnps
 device: auto  # cuda, mps, cpu, or auto
 
-# Part A settings (Hybrid CNN-Transformer)
-part_a:
-  cnn_hidden: 256
-  transformer_dim: 256
-  n_heads: 8
-  n_transformer_layers: 4
+# 28 optimized descriptors
+descriptors:
+  - fr_phos_ester
+  - Chi3n
+  - Chi2n
+  # ... (28 total)
+
+# Part B settings (DirectDecoder)
+part_b:
+  model: direct
+  direct:
+    hidden_dim: 768
+    n_layers: 6
+    n_heads: 12
 
 # Inference settings
 inference:
@@ -92,12 +101,12 @@ python scripts/train_part_a.py --config my_config.yml
 | Command | Description |
 |---------|-------------|
 | `make install` | Install dependencies with Poetry |
-| `make train-part-a` | Train Part A (Spectrum → Descriptors) |
-| `make train-part-b` | Train Part B (Descriptors → SMILES) |
+| `make train-part-a` | Train Part A Hybrid CNN-Transformer |
+| `make train-part-a-lgbm` | Train Part A LightGBM (recommended) |
+| `make train-part-b` | Train Part B DirectDecoder |
 | `make train-full` | Train complete pipeline |
-| `make predict` | Run predictions |
 | `make evaluate` | Compute metrics on test set |
-| `make visualize` | Generate figures |
+| `make viz` | Generate figures |
 | `make clean` | Remove generated files |
 
 ## Python Usage
@@ -128,11 +137,15 @@ Input JSONL files should contain:
 {"smiles": "CCO", "peaks": [[31, 100], [45, 80], [46, 10]]}
 ```
 
-## Performance
+## Performance (GNPS Dataset)
 
-- Part A Mean R²: ~0.65
-- Integrated Hit@10: ~78.5%
-- Mean Tanimoto Similarity: ~0.42
+| Metric | Value |
+|--------|-------|
+| Part A Mean R² (LightGBM) | 0.80 |
+| Hit@1 | 37.0% |
+| Hit@10 | 53.2% |
+| Mean Best Tanimoto | 0.712 |
+| SMILES Validity | 100% |
 
 ## Requirements
 

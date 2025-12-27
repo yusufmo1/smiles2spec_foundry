@@ -94,8 +94,7 @@ class DescriptorAugmentConfig:
 
 @dataclass
 class PartBConfig:
-    model: Literal["vae", "direct"] = "vae"
-    vae: VAEConfig = field(default_factory=VAEConfig)
+    model: Literal["direct"] = "direct"  # DirectDecoder only
     direct: DirectDecoderConfig = field(default_factory=DirectDecoderConfig)
     augment: AugmentConfig = field(default_factory=AugmentConfig)
     descriptor_augment: DescriptorAugmentConfig = field(default_factory=DescriptorAugmentConfig)
@@ -122,24 +121,20 @@ class Settings:
     data_input_dir: str = "data/input"
     data_output_dir: str = "data/output"
     logs_dir: str = "logs"
-    dataset: str = "hpj"
+    dataset: str = "gnps"
     device: Literal["cuda", "mps", "cpu", "auto"] = "auto"
 
     spectrum: SpectrumConfig = field(default_factory=SpectrumConfig)
-    # 30 descriptors for 100% uniqueness on HPJ dataset
-    # (Original 12 descriptors had only 88.9% uniqueness)
+    # 28 optimized descriptors (high R², low correlation)
+    # Selected via correlation-based clustering for maximum diversity
     descriptors: List[str] = field(default_factory=lambda: [
-        # Original 12 descriptors
-        "MolWt", "HeavyAtomCount", "NumHeteroatoms", "NumAromaticRings",
-        "RingCount", "NOCount", "NumHDonors", "NumHAcceptors",
-        "TPSA", "MolLogP", "NumRotatableBonds", "FractionCSP3",
-        # Extended 18 descriptors for uniqueness
-        "ExactMolWt", "NumAliphaticRings", "NumSaturatedRings",
-        "NumAromaticHeterocycles", "NumAromaticCarbocycles",
-        "NumAliphaticHeterocycles", "NumAliphaticCarbocycles",
-        "NumSaturatedHeterocycles", "NumSaturatedCarbocycles",
-        "LabuteASA", "BalabanJ", "BertzCT",
-        "Chi0", "Chi1", "Chi2n", "Chi3n", "Chi4n", "HallKierAlpha",
+        "fr_phos_ester", "Chi3n", "Chi2n", "NumAtomStereoCenters",
+        "SMR_VSA1", "SMR_VSA4", "NumSaturatedCarbocycles", "SMR_VSA5",
+        "EState_VSA10", "PEOE_VSA7", "NumSaturatedRings", "fr_Al_OH",
+        "VSA_EState3", "PEOE_VSA10", "SPS", "fr_ether",
+        "SMR_VSA3", "qed", "SlogP_VSA5", "AvgIpc",
+        "FractionCSP3", "SlogP_VSA3", "Kappa2", "RingCount",
+        "SlogP_VSA11", "VSA_EState2", "HallKierAlpha", "NumAromaticRings",
     ])
     part_a: PartAConfig = field(default_factory=PartAConfig)
     part_b: PartBConfig = field(default_factory=PartBConfig)

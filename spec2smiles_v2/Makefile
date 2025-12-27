@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-b train-part-b-vae train-part-b-direct train-part-b-vae-augmented train-part-b-direct-augmented train-full predict evaluate eval-nucleus eval-nucleus-sweep viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis visualize clean clean-output clean-logs init-dirs lint format help
+.PHONY: install train-part-a train-part-a-lgbm train-part-b train-full evaluate viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis clean clean-output clean-logs init-dirs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -10,49 +10,38 @@ help:
 	@echo "SPEC2SMILES Pipeline Commands:"
 	@echo ""
 	@echo "  Setup:"
-	@echo "    make install          Install dependencies with Poetry"
+	@echo "    make install              Install dependencies with Poetry"
 	@echo ""
 	@echo "  Training (Part A - Spectrum -> Descriptors):"
-	@echo "    make train-part-a             Hybrid CNN-Transformer"
+	@echo "    make train-part-a         Hybrid CNN-Transformer"
+	@echo "    make train-part-a-lgbm    LightGBM ensemble (recommended)"
 	@echo ""
 	@echo "  Training (Part B - Descriptors -> SMILES):"
-	@echo "    make train-part-b-vae              Conditional VAE with SELFIES"
-	@echo "    make train-part-b-direct           DirectDecoder (transformer, no VAE)"
-	@echo "    make train-part-b-vae-augmented    VAE with 6x SMILES augmentation"
-	@echo "    make train-part-b-direct-augmented DirectDecoder with 6x augmentation"
+	@echo "    make train-part-b         DirectDecoder with SELFIES"
 	@echo ""
 	@echo "  Training (Full Pipeline):"
-	@echo "    make train-full              Hybrid CNN-Transformer -> VAE"
-	@echo ""
-	@echo "  Inference:"
-	@echo "    make predict          Run predictions"
+	@echo "    make train-full           LightGBM -> DirectDecoder (recommended)"
 	@echo ""
 	@echo "  Evaluation:"
-	@echo "    make evaluate            Compute metrics on test set"
-	@echo "    make eval-nucleus        Nucleus sampling eval (DirectDecoder)"
-	@echo "    make eval-nucleus-sweep  Parameter sweep for nucleus sampling"
+	@echo "    make evaluate             End-to-end evaluation on test set"
 	@echo ""
 	@echo "  Visualization:"
-	@echo "    make viz                 Generate all figures"
-	@echo "    make viz-part-a          Part A figures only"
-	@echo "    make viz-part-b          Part B figures only"
-	@echo "    make viz-pipeline        Pipeline comparison figures"
-	@echo "    make viz-benchmark       MassSpecGym benchmark comparison"
-	@echo "    make viz-analysis        Hit@K and Tanimoto analysis"
+	@echo "    make viz                  Generate all figures"
+	@echo "    make viz-part-a           Part A figures only"
+	@echo "    make viz-part-b           Part B figures only"
+	@echo "    make viz-pipeline         Pipeline comparison figures"
+	@echo "    make viz-benchmark        MassSpecGym benchmark comparison"
+	@echo "    make viz-analysis         Hit@K and Tanimoto analysis"
 	@echo ""
 	@echo "  Development:"
-	@echo "    make lint             Run linter (ruff)"
-	@echo "    make format           Format code (ruff)"
-	@echo "    make init-dirs        Create all output directories"
-	@echo "    make clean            Remove all generated files"
-	@echo "    make clean-output     Remove model/metrics/figures only"
-	@echo "    make clean-logs       Remove log files only"
-	@echo ""
-	@echo "  Note: All commands log output to logs/ with timestamps"
+	@echo "    make lint                 Run linter (ruff)"
+	@echo "    make format               Format code (ruff)"
+	@echo "    make init-dirs            Create all output directories"
+	@echo "    make clean                Remove all generated files"
 	@echo ""
 	@echo "  Configuration:"
-	@echo "    Edit config.yml to change settings (dataset, device, hyperparameters)"
-	@echo "    Or use: make train-part-a-hybrid CONFIG=custom_config.yml"
+	@echo "    Edit config.yml to change settings"
+	@echo "    Or use: make train-part-a CONFIG=custom_config.yml"
 
 # Installation
 install:
@@ -62,43 +51,26 @@ install:
 CONFIG ?=
 CONFIG_FLAG = $(if $(CONFIG),--config $(CONFIG),)
 
-# Training Part A: Spectrum -> Descriptors (Hybrid CNN-Transformer)
-train-part-a:
+# Training Part A: Spectrum -> Descriptors
+train-part-a: ## Hybrid CNN-Transformer
 	poetry run python scripts/train_part_a.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_a_$$(date +%Y%m%d_%H%M%S).log
 
-# Training Part B: Descriptors -> SMILES
-train-part-b: train-part-b-vae  # Default to VAE
+train-part-a-lgbm: ## LightGBM ensemble (recommended)
+	poetry run python scripts/train_part_a_lgbm.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_a_lgbm_$$(date +%Y%m%d_%H%M%S).log
 
-train-part-b-vae:
-	poetry run python scripts/train_part_b.py --model vae $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_vae_$$(date +%Y%m%d_%H%M%S).log
+# Training Part B: Descriptors -> SMILES (DirectDecoder)
+train-part-b: ## DirectDecoder with SELFIES
+	poetry run python scripts/train_part_b.py --model direct $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_$$(date +%Y%m%d_%H%M%S).log
 
-train-part-b-direct:
-	poetry run python scripts/train_part_b.py --model direct $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_direct_$$(date +%Y%m%d_%H%M%S).log
-
-train-part-b-vae-augmented:
-	poetry run python scripts/train_part_b.py --model vae --augment --n-augment 5 $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_vae_aug_$$(date +%Y%m%d_%H%M%S).log
-
-train-part-b-direct-augmented:
-	poetry run python scripts/train_part_b.py --model direct --augment --n-augment 5 $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/train_part_b_direct_aug_$$(date +%Y%m%d_%H%M%S).log
-
-# Training Full Pipeline (Hybrid CNN-Transformer -> VAE)
-train-full:
-	$(MAKE) train-part-a CONFIG=$(CONFIG) && $(MAKE) train-part-b-vae CONFIG=$(CONFIG)
-
-# Inference
-predict:
-	poetry run python scripts/predict.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/predict_$$(date +%Y%m%d_%H%M%S).log
+# Training Full Pipeline (LightGBM -> DirectDecoder)
+train-full: ## Complete pipeline
+	$(MAKE) train-part-a-lgbm CONFIG=$(CONFIG) && $(MAKE) train-part-b CONFIG=$(CONFIG)
 
 # Evaluation
-evaluate:
-	poetry run python scripts/evaluate.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/evaluate_$$(date +%Y%m%d_%H%M%S).log
+evaluate: ## End-to-end evaluation
+	poetry run python scripts/eval_e2e.py --config config.yml --part-a lgbm 2>&1 | tee $(LOG_DIR)/evaluate_$$(date +%Y%m%d_%H%M%S).log
 
-eval-nucleus:
-	poetry run python scripts/eval_nucleus.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/eval_nucleus_$$(date +%Y%m%d_%H%M%S).log
-
-eval-nucleus-sweep:
-	poetry run python scripts/eval_nucleus.py --sweep $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/eval_nucleus_sweep_$$(date +%Y%m%d_%H%M%S).log
-
+# Visualization
 viz: ## Regenerate all figures
 	poetry run python scripts/visualize.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/visualize_$$(date +%Y%m%d_%H%M%S).log
 
@@ -116,8 +88,6 @@ viz-benchmark: ## MassSpecGym benchmark comparison
 
 viz-analysis: ## Hit@K and Tanimoto analysis figures
 	poetry run python scripts/visualize.py --analysis $(CONFIG_FLAG)
-
-visualize: viz  ## Backwards compatibility alias
 
 # Development
 lint:

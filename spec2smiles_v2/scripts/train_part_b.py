@@ -100,9 +100,6 @@ def main():
     # Validate input directory exists
     validate_input_dir(settings.input_path, "Dataset")
 
-    # Determine model type (CLI arg overrides config)
-    model_type = args.model or settings.part_b_model
-
     # Determine RMSE path for descriptor augmentation
     rmse_path = args.rmse_path
     if args.desc_augment and rmse_path is None:
@@ -117,7 +114,7 @@ def main():
     print(f"Training Part B (Descriptors -> SMILES)")
     print("=" * 60)
     print(f"Dataset:    {settings.dataset}")
-    print(f"Model:      {model_type} ({'DirectDecoder' if model_type == 'direct' else 'ConditionalVAE'})")
+    print(f"Model:      direct (DirectDecoder)")
     print(f"SMILES Aug: {'Yes (' + str(args.n_augment) + 'x)' if args.augment else 'No'}")
     if args.use_predicted_descriptors:
         print(f"Desc Mode:  PREDICTED (Option 1 - train on Part A predictions)")
@@ -213,9 +210,8 @@ def main():
         pred_error = np.sqrt(np.mean((train_descriptors - true_train_descriptors) ** 2))
         print(f"  Train RMSE (pred vs true): {pred_error:.4f}")
 
-    # Initialize Part B service with model type and descriptor augmentation
+    # Initialize Part B service with descriptor augmentation
     service = PartBService(
-        model_type=model_type,
         desc_augment=args.desc_augment,
         noise_prob=args.noise_prob,
         noise_scale=args.noise_scale,
@@ -263,8 +259,7 @@ def main():
     log_dir.mkdir(parents=True, exist_ok=True)
 
     # Train model
-    model_name = "DirectDecoder" if model_type == "direct" else "ConditionalVAE"
-    print(f"\nTraining {model_name}...")
+    print(f"\nTraining DirectDecoder...")
     history = service.train(
         encoded_train,
         scaled_train_desc,
@@ -290,7 +285,7 @@ def main():
 
     with open(metrics_path, "w") as f:
         json.dump({
-            "model_type": model_type,
+            "model_type": "direct",
             "smiles_augmented": args.augment,
             "n_smiles_augment": args.n_augment if args.augment else 0,
             "use_predicted_descriptors": args.use_predicted_descriptors,
