@@ -1,0 +1,122 @@
+# SMILES2SPEC Pipeline Configuration
+# Default: HPJ dataset with 2D molecular features
+
+# Paths
+paths:
+  data_input: data/input
+  data_output: data/output
+  cache: data/cache
+
+# Dataset
+dataset: hpj
+
+# Device: cuda, mps, cpu, auto
+device: auto
+
+# Spectrum Processing (output)
+spectrum:
+  n_bins: 500
+  bin_width: 1.0
+  max_mz: 499.0
+  transform: sqrt  # sqrt, log, none
+  normalize: true
+
+# Feature Configuration
+features:
+  type: 2d  # Options: 2d, 3d, combined
+
+  # 2D Molecular Features (RDKit)
+  descriptors:
+    enabled: true
+    # All 208 RDKit descriptors will be computed
+
+  fingerprints:
+    morgan:
+      enabled: true
+      radii: [1, 2, 3]
+      n_bits: 1024
+    maccs:
+      enabled: true
+    rdkit_fp:
+      enabled: true
+      n_bits: 2048
+
+  # 3D Conformer Features (optional - slower)
+  enable_3d: false
+  conformer:
+    n_conformers: 5
+    optimize: true
+    energy_window: 50.0
+
+# Random Forest Configuration
+random_forest:
+  n_estimators: 290
+  max_depth: 25
+  max_features: 0.3
+  min_samples_split: 2
+  min_samples_leaf: 1
+  n_jobs: -1
+  random_state: 42
+
+# Neural Network Configurations
+neural_network:
+  # Shared settings (matched to original notebook)
+  learning_rate: 0.001
+  weight_decay: 0.00001
+  max_epochs: 100
+  batch_size: 64
+  patience: 50  # 10 eval rounds * 5 epochs = 50 epochs
+  gradient_clip: 1.0
+
+  # ModularNet (best NN: 0.7691)
+  modular_net:
+    n_modules: 4
+    hidden_dim: 256
+    dropout: 0.1
+
+  # HierarchicalPredictionNet (0.7770)
+  hierarchical_net:
+    hidden_dim: 512
+    n_layers: 3
+    dropout: 0.2
+
+  # SparseGatedNet (0.7674)
+  sparse_gated_net:
+    hidden_dim: 256
+    n_experts: 8
+    top_k: 2
+    dropout: 0.1
+
+  # RegionalExpertNet (0.7622)
+  regional_expert:
+    n_regions: 5
+    hidden_dim: 256
+    dropout: 0.1
+
+# Ensemble Configuration
+ensemble:
+  method: bin_by_bin  # Options: weighted, bin_by_bin
+  models:
+    - random_forest
+    - modular_net
+
+  # Weighted ensemble settings
+  weighted:
+    optimize_weights: true
+
+  # Bin-by-bin settings (best: 0.8164)
+  bin_by_bin:
+    optimize_per_bin: true
+
+# Data Split
+split:
+  train: 0.8
+  val: 0.1
+  test: 0.1
+  seed: 42
+
+# Training
+training:
+  early_stopping: true
+  save_best: true
+  log_interval: 10
