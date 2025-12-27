@@ -40,8 +40,12 @@ def evaluate_nucleus(
     n_samples: int = 100,
     temperature: float = 0.8,
     top_p: float = 0.9,
-) -> dict:
-    """Evaluate model with nucleus sampling."""
+) -> tuple:
+    """Evaluate model with nucleus sampling.
+
+    Returns:
+        Tuple of (metrics_dict, predictions_list)
+    """
     model.eval()
 
     exact_matches = 0
@@ -49,6 +53,7 @@ def evaluate_nucleus(
     tanimoto_scores = []
     total = 0
     smiles_idx = 0
+    all_predictions = []
 
     start_time = time.time()
 
@@ -81,6 +86,9 @@ def evaluate_nucleus(
             best_tanimoto = 0.0
             found_exact = False
             found_formula = False
+            best_candidate = None
+            candidate_list = []
+            candidate_tanimotos = []
 
             for cand_tokens in candidates:
                 cand_smiles = encoder.decode(cand_tokens[i].cpu().numpy().tolist())
@@ -92,6 +100,11 @@ def evaluate_nucleus(
                     continue
 
                 cand_canonical = Chem.MolToSmiles(cand_mol, canonical=True)
+
+                # Skip duplicates
+                if cand_canonical in candidate_list:
+                    continue
+
                 if cand_canonical == true_canonical:
                     found_exact = True
 
@@ -101,7 +114,13 @@ def evaluate_nucleus(
 
                 cand_fp = AllChem.GetMorganFingerprintAsBitVect(cand_mol, 2)
                 tanimoto = DataStructs.TanimotoSimilarity(true_fp, cand_fp)
-                best_tanimoto = max(best_tanimoto, tanimoto)
+
+                candidate_list.append(cand_canonical)
+                candidate_tanimotos.append(tanimoto)
+
+                if tanimoto > best_tanimoto:
+                    best_tanimoto = tanimoto
+                    best_candidate = cand_canonical
 
             if found_exact:
                 exact_matches += 1
@@ -109,23 +128,50 @@ def evaluate_nucleus(
                 formula_matches += 1
             tanimoto_scores.append(best_tanimoto)
             total += 1
+
+            # Store prediction
+            all_predictions.append({
+                "index": smiles_idx,
+                "true_smiles": true_smiles,
+                "true_canonical": true_canonical,
+                "best_candidate": best_candidate,
+                "exact_match": found_exact,
+                "best_tanimoto": best_tanimoto,
+                "n_candidates": len(candidate_list),
+                "all_candidates": candidate_list,
+                "all_tanimotos": candidate_tanimotos,
+            })
+
             smiles_idx += 1
 
     elapsed = time.time() - start_time
 
-    return {
+    # Calculate Hit@K
+    n_preds = len(all_predictions) if all_predictions else 1
+    hit_at_1 = sum(1 for p in all_predictions if p["all_candidates"] and p["all_candidates"][0] == p["true_canonical"]) / n_preds
+    hit_at_5 = sum(1 for p in all_predictions if p["true_canonical"] in p["all_candidates"][:5]) / n_preds
+    hit_at_10 = sum(1 for p in all_predictions if p["true_canonical"] in p["all_candidates"][:10]) / n_preds
+    hit_at_50 = sum(1 for p in all_predictions if p["true_canonical"] in p["all_candidates"][:50]) / n_preds
+
+    metrics = {
         "method": "nucleus",
         "n_samples": n_samples,
         "temperature": temperature,
         "top_p": top_p,
         "exact_match_rate": exact_matches / total if total > 0 else 0,
         "formula_match_rate": formula_matches / total if total > 0 else 0,
+        "hit_at_1": hit_at_1,
+        "hit_at_5": hit_at_5,
+        "hit_at_10": hit_at_10,
+        "hit_at_50": hit_at_50,
         "mean_tanimoto": float(np.mean(tanimoto_scores)) if tanimoto_scores else 0,
         "median_tanimoto": float(np.median(tanimoto_scores)) if tanimoto_scores else 0,
         "total": total,
         "time_seconds": elapsed,
         "samples_per_second": total / elapsed if elapsed > 0 else 0,
     }
+
+    return metrics, all_predictions
 
 
 def main():
@@ -209,58 +255,73 @@ def main():
 
         results = []
         for n_samples, temp, top_p in configs:
-            result = evaluate_nucleus(
+            metrics, _ = evaluate_nucleus(
                 model, encoder, test_loader, test_smiles,
                 device=device, n_samples=n_samples, temperature=temp, top_p=top_p,
             )
-            results.append(result)
+            results.append(metrics)
 
             print(f"\nn={n_samples}, temp={temp}, top_p={top_p}:")
-            print(f"  Exact match: {result['exact_match_rate']:.1%}")
-            print(f"  Formula match: {result['formula_match_rate']:.1%}")
-            print(f"  Mean Tanimoto: {result['mean_tanimoto']:.3f}")
-            print(f"  Time: {result['time_seconds']:.1f}s ({result['samples_per_second']:.1f} mol/s)")
+            print(f"  Hit@1: {metrics['hit_at_1']:.1%}")
+            print(f"  Hit@10: {metrics['hit_at_10']:.1%}")
+            print(f"  Exact match: {metrics['exact_match_rate']:.1%}")
+            print(f"  Mean Tanimoto: {metrics['mean_tanimoto']:.3f}")
+            print(f"  Time: {metrics['time_seconds']:.1f}s ({metrics['samples_per_second']:.1f} mol/s)")
 
         # Find best config
-        best = max(results, key=lambda x: x['exact_match_rate'])
+        best = max(results, key=lambda x: x['hit_at_10'])
         print("\n" + "=" * 70)
-        print("BEST CONFIG:")
+        print("BEST CONFIG (by Hit@10):")
         print(f"  n={best['n_samples']}, temp={best['temperature']}, top_p={best['top_p']}")
+        print(f"  Hit@1: {best['hit_at_1']:.1%}")
+        print(f"  Hit@10: {best['hit_at_10']:.1%}")
         print(f"  Exact match: {best['exact_match_rate']:.1%}")
         print("=" * 70)
 
     else:
         # Single evaluation
         print(f"\nEvaluating with n={args.n_samples}, temp={args.temperature}, top_p={args.top_p}")
-        result = evaluate_nucleus(
+        metrics, predictions = evaluate_nucleus(
             model, encoder, test_loader, test_smiles,
             device=device,
             n_samples=args.n_samples,
             temperature=args.temperature,
             top_p=args.top_p,
         )
-        results = [result]
+        results = [metrics]
 
         print("\n" + "=" * 70)
         print("NUCLEUS SAMPLING RESULTS")
         print("=" * 70)
-        print(f"  Candidates per molecule: {result['n_samples']}")
-        print(f"  Temperature: {result['temperature']}")
-        print(f"  Top-p: {result['top_p']}")
-        print(f"  Exact match rate: {result['exact_match_rate']:.1%}")
-        print(f"  Formula match rate: {result['formula_match_rate']:.1%}")
-        print(f"  Mean Tanimoto: {result['mean_tanimoto']:.3f}")
-        print(f"  Median Tanimoto: {result['median_tanimoto']:.3f}")
-        print(f"  Total molecules: {result['total']}")
-        print(f"  Time: {result['time_seconds']:.1f}s ({result['samples_per_second']:.1f} mol/s)")
+        print(f"  Candidates per molecule: {metrics['n_samples']}")
+        print(f"  Temperature: {metrics['temperature']}")
+        print(f"  Top-p: {metrics['top_p']}")
+        print(f"  Hit@1:  {metrics['hit_at_1']:.1%}")
+        print(f"  Hit@5:  {metrics['hit_at_5']:.1%}")
+        print(f"  Hit@10: {metrics['hit_at_10']:.1%}")
+        print(f"  Hit@50: {metrics['hit_at_50']:.1%}")
+        print(f"  Exact match rate: {metrics['exact_match_rate']:.1%}")
+        print(f"  Formula match rate: {metrics['formula_match_rate']:.1%}")
+        print(f"  Mean Tanimoto: {metrics['mean_tanimoto']:.3f}")
+        print(f"  Median Tanimoto: {metrics['median_tanimoto']:.3f}")
+        print(f"  Total molecules: {metrics['total']}")
+        print(f"  Time: {metrics['time_seconds']:.1f}s ({metrics['samples_per_second']:.1f} mol/s)")
         print("=" * 70)
 
-    # Save results
+        # Save predictions
+        preds_path = settings.metrics_path / "nucleus_predictions.jsonl"
+        preds_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(preds_path, "w") as f:
+            for pred in predictions:
+                f.write(json.dumps(pred) + "\n")
+        print(f"\nPredictions saved to {preds_path}")
+
+    # Save metrics
     output_path = settings.metrics_path / "nucleus_eval.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
-    print(f"\nResults saved to {output_path}")
+    print(f"Metrics saved to {output_path}")
 
 
 if __name__ == "__main__":

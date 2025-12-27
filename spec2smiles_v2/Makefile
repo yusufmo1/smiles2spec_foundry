@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-a-lgbm train-part-b train-full evaluate viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis clean clean-output clean-logs init-dirs lint format help
+.PHONY: install train-part-a train-part-a-lgbm train-part-b train-full evaluate eval-nucleus eval-nucleus-sweep viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis clean clean-output clean-logs init-dirs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -24,6 +24,8 @@ help:
 	@echo ""
 	@echo "  Evaluation:"
 	@echo "    make evaluate             End-to-end evaluation on test set"
+	@echo "    make eval-nucleus         Nucleus sampling (oracle descriptors)"
+	@echo "    make eval-nucleus-sweep   Parameter sweep for nucleus sampling"
 	@echo ""
 	@echo "  Visualization:"
 	@echo "    make viz                  Generate all figures"
@@ -69,6 +71,12 @@ train-full: ## Complete pipeline
 # Evaluation
 evaluate: ## End-to-end evaluation
 	poetry run python scripts/eval_e2e.py --config config.yml --part-a lgbm 2>&1 | tee $(LOG_DIR)/evaluate_$$(date +%Y%m%d_%H%M%S).log
+
+eval-nucleus: ## Nucleus sampling evaluation (oracle descriptors)
+	poetry run python scripts/eval_nucleus.py --config config.yml --n-samples 100 --temperature 0.8 --top-p 0.9 2>&1 | tee $(LOG_DIR)/eval_nucleus_$$(date +%Y%m%d_%H%M%S).log
+
+eval-nucleus-sweep: ## Nucleus sampling parameter sweep
+	poetry run python scripts/eval_nucleus.py --config config.yml --sweep 2>&1 | tee $(LOG_DIR)/eval_nucleus_sweep_$$(date +%Y%m%d_%H%M%S).log
 
 # Visualization
 viz: ## Regenerate all figures
