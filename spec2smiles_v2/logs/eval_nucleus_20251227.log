@@ -8,4 +8,4 @@ Loading model...
 Model: 57,564,777 parameters
 
 Evaluating with n=100, temp=0.8, top_p=0.9
-Nucleus (n=100, t=0.8):   0%|          | 0/74 [00:00<?, ?it/s]
+Nucleus (n=100, t=0.8):   0%|          | 0/74 [00:00<?, ?it/s]Nucleus (n=100, t=0.8):   1%|▏         | 1/74 [02:08<2:36:50, 128.91s/it]
