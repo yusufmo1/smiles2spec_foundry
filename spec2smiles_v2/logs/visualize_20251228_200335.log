@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/scripts/visualize.py", line 26, in <module>
+    from src.config import settings, reload_config
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/src/__init__.py", line 3, in <module>
+    from src.config import settings
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/src/config/__init__.py", line 3, in <module>
+    from src.config.settings import Settings, settings, reload_config
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/src/config/settings.py", line 10, in <module>
+    import torch
+ModuleNotFoundError: No module named 'torch'
