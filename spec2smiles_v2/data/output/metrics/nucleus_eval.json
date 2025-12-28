@@ -4,16 +4,16 @@
     "n_samples": 50,
     "temperature": 0.8,
     "top_p": 0.9,
-    "exact_match_rate": 0.23047375160051217,
-    "formula_match_rate": 0.5902688860435339,
-    "hit_at_1": 0.020059752454118653,
-    "hit_at_5": 0.08023900981647461,
-    "hit_at_10": 0.12590695689287237,
-    "hit_at_50": 0.23047375160051217,
-    "mean_tanimoto": 0.5552763005006122,
-    "median_tanimoto": 0.4418604651162791,
+    "exact_match_rate": 0.6009389671361502,
+    "formula_match_rate": 0.7994024754588135,
+    "hit_at_1": 0.10584720443875373,
+    "hit_at_5": 0.3461374306444729,
+    "hit_at_10": 0.4507042253521127,
+    "hit_at_50": 0.6009389671361502,
+    "mean_tanimoto": 0.8237420084654958,
+    "median_tanimoto": 1.0,
     "total": 2343,
-    "time_seconds": 113.2644431591034,
-    "samples_per_second": 20.68610355245177
+    "time_seconds": 124.37608075141907,
+    "samples_per_second": 18.838027262515006
   }
 ]

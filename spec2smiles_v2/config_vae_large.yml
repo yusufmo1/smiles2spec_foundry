@@ -1,0 +1,90 @@
+# SPEC2SMILES Pipeline Configuration
+# Large VAE (~10-15M params) to test model capacity hypothesis
+
+# Paths
+paths:
+  data_input: data/input
+  data_output: data/output
+
+# Dataset
+dataset: gnps
+
+# Device: cuda, mps, cpu, auto
+device: auto
+
+# Spectrum Processing
+spectrum:
+  n_bins: 500
+  bin_width: 1.0
+  max_mz: 500.0
+  transform: sqrt
+  normalize: true
+
+# Keep our 28 optimized descriptors
+descriptors:
+  - fr_phos_ester
+  - Chi3n
+  - Chi2n
+  - NumAtomStereoCenters
+  - SMR_VSA1
+  - SMR_VSA4
+  - NumSaturatedCarbocycles
+  - SMR_VSA5
+  - EState_VSA10
+  - PEOE_VSA7
+  - NumSaturatedRings
+  - fr_Al_OH
+  - VSA_EState3
+  - PEOE_VSA10
+  - SPS
+  - fr_ether
+  - SMR_VSA3
+  - qed
+  - SlogP_VSA5
+  - AvgIpc
+  - FractionCSP3
+  - SlogP_VSA3
+  - Kappa2
+  - RingCount
+  - SlogP_VSA11
+  - VSA_EState2
+  - HallKierAlpha
+  - NumAromaticRings
+
+# Part B: Large VAE (~10-15M params)
+part_b:
+  model: vae
+
+  vae:
+    latent_dim: 256         # Larger latent space
+    hidden_dim: 512         # 2x the small VAE
+    n_layers: 4             # 2x the small VAE
+    dropout: 0.2
+    max_seq_len: 100
+    learning_rate: 0.0003
+    n_epochs: 100
+    batch_size: 64          # Smaller batch for larger model
+    kl_cycle_length: 20
+    gradient_clip: 1.0
+
+  augment:
+    enabled: false
+    n_augment: 5
+
+  descriptor_augment:
+    enabled: false
+    noise_prob: 0.5
+    noise_scale: 1.0
+
+# Inference
+inference:
+  n_candidates: 50
+  temperature: 1.0
+  top_p: 0.8
+
+# Data Split
+split:
+  train: 0.8
+  val: 0.1
+  test: 0.1
+  seed: 42
