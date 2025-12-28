@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Evaluate DirectDecoder with nucleus sampling (faster than beam search).
+"""Evaluate Part B model with nucleus sampling (faster than beam search).
+
+Supports both ConditionalVAE and DirectDecoder models.
 
 Usage:
     python scripts/eval_nucleus.py [--config config.yml] [--n-samples 100] [--temperature 0.8]
@@ -13,6 +15,7 @@ import json
 import sys
 import time
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 import torch
@@ -27,21 +30,25 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.config import settings, reload_config
 from src.models.direct_decoder import DirectDecoder
+from src.models.vae import ConditionalVAE
 from src.models.selfies_encoder import SELFIESEncoder
 from src.services.part_b import PartBService
 
 
 def evaluate_nucleus(
-    model: DirectDecoder,
+    model: Union[DirectDecoder, ConditionalVAE],
     encoder: SELFIESEncoder,
     test_loader: DataLoader,
     test_smiles: list,
     device: torch.device,
+    model_type: str = "direct",
     n_samples: int = 100,
     temperature: float = 0.8,
     top_p: float = 0.9,
 ) -> tuple:
     """Evaluate model with nucleus sampling.
+
+    Supports both DirectDecoder and ConditionalVAE models.
 
     Returns:
         Tuple of (metrics_dict, predictions_list)
@@ -61,13 +68,20 @@ def evaluate_nucleus(
         batch_desc = batch_desc.to(device)
         batch_size = batch_desc.size(0)
 
-        # Generate with nucleus sampling
-        candidates = model.generate(
-            batch_desc,
-            n_samples=n_samples,
-            temperature=temperature,
-            top_p=top_p,
-        )
+        # Generate with appropriate model
+        if model_type == "vae":
+            candidates = model.generate(
+                batch_desc,
+                n_samples=n_samples,
+                temperature=temperature,
+            )
+        else:
+            candidates = model.generate(
+                batch_desc,
+                n_samples=n_samples,
+                temperature=temperature,
+                top_p=top_p,
+            )
 
         for i in range(batch_size):
             if smiles_idx >= len(test_smiles):
@@ -227,12 +241,9 @@ def main():
     service = PartBService()
     service.load(model_dir)
 
-    if not isinstance(service.model, DirectDecoder):
-        print("Error: Loaded model is not a DirectDecoder. This script is for DirectDecoder only.")
-        sys.exit(1)
-
     model = service.model
     encoder = service.encoder
+    model_type = service.model_type
     print(f"Model: {sum(p.numel() for p in model.parameters()):,} parameters")
 
     # Create test loader
@@ -257,7 +268,7 @@ def main():
         for n_samples, temp, top_p in configs:
             metrics, _ = evaluate_nucleus(
                 model, encoder, test_loader, test_smiles,
-                device=device, n_samples=n_samples, temperature=temp, top_p=top_p,
+                device=device, model_type=model_type, n_samples=n_samples, temperature=temp, top_p=top_p,
             )
             results.append(metrics)
 
@@ -284,6 +295,7 @@ def main():
         metrics, predictions = evaluate_nucleus(
             model, encoder, test_loader, test_smiles,
             device=device,
+            model_type=model_type,
             n_samples=args.n_samples,
             temperature=args.temperature,
             top_p=args.top_p,

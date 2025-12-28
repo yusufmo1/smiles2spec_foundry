@@ -1,0 +1,16 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+Traceback (most recent call last):
+  File "/home/yusuf/smiles2spec_foundry/spec2smiles_v2/scripts/train_part_b.py", line 312, in <module>
+    main()
+  File "/home/yusuf/smiles2spec_foundry/spec2smiles_v2/scripts/train_part_b.py", line 98, in main
+    settings = reload_config(args.config)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yusuf/smiles2spec_foundry/spec2smiles_v2/src/config/settings.py", line 280, in reload_config
+    settings = load_config(config_path)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yusuf/smiles2spec_foundry/spec2smiles_v2/src/config/settings.py", line 263, in load_config
+    kwargs["part_b"] = PartBConfig(**pb_kwargs)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: PartBConfig.__init__() got an unexpected keyword argument 'vae'

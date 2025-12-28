@@ -1,8 +1,8 @@
-"""Part B service - Descriptors to SMILES using DirectDecoder."""
+"""Part B service - Descriptors to SMILES using ConditionalVAE or DirectDecoder."""
 
 import pickle
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -19,6 +19,7 @@ def _get_settings():
 from src.data.augment import augment_dataset
 from src.data.descriptor_augment import DescriptorAugmenter
 from src.models.direct_decoder import DirectDecoder
+from src.models.vae import ConditionalVAE
 from src.models.selfies_encoder import SELFIESEncoder
 from src.services.scaler import ScalerService
 from src.utils.exceptions import ModelError
@@ -28,7 +29,8 @@ from src.utils.logging import TrainingLogger
 class PartBService:
     """Service for training and inference of Descriptors -> SMILES model.
 
-    Uses DirectDecoder with SELFIES encoding for 100% valid SMILES generation.
+    Supports both ConditionalVAE and DirectDecoder models.
+    Uses SELFIES encoding for 100% valid SMILES generation.
     Uses ScalerService for descriptor scaling consistency with Part A.
     """
 
@@ -36,6 +38,7 @@ class PartBService:
         self,
         device: Optional[torch.device] = None,
         scaler: Optional[ScalerService] = None,
+        model_type: Optional[str] = None,
         desc_augment: bool = False,
         noise_prob: float = 0.5,
         noise_scale: float = 1.0,
@@ -47,6 +50,7 @@ class PartBService:
         Args:
             device: PyTorch device (defaults to _get_settings().torch_device)
             scaler: ScalerService instance (uses singleton if not provided)
+            model_type: "vae" or "direct" (defaults to _get_settings().part_b_model)
             desc_augment: Enable descriptor noise augmentation during training
             noise_prob: Probability of adding noise per sample (0-1)
             noise_scale: Noise scale relative to RMSE (1.0 = full error)
@@ -55,9 +59,9 @@ class PartBService:
         """
         self.device = device or _get_settings().torch_device
         self.scaler = scaler or ScalerService.get_instance()
-        self.model_type = "direct"  # DirectDecoder only
+        self.model_type = model_type or _get_settings().part_b_model
         self.encoder: Optional[SELFIESEncoder] = None
-        self.model: Optional[DirectDecoder] = None
+        self.model: Optional[Union[ConditionalVAE, DirectDecoder]] = None
         self._trained = False
 
         # Descriptor augmentation
@@ -109,8 +113,11 @@ class PartBService:
             if verbose:
                 print(f"  Augmented dataset size: {len(smiles_list)}")
 
-        # Get max_seq_len from DirectDecoder config
-        max_len = _get_settings().direct.max_seq_len
+        # Get max_seq_len from appropriate config
+        if self.model_type == "vae":
+            max_len = _get_settings().vae.max_seq_len
+        else:
+            max_len = _get_settings().direct.max_seq_len
 
         # Initialize encoder and build vocabulary
         self.encoder = SELFIESEncoder(max_len=max_len)
@@ -135,7 +142,7 @@ class PartBService:
         verbose: bool = True,
         log_dir: Optional[Path] = None,
     ) -> Dict[str, List[float]]:
-        """Train DirectDecoder model on encoded data.
+        """Train model on encoded data (VAE or DirectDecoder based on model_type).
 
         Args:
             encoded_tokens: Encoded SELFIES tokens of shape (n_samples, max_len)
@@ -151,7 +158,10 @@ class PartBService:
         if self.encoder is None:
             raise ModelError("Encoder not initialized. Call prepare_data first.")
 
-        return self._train_direct(encoded_tokens, descriptors, val_tokens, val_descriptors, verbose, log_dir)
+        if self.model_type == "vae":
+            return self._train_vae(encoded_tokens, descriptors, val_tokens, val_descriptors, verbose, log_dir)
+        else:
+            return self._train_direct(encoded_tokens, descriptors, val_tokens, val_descriptors, verbose, log_dir)
 
     def _train_direct(
         self, tokens: np.ndarray, descriptors: np.ndarray,
@@ -246,6 +256,161 @@ class PartBService:
             logits, targets = self.model(tokens_t, desc_t)
             return criterion(logits.reshape(-1, self.encoder.vocab_size), targets.reshape(-1)).item()
 
+    def _train_vae(
+        self, tokens: np.ndarray, descriptors: np.ndarray,
+        val_tokens: Optional[np.ndarray], val_descriptors: Optional[np.ndarray],
+        verbose: bool, log_dir: Optional[Path],
+    ) -> Dict[str, List[float]]:
+        """Train ConditionalVAE model."""
+        cfg = _get_settings().vae
+        self.model = ConditionalVAE(
+            vocab_size=self.encoder.vocab_size,
+            descriptor_dim=descriptors.shape[1],
+            latent_dim=cfg.latent_dim,
+            hidden_dim=cfg.hidden_dim,
+            n_layers=cfg.n_layers,
+            dropout=cfg.dropout,
+            max_len=cfg.max_seq_len,
+        ).to(self.device)
+
+        if verbose:
+            n_params = sum(p.numel() for p in self.model.parameters())
+            print(f"ConditionalVAE: {n_params:,} parameters")
+
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.learning_rate)
+
+        history = {"train_loss": [], "val_loss": [], "kl_loss": [], "recon_loss": [], "beta": []}
+        best_val_loss = float("inf")
+        patience_counter = 0
+        patience = 10
+
+        n_epochs = cfg.n_epochs
+        batch_size = cfg.batch_size
+
+        for epoch in range(n_epochs):
+            self.model.train()
+            epoch_losses = []
+            epoch_recon_losses = []
+            epoch_kl_losses = []
+
+            # Create batches
+            indices = np.random.permutation(len(tokens))
+            n_batches = len(indices) // batch_size
+
+            iterator = range(n_batches)
+            if verbose:
+                iterator = tqdm(iterator, desc=f"Epoch {epoch + 1}/{n_epochs}")
+
+            for batch_idx in iterator:
+                start = batch_idx * batch_size
+                end = start + batch_size
+                batch_indices = indices[start:end]
+
+                batch_tokens = torch.LongTensor(tokens[batch_indices]).to(self.device)
+                batch_desc = torch.FloatTensor(descriptors[batch_indices]).to(self.device)
+
+                # Apply descriptor augmentation (noise injection)
+                if self.descriptor_augmenter is not None:
+                    batch_desc = self.descriptor_augmenter.augment(
+                        batch_desc, p_noise=self.noise_prob, noise_scale=self.noise_scale
+                    )
+
+                optimizer.zero_grad()
+
+                # Forward pass
+                logits, targets, q_mean, q_logvar, p_mean, p_logvar = self.model(
+                    batch_tokens, batch_desc
+                )
+
+                # Compute reconstruction loss
+                recon_loss = torch.nn.functional.cross_entropy(
+                    logits.reshape(-1, logits.size(-1)),
+                    targets.reshape(-1),
+                    ignore_index=SELFIESEncoder.PAD_IDX,
+                )
+
+                # KL divergence between posterior and prior
+                kl_loss = 0.5 * torch.mean(
+                    p_logvar - q_logvar
+                    + (torch.exp(q_logvar) + (q_mean - p_mean) ** 2)
+                    / torch.exp(p_logvar)
+                    - 1
+                )
+
+                # Cyclical KL annealing
+                cycle_pos = epoch % cfg.kl_cycle_length
+                beta = min(1.0, cycle_pos / (cfg.kl_cycle_length / 2))
+
+                loss = recon_loss + beta * kl_loss
+
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), cfg.gradient_clip)
+                optimizer.step()
+
+                epoch_losses.append(loss.item())
+                epoch_recon_losses.append(recon_loss.item())
+                epoch_kl_losses.append(kl_loss.item())
+
+            # Record training metrics
+            train_loss = np.mean(epoch_losses)
+            epoch_recon = np.mean(epoch_recon_losses)
+            epoch_kl = np.mean(epoch_kl_losses)
+            history["train_loss"].append(train_loss)
+            history["recon_loss"].append(epoch_recon)
+            history["kl_loss"].append(epoch_kl)
+            history["beta"].append(beta)
+
+            # Validation
+            if val_tokens is not None and val_descriptors is not None:
+                val_loss = self._compute_vae_val_loss(val_tokens, val_descriptors)
+                history["val_loss"].append(val_loss)
+
+                # Early stopping
+                if val_loss < best_val_loss:
+                    best_val_loss = val_loss
+                    patience_counter = 0
+                else:
+                    patience_counter += 1
+                    if patience_counter >= patience:
+                        if verbose:
+                            print(f"Early stopping at epoch {epoch + 1}")
+                        break
+
+            if verbose and epoch % 10 == 0:
+                msg = f"Epoch {epoch + 1}: train_loss={train_loss:.4f}"
+                if val_tokens is not None:
+                    msg += f", val_loss={history['val_loss'][-1]:.4f}"
+                print(msg)
+
+        self._trained = True
+        return history
+
+    def _compute_vae_val_loss(self, tokens: np.ndarray, descriptors: np.ndarray) -> float:
+        """Compute validation loss for VAE."""
+        self.model.eval()
+        with torch.no_grad():
+            tokens_t = torch.LongTensor(tokens).to(self.device)
+            desc_t = torch.FloatTensor(descriptors).to(self.device)
+
+            logits, targets, q_mean, q_logvar, p_mean, p_logvar = self.model(
+                tokens_t, desc_t
+            )
+
+            recon_loss = torch.nn.functional.cross_entropy(
+                logits.reshape(-1, logits.size(-1)),
+                targets.reshape(-1),
+                ignore_index=SELFIESEncoder.PAD_IDX,
+            )
+
+            kl_loss = 0.5 * torch.mean(
+                p_logvar - q_logvar
+                + (torch.exp(q_logvar) + (q_mean - p_mean) ** 2)
+                / torch.exp(p_logvar)
+                - 1
+            )
+
+            return (recon_loss + kl_loss).item()
+
     def generate(
         self,
         descriptors: np.ndarray,
@@ -259,7 +424,7 @@ class PartBService:
             descriptors: Descriptor array of shape (n_samples, n_descriptors)
             n_candidates: Number of candidates per sample
             temperature: Sampling temperature
-            top_p: Nucleus sampling threshold (0.0-1.0)
+            top_p: Nucleus sampling threshold (0.0-1.0, only for DirectDecoder)
 
         Returns:
             List of candidate SMILES lists (one per sample)
@@ -271,10 +436,15 @@ class PartBService:
         desc_tensor = torch.FloatTensor(descriptors).to(self.device)
         batch_size = len(descriptors)
 
-        # Generate all samples at once (true batching)
-        candidates = self.model.generate(
-            desc_tensor, n_samples=n_candidates, temperature=temperature, top_p=top_p
-        )
+        # Generate using appropriate model
+        if self.model_type == "vae":
+            candidates = self.model.generate(
+                desc_tensor, n_samples=n_candidates, temperature=temperature
+            )
+        else:
+            candidates = self.model.generate(
+                desc_tensor, n_samples=n_candidates, temperature=temperature, top_p=top_p
+            )
         # candidates: List[(batch_size, max_len)] - n_candidates tensors
 
         # Decode per sample
@@ -311,16 +481,27 @@ class PartBService:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Build model config for DirectDecoder
-        model_config = {
-            "vocab_size": self.model.vocab_size,
-            "descriptor_dim": self.model.descriptor_dim,
-            "hidden_dim": self.model.hidden_dim,
-            "n_layers": self.model.n_layers,
-            "n_heads": self.model.n_heads,
-            "max_len": self.model.max_len,
-        }
-        model_filename = "direct_model.pt"
+        # Build model config based on model type
+        if self.model_type == "vae":
+            model_config = {
+                "vocab_size": self.model.vocab_size,
+                "descriptor_dim": self.model.descriptor_dim,
+                "latent_dim": self.model.latent_dim,
+                "hidden_dim": self.model.hidden_dim,
+                "n_layers": self.model.n_layers,
+                "max_len": self.model.max_len,
+            }
+            model_filename = "vae_model.pt"
+        else:
+            model_config = {
+                "vocab_size": self.model.vocab_size,
+                "descriptor_dim": self.model.descriptor_dim,
+                "hidden_dim": self.model.hidden_dim,
+                "n_layers": self.model.n_layers,
+                "n_heads": self.model.n_heads,
+                "max_len": self.model.max_len,
+            }
+            model_filename = "direct_model.pt"
 
         # Save as integration package (includes scaler for reproducibility)
         package = {
@@ -334,8 +515,12 @@ class PartBService:
         with open(output_dir / "integration_package.pkl", "wb") as f:
             pickle.dump(package, f)
 
-        # Also save separate model file
-        self.model.save(output_dir / model_filename)
+        # Also save separate model file (DirectDecoder only - VAE uses package only)
+        if self.model_type == "direct":
+            self.model.save(output_dir / model_filename)
+        else:
+            # For VAE, save state dict separately
+            torch.save(self.model.state_dict(), output_dir / model_filename)
 
     def load(self, model_dir: Path) -> "PartBService":
         """Load trained model, encoder, and scaler state.
@@ -361,19 +546,29 @@ class PartBService:
             if "scaler_state" in package:
                 self.scaler.from_state(package["scaler_state"])
 
-            # Model type is always DirectDecoder
-            self.model_type = "direct"
+            # Get model type from package
+            self.model_type = package.get("model_type", "direct")
             config = package["model_config"]
 
-            # Load DirectDecoder model
-            self.model = DirectDecoder(
-                vocab_size=config["vocab_size"],
-                descriptor_dim=config["descriptor_dim"],
-                hidden_dim=config["hidden_dim"],
-                n_layers=config["n_layers"],
-                n_heads=config.get("n_heads", 8),
-                max_len=config["max_len"],
-            )
+            # Load appropriate model
+            if self.model_type == "vae":
+                self.model = ConditionalVAE(
+                    vocab_size=config["vocab_size"],
+                    descriptor_dim=config["descriptor_dim"],
+                    latent_dim=config["latent_dim"],
+                    hidden_dim=config["hidden_dim"],
+                    n_layers=config["n_layers"],
+                    max_len=config["max_len"],
+                )
+            else:
+                self.model = DirectDecoder(
+                    vocab_size=config["vocab_size"],
+                    descriptor_dim=config["descriptor_dim"],
+                    hidden_dim=config["hidden_dim"],
+                    n_layers=config["n_layers"],
+                    n_heads=config.get("n_heads", 8),
+                    max_len=config["max_len"],
+                )
             self.model.load_state_dict(package["model_state_dict"])
             self.model.to(self.device)
             self.model.eval()
@@ -392,13 +587,18 @@ class PartBService:
             if scaler_path.exists():
                 self.scaler.load(scaler_path)
 
-            # Load DirectDecoder model
+            # Try VAE model first, then DirectDecoder
+            vae_path = model_dir / "vae_model.pt"
             direct_path = model_dir / "direct_model.pt"
-            if not direct_path.exists():
-                raise ModelError(f"DirectDecoder model not found: {direct_path}")
 
-            self.model_type = "direct"
-            self.model = DirectDecoder.load(direct_path, self.device)
+            if vae_path.exists():
+                # Load VAE model - need config from somewhere
+                raise ModelError("Legacy VAE model loading not supported. Use integration_package.pkl")
+            elif direct_path.exists():
+                self.model_type = "direct"
+                self.model = DirectDecoder.load(direct_path, self.device)
+            else:
+                raise ModelError(f"No model found in: {model_dir}")
 
             self.model.eval()
 

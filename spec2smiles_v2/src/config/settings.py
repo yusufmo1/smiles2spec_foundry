@@ -94,7 +94,8 @@ class DescriptorAugmentConfig:
 
 @dataclass
 class PartBConfig:
-    model: Literal["direct"] = "direct"  # DirectDecoder only
+    model: Literal["vae", "direct"] = "direct"  # VAE or DirectDecoder
+    vae: VAEConfig = field(default_factory=VAEConfig)
     direct: DirectDecoderConfig = field(default_factory=DirectDecoderConfig)
     augment: AugmentConfig = field(default_factory=AugmentConfig)
     descriptor_augment: DescriptorAugmentConfig = field(default_factory=DescriptorAugmentConfig)
