@@ -58,57 +58,127 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.config import settings, reload_config
 from src.domain.spectrum import process_spectrum
-from src.domain.descriptors import calculate_descriptors_batch
+from src.domain.descriptors import calculate_descriptors_batch, get_descriptor_type
 
 
 def train_single_descriptor(args):
-    """Train LightGBM for a single descriptor."""
-    idx, name, X_train, y_train, X_val, y_val, X_test, y_test = args
+    """Train LightGBM for a single descriptor.
 
-    # LightGBM parameters optimized for regression
-    params = {
-        'objective': 'regression',
-        'metric': 'rmse',
-        'boosting_type': 'gbdt',
-        'num_leaves': 63,
-        'learning_rate': 0.05,
-        'feature_fraction': 0.8,
-        'bagging_fraction': 0.8,
-        'bagging_freq': 5,
-        'verbose': -1,
-        'n_jobs': 1,  # Single thread per model since we parallelize across descriptors
-    }
+    Uses classification for discrete descriptors (counts) and
+    regression for continuous descriptors.
+    """
+    idx, name, X_train, y_train, X_val, y_val, X_test, y_test, desc_type = args
 
-    # Create datasets
-    train_data = lgb.Dataset(X_train, label=y_train[:, idx])
-    val_data = lgb.Dataset(X_val, label=y_val[:, idx], reference=train_data)
+    # Extract target column
+    y_train_col = y_train[:, idx]
+    y_val_col = y_val[:, idx]
+    y_test_col = y_test[:, idx]
 
-    # Train with early stopping
-    model = lgb.train(
-        params,
-        train_data,
-        num_boost_round=1000,
-        valid_sets=[val_data],
-        callbacks=[lgb.early_stopping(50, verbose=False)]
-    )
+    if desc_type == "discrete":
+        # Classification for discrete count descriptors
+        # Convert to integer labels
+        y_train_int = y_train_col.astype(int)
+        y_val_int = y_val_col.astype(int)
+        y_test_int = y_test_col.astype(int)
 
-    # Evaluate on test set
-    y_pred = model.predict(X_test)
-    y_true = y_test[:, idx]
+        # Determine number of classes from all data
+        all_vals = np.concatenate([y_train_int, y_val_int, y_test_int])
+        n_classes = int(np.max(all_vals)) + 1
 
-    mae = mean_absolute_error(y_true, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    r2 = r2_score(y_true, y_pred)
+        params = {
+            'objective': 'multiclass',
+            'num_class': n_classes,
+            'metric': 'multi_logloss',
+            'boosting_type': 'gbdt',
+            'num_leaves': 63,
+            'learning_rate': 0.05,
+            'feature_fraction': 0.8,
+            'bagging_fraction': 0.8,
+            'bagging_freq': 5,
+            'verbose': -1,
+            'n_jobs': 1,
+        }
 
-    return {
-        'name': name,
-        'idx': idx,
-        'model': model,
-        'MAE': float(mae),
-        'RMSE': float(rmse),
-        'R2': float(r2),
-        'best_iteration': model.best_iteration
-    }
+        # Create datasets with integer labels
+        train_data = lgb.Dataset(X_train, label=y_train_int)
+        val_data = lgb.Dataset(X_val, label=y_val_int, reference=train_data)
+
+        # Train with early stopping
+        model = lgb.train(
+            params,
+            train_data,
+            num_boost_round=1000,
+            valid_sets=[val_data],
+            callbacks=[lgb.early_stopping(50, verbose=False)]
+        )
+
+        # Predict: get class with highest probability
+        y_pred_proba = model.predict(X_test)
+        y_pred = np.argmax(y_pred_proba, axis=1)
+
+        # Metrics for classification
+        accuracy = float((y_pred == y_test_int).mean())
+        mae = float(mean_absolute_error(y_test_int, y_pred))
+
+        return {
+            'name': name,
+            'idx': idx,
+            'model': model,
+            'type': 'discrete',
+            'accuracy': accuracy,
+            'MAE': mae,
+            'n_classes': n_classes,
+            'best_iteration': model.best_iteration
+        }
+    else:
+        # Regression for continuous and bounded descriptors
+        params = {
+            'objective': 'regression',
+            'metric': 'rmse',
+            'boosting_type': 'gbdt',
+            'num_leaves': 63,
+            'learning_rate': 0.05,
+            'feature_fraction': 0.8,
+            'bagging_fraction': 0.8,
+            'bagging_freq': 5,
+            'verbose': -1,
+            'n_jobs': 1,
+        }
+
+        # Create datasets
+        train_data = lgb.Dataset(X_train, label=y_train_col)
+        val_data = lgb.Dataset(X_val, label=y_val_col, reference=train_data)
+
+        # Train with early stopping
+        model = lgb.train(
+            params,
+            train_data,
+            num_boost_round=1000,
+            valid_sets=[val_data],
+            callbacks=[lgb.early_stopping(50, verbose=False)]
+        )
+
+        # Evaluate on test set
+        y_pred = model.predict(X_test)
+
+        # Clip bounded descriptors
+        if desc_type == "bounded":
+            y_pred = np.clip(y_pred, 0.0, 1.0)
+
+        mae = float(mean_absolute_error(y_test_col, y_pred))
+        rmse = float(np.sqrt(mean_squared_error(y_test_col, y_pred)))
+        r2 = float(r2_score(y_test_col, y_pred))
+
+        return {
+            'name': name,
+            'idx': idx,
+            'model': model,
+            'type': desc_type,  # 'continuous' or 'bounded'
+            'MAE': mae,
+            'RMSE': rmse,
+            'R2': r2,
+            'best_iteration': model.best_iteration
+        }
 
 
 def main():
@@ -222,13 +292,22 @@ def main():
     print()
 
     # Train one model per descriptor
-    print(f"Training {len(settings.descriptor_names)} LightGBM models...")
-
     descriptor_names = list(settings.descriptor_names)
 
-    # Prepare arguments for parallel training
+    # Count descriptor types
+    discrete_count = sum(1 for name in descriptor_names if get_descriptor_type(name) == "discrete")
+    bounded_count = sum(1 for name in descriptor_names if get_descriptor_type(name) == "bounded")
+    continuous_count = len(descriptor_names) - discrete_count - bounded_count
+
+    print(f"Training {len(descriptor_names)} LightGBM models...")
+    print(f"  Discrete (classification): {discrete_count}")
+    print(f"  Bounded (regression+clip): {bounded_count}")
+    print(f"  Continuous (regression):   {continuous_count}")
+    print()
+
+    # Prepare arguments for parallel training (now includes descriptor type)
     train_args = [
-        (idx, name, X_train, y_train, X_val, y_val, X_test, y_test)
+        (idx, name, X_train, y_train, X_val, y_val, X_test, y_test, get_descriptor_type(name))
         for idx, name in enumerate(descriptor_names)
     ]
 
@@ -248,31 +327,65 @@ def main():
             results.append(result)
             models[result['name']] = result['model']
 
-    # Sort by R2
-    results.sort(key=lambda x: x['R2'], reverse=True)
+    # Separate results by type
+    discrete_results = [r for r in results if r['type'] == 'discrete']
+    regression_results = [r for r in results if r['type'] != 'discrete']
 
-    # Print results
-    print("\n" + "=" * 60)
-    print("Results (sorted by R²)")
-    print("=" * 60)
-    print(f"{'Rank':<5} {'Descriptor':<30} {'R²':>10} {'MAE':>10}")
-    print("-" * 60)
+    # Sort each by their respective primary metric
+    discrete_results.sort(key=lambda x: x['accuracy'], reverse=True)
+    regression_results.sort(key=lambda x: x['R2'], reverse=True)
 
-    for i, r in enumerate(results, 1):
-        marker = "🟢" if r['R2'] >= 0.7 else ("🟡" if r['R2'] >= 0.5 else "🟠")
-        print(f"{i:<5} {r['name']:<30} {r['R2']:>10.4f} {r['MAE']:>10.4f} {marker}")
+    # Print discrete (classification) results
+    if discrete_results:
+        print("\n" + "=" * 70)
+        print("DISCRETE DESCRIPTORS (Classification) - sorted by Accuracy")
+        print("=" * 70)
+        print(f"{'Rank':<5} {'Descriptor':<30} {'Acc':>8} {'MAE':>8} {'Classes':>8}")
+        print("-" * 70)
 
-    # Summary statistics
-    r2_values = [r['R2'] for r in results]
-    print("-" * 60)
-    print(f"Mean R²:   {np.mean(r2_values):.4f}")
-    print(f"Median R²: {np.median(r2_values):.4f}")
-    print(f"Max R²:    {max(r2_values):.4f}")
-    print(f"Min R²:    {min(r2_values):.4f}")
-    print(f"R² >= 0.7: {sum(1 for r in r2_values if r >= 0.7)} descriptors")
-    print(f"R² >= 0.8: {sum(1 for r in r2_values if r >= 0.8)} descriptors")
+        for i, r in enumerate(discrete_results, 1):
+            marker = "🟢" if r['accuracy'] >= 0.8 else ("🟡" if r['accuracy'] >= 0.6 else "🟠")
+            print(f"{i:<5} {r['name']:<30} {r['accuracy']:>8.3f} {r['MAE']:>8.3f} {r['n_classes']:>8} {marker}")
 
-    # Save models
+        acc_values = [r['accuracy'] for r in discrete_results]
+        print("-" * 70)
+        print(f"Mean Accuracy:   {np.mean(acc_values):.4f}")
+        print(f"Median Accuracy: {np.median(acc_values):.4f}")
+        print(f"Acc >= 0.8: {sum(1 for a in acc_values if a >= 0.8)} descriptors")
+        print(f"Acc >= 0.9: {sum(1 for a in acc_values if a >= 0.9)} descriptors")
+
+    # Print regression results
+    if regression_results:
+        print("\n" + "=" * 70)
+        print("CONTINUOUS DESCRIPTORS (Regression) - sorted by R²")
+        print("=" * 70)
+        print(f"{'Rank':<5} {'Descriptor':<30} {'R²':>10} {'MAE':>10} {'Type':>10}")
+        print("-" * 70)
+
+        for i, r in enumerate(regression_results, 1):
+            marker = "🟢" if r['R2'] >= 0.7 else ("🟡" if r['R2'] >= 0.5 else "🟠")
+            print(f"{i:<5} {r['name']:<30} {r['R2']:>10.4f} {r['MAE']:>10.4f} {r['type']:>10} {marker}")
+
+        r2_values = [r['R2'] for r in regression_results]
+        print("-" * 70)
+        print(f"Mean R²:   {np.mean(r2_values):.4f}")
+        print(f"Median R²: {np.median(r2_values):.4f}")
+        print(f"R² >= 0.7: {sum(1 for r in r2_values if r >= 0.7)} descriptors")
+        print(f"R² >= 0.8: {sum(1 for r in r2_values if r >= 0.8)} descriptors")
+
+    # Overall summary
+    print("\n" + "=" * 70)
+    print("OVERALL SUMMARY")
+    print("=" * 70)
+    print(f"Total descriptors:   {len(results)}")
+    print(f"  Discrete:          {len(discrete_results)} (classification)")
+    print(f"  Continuous:        {len(regression_results)} (regression)")
+    if discrete_results:
+        print(f"Mean accuracy (discrete): {np.mean([r['accuracy'] for r in discrete_results]):.4f}")
+    if regression_results:
+        print(f"Mean R² (continuous):     {np.mean([r['R2'] for r in regression_results]):.4f}")
+
+    # Save models and metadata
     import pickle
     output_dir = settings.models_path / "part_a_lgbm"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -280,12 +393,43 @@ def main():
     with open(output_dir / "models.pkl", "wb") as f:
         pickle.dump(models, f)
 
+    # Save descriptor metadata (types and class info) for inference
+    descriptor_meta = {}
+    for r in results:
+        if r['type'] == 'discrete':
+            descriptor_meta[r['name']] = {
+                'type': 'discrete',
+                'n_classes': r['n_classes']
+            }
+        else:
+            descriptor_meta[r['name']] = {
+                'type': r['type']
+            }
+
+    with open(output_dir / "descriptor_meta.json", "w") as f:
+        json.dump(descriptor_meta, f, indent=2)
+
     # Generate and save test set predictions for visualization
     print("\nGenerating test predictions for visualization...")
     y_pred_test = np.zeros_like(y_test)
+
+    # Create lookup for result info by name
+    result_lookup = {r['name']: r for r in results}
+
     for idx, name in enumerate(descriptor_names):
         model = models[name]
-        y_pred_test[:, idx] = model.predict(X_test)
+        desc_type = get_descriptor_type(name)
+
+        if desc_type == "discrete":
+            # Classification: get probabilities and take argmax
+            y_pred_proba = model.predict(X_test)
+            y_pred_test[:, idx] = np.argmax(y_pred_proba, axis=1)
+        else:
+            # Regression: direct prediction
+            y_pred_test[:, idx] = model.predict(X_test)
+            # Clip bounded descriptors
+            if desc_type == "bounded":
+                y_pred_test[:, idx] = np.clip(y_pred_test[:, idx], 0.0, 1.0)
 
     # Save predictions as numpy arrays
     predictions_dir = settings.metrics_path
@@ -298,18 +442,46 @@ def main():
     metrics_path = settings.metrics_path / "part_a_lgbm_metrics.json"
     metrics_path.parent.mkdir(parents=True, exist_ok=True)
 
-    per_descriptor = {r['name']: {'MAE': r['MAE'], 'RMSE': r['RMSE'], 'R2': r['R2']} for r in results}
+    # Build per-descriptor metrics based on type
+    per_descriptor = {}
+    for r in results:
+        if r['type'] == 'discrete':
+            per_descriptor[r['name']] = {
+                'type': 'discrete',
+                'accuracy': r['accuracy'],
+                'MAE': r['MAE'],
+                'n_classes': r['n_classes']
+            }
+        else:
+            per_descriptor[r['name']] = {
+                'type': r['type'],
+                'MAE': r['MAE'],
+                'RMSE': r['RMSE'],
+                'R2': r['R2']
+            }
+
+    # Compute summary statistics
+    summary = {
+        "n_descriptors": len(results),
+        "n_discrete": len(discrete_results),
+        "n_continuous": len(regression_results),
+    }
+
+    if discrete_results:
+        acc_values = [r['accuracy'] for r in discrete_results]
+        summary["mean_accuracy_discrete"] = float(np.mean(acc_values))
+        summary["best_discrete"] = discrete_results[0]['name']
+        summary["best_discrete_accuracy"] = float(discrete_results[0]['accuracy'])
+
+    if regression_results:
+        r2_values = [r['R2'] for r in regression_results]
+        summary["mean_r2_continuous"] = float(np.mean(r2_values))
+        summary["best_continuous"] = regression_results[0]['name']
+        summary["best_continuous_r2"] = float(regression_results[0]['R2'])
 
     full_metrics = {
-        "model_type": "lightgbm",
-        "summary": {
-            "mean_r2": float(np.mean(r2_values)),
-            "median_r2": float(np.median(r2_values)),
-            "best_descriptor": results[0]['name'],
-            "best_r2": float(results[0]['R2']),
-            "worst_descriptor": results[-1]['name'],
-            "worst_r2": float(results[-1]['R2']),
-        },
+        "model_type": "lightgbm_mixed",
+        "summary": summary,
         "per_descriptor": per_descriptor,
     }
 

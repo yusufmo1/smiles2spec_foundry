@@ -47,6 +47,52 @@ DESCRIPTOR_NAMES: Tuple[str, ...] = (
     "HallKierAlpha",
 )
 
+# Descriptor types for mixed classification/regression training
+# - "discrete": Integer counts (use classification)
+# - "bounded": Continuous but bounded to [0, 1] (use regression + clipping)
+# - "continuous": Unbounded continuous values (use regression)
+DESCRIPTOR_TYPES: Dict[str, str] = {
+    # Discrete counts (functional group counts, ring counts, atom counts)
+    "HeavyAtomCount": "discrete",
+    "NumHeteroatoms": "discrete",
+    "NumAromaticRings": "discrete",
+    "NumAliphaticRings": "discrete",
+    "NumSaturatedRings": "discrete",
+    "RingCount": "discrete",
+    "NOCount": "discrete",
+    "NumHDonors": "discrete",
+    "NumHAcceptors": "discrete",
+    "NumRotatableBonds": "discrete",
+    "NumAromaticHeterocycles": "discrete",
+    "NumAromaticCarbocycles": "discrete",
+    "NumAliphaticHeterocycles": "discrete",
+    "NumAliphaticCarbocycles": "discrete",
+    "NumSaturatedHeterocycles": "discrete",
+    "NumSaturatedCarbocycles": "discrete",
+    "NumAtomStereoCenters": "discrete",
+    # Functional group counts (fr_* descriptors)
+    "fr_phos_ester": "discrete",
+    "fr_Al_OH": "discrete",
+    "fr_ether": "discrete",
+    # Bounded continuous [0, 1]
+    "FractionCSP3": "bounded",
+    "qed": "bounded",
+    # All others default to "continuous"
+}
+
+
+def get_descriptor_type(name: str) -> str:
+    """Get the type of a descriptor for training objective selection.
+
+    Args:
+        name: Descriptor name
+
+    Returns:
+        One of "discrete", "bounded", or "continuous"
+    """
+    return DESCRIPTOR_TYPES.get(name, "continuous")
+
+
 # Lazily initialized descriptor functions (RDKit import is expensive)
 _descriptor_funcs: Optional[Dict[str, Callable]] = None
 
