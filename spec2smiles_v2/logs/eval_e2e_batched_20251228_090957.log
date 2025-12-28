@@ -1,0 +1,67 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+============================================================
+End-to-End Evaluation (Spectrum -> SMILES)
+============================================================
+Dataset: gnps
+Part A: lgbm
+Part B: direct
+Device: cuda
+
+Loading Part A models...
+  Loaded 28 LightGBM models
+Loading Part B model...
+  Vocab size: 105
+  Device: cuda
+
+Loading test data...
+Test samples: 2347
+
+Part A: Predicting descriptors from spectra...
+  Mean R² (Part A): 0.7968
+
+Part B: Generating SMILES candidates (batch_size=128)...
+Generating:   0%|          | 0/19 [00:00<?, ?it/s]Generating:   5%|▌         | 1/19 [00:43<13:11, 43.95s/it]Generating:  11%|█         | 2/19 [01:27<12:26, 43.93s/it]Generating:  16%|█▌        | 3/19 [02:11<11:43, 43.99s/it]Generating:  21%|██        | 4/19 [02:55<11:00, 44.02s/it]Generating:  26%|██▋       | 5/19 [03:39<10:15, 43.97s/it]Generating:  32%|███▏      | 6/19 [04:23<09:32, 44.01s/it]Generating:  37%|███▋      | 7/19 [05:07<08:47, 43.99s/it]Generating:  42%|████▏     | 8/19 [05:51<08:03, 43.99s/it]Generating:  47%|████▋     | 9/19 [06:35<07:19, 43.96s/it]Generating:  53%|█████▎    | 10/19 [07:19<06:35, 43.96s/it]Generating:  58%|█████▊    | 11/19 [08:03<05:51, 43.99s/it]Generating:  63%|██████▎   | 12/19 [08:47<05:08, 44.03s/it]Generating:  68%|██████▊   | 13/19 [09:32<04:24, 44.07s/it]Generating:  74%|███████▎  | 14/19 [10:16<03:40, 44.10s/it]Generating:  79%|███████▉  | 15/19 [11:00<02:56, 44.14s/it]Generating:  84%|████████▍ | 16/19 [11:44<02:12, 44.11s/it]Generating:  89%|████████▉ | 17/19 [12:28<01:28, 44.08s/it]Generating:  95%|█████████▍| 18/19 [13:12<00:44, 44.12s/it]Generating: 100%|██████████| 19/19 [13:28<00:00, 35.47s/it]Generating: 100%|██████████| 19/19 [13:28<00:00, 42.53s/it]
+
+Computing metrics...
+
+============================================================
+END-TO-END RESULTS
+============================================================
+  Part A Mean R²:     0.7968
+  Hit@1:              0.2701 (27.0%)
+  Hit@5:              0.3426 (34.3%)
+  Hit@10:             0.3447 (34.5%)
+  Hit@50:             0.3447 (34.5%)
+  Exact Match:        0.3447 (34.5%)
+  Mean Best Tanimoto: 0.5553
+  Validity:           1.0000 (100.0%)
+
+  Candidates per sample: 10
+  Top-p: 0.9
+  Test samples: 2347
+Results saved to data/output/metrics/e2e_evaluation.json
+
+Saving detailed predictions...
+Detailed predictions saved to data/output/metrics/e2e_predictions_lgbm.jsonl
+
+============================================================
+EXAMPLE PREDICTIONS
+============================================================
+
+Exact Matches (809 total):
+  [1] CCC(C)C(=O)O[C@H]1[C@@H]2OC(=O)C(=C)[C@@H]2CC(=O)[...
+       → C=C1C(=O)O[C@@H]2[C@H]1CC(=O)[C@H](C)[C@@](O)(C(=O...
+  [14] O[C@H](COP(O)(O)=O)[C@@H](O)[C@H](O)[C@@H](O)C(O)=...
+       → O=C(O)[C@H](O)[C@@H](O)[C@H](O)[C@H](O)COP(=O)(O)O...
+  [19] OC1=C(C(OC2=CC(C)=C(C(O)=C2C)C(O)=O)=O)C(C)=CC(OC)...
+       → COc1cc(C)c(C(=O)Oc2cc(C)c(C(=O)O)c(O)c2C)c(O)c1C(=...
+
+Best Non-Exact Matches:
+  [115] True: CC1C(C(C(C(O1)OCC2C(C(C(C(O2)OC3=C(OC4=C...
+       Pred: C[C@@H]1O[C@@H](OC[C@H]2O[C@@H](Oc3c(-c4... (Tanimoto: 1.000)
+  [304] True: COC(=O)C1C(O)CCC2CN3CCC4=C(NC5=C4C=CC=C5...
+       Pred: COC(=O)[C@@H]1[C@H]2C[C@H]3c4[nH]c5ccccc... (Tanimoto: 1.000)
+  [363] True: O[C@H]([C@H]1C[C@@H]2CC[N@]1C[C@@H]2C=C)...
+       Pred: C=CC1CN2CCC1CC2C(O)c1ccnc2ccccc12... (Tanimoto: 1.000)

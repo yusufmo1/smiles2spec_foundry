@@ -268,26 +268,25 @@ class PartBService:
             raise ModelError("Model must be trained before generation")
 
         self.model.eval()
-        all_candidates = []
-
         desc_tensor = torch.FloatTensor(descriptors).to(self.device)
+        batch_size = len(descriptors)
 
-        for i in range(len(descriptors)):
-            sample_desc = desc_tensor[i : i + 1]
-            candidates = self.model.generate(
-                sample_desc, n_samples=n_candidates, temperature=temperature, top_p=top_p
-            )
+        # Generate all samples at once (true batching)
+        candidates = self.model.generate(
+            desc_tensor, n_samples=n_candidates, temperature=temperature, top_p=top_p
+        )
+        # candidates: List[(batch_size, max_len)] - n_candidates tensors
 
-            # Decode candidates
-            smiles_candidates = []
-            for cand_tokens in candidates:
-                smiles = self.encoder.decode(cand_tokens[0].cpu().numpy().tolist())
+        # Decode per sample
+        all_candidates = [[] for _ in range(batch_size)]
+        for cand_tokens in candidates:  # Iterate over n_candidates
+            for batch_idx in range(batch_size):  # Iterate over samples
+                smiles = self.encoder.decode(cand_tokens[batch_idx].cpu().numpy().tolist())
                 if smiles is not None:
-                    smiles_candidates.append(smiles)
+                    all_candidates[batch_idx].append(smiles)
 
-            # Remove duplicates
-            unique_candidates = list(dict.fromkeys(smiles_candidates))
-            all_candidates.append(unique_candidates)
+        # Remove duplicates per sample
+        all_candidates = [list(dict.fromkeys(cands)) for cands in all_candidates]
 
         return all_candidates
 

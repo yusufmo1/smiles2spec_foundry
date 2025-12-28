@@ -228,6 +228,8 @@ def main():
     parser.add_argument("--visualize", action="store_true", help="Generate visualizations")
     parser.add_argument("--top-p", type=float, default=0.9, help="Nucleus sampling threshold")
     parser.add_argument("--batch-size", type=int, default=32, help="Batch size for generation")
+    parser.add_argument("--sweep", action="store_true", help="Run temperature/top_p sweep")
+    parser.add_argument("--sweep-samples", type=int, default=500, help="Random subsample size for sweep")
     args = parser.parse_args()
 
     # Load config
@@ -314,7 +316,70 @@ def main():
         true_descriptors = true_descriptors[:args.n_samples]
         print(f"Using first {args.n_samples} samples")
 
+    # Random subsample for sweep
+    if args.sweep and args.sweep_samples < len(smiles_list):
+        np.random.seed(42)
+        indices = np.random.choice(len(smiles_list), args.sweep_samples, replace=False)
+        spectra = spectra[indices]
+        smiles_list = [smiles_list[i] for i in indices]
+        true_descriptors = true_descriptors[indices]
+        print(f"Random subsample: {len(smiles_list)} samples")
+
     print()
+
+    # Sweep mode
+    if args.sweep:
+        temps = [0.6, 0.7, 0.8, 0.9, 1.0]
+        top_ps = [0.85, 0.9, 0.95]
+
+        print("=" * 70)
+        print("E2E PARAMETER SWEEP")
+        print(f"Samples: {len(smiles_list)} | Candidates: {args.n_candidates} | Batch: {args.batch_size}")
+        print("=" * 70)
+
+        # Predict descriptors once (Part A)
+        pred_descriptors = predict_descriptors_lgbm(lgbm_models, spectra, settings.descriptor_names)
+        pred_scaled = part_b.scaler.transform(pred_descriptors)
+
+        results = []
+        for temp in temps:
+            for top_p in top_ps:
+                # Generate with current params
+                all_candidates = []
+                for batch_idx in range(0, len(pred_scaled), args.batch_size):
+                    batch = pred_scaled[batch_idx:batch_idx + args.batch_size]
+                    batch_cands = part_b.generate(batch, n_candidates=args.n_candidates,
+                                                  temperature=temp, top_p=top_p)
+                    all_candidates.extend(batch_cands)
+
+                # Compute metrics
+                hit_at_k = compute_hit_at_k(all_candidates, smiles_list)
+                tanimoto = compute_tanimoto(all_candidates, smiles_list)
+
+                results.append({
+                    "temperature": temp, "top_p": top_p,
+                    "hit_at_1": hit_at_k[1], "hit_at_10": hit_at_k[10],
+                    "tanimoto": tanimoto
+                })
+
+                print(f"temp={temp:.1f}, top_p={top_p:.2f}: Hit@1={hit_at_k[1]:.1%}, Hit@10={hit_at_k[10]:.1%}, Tan={tanimoto:.3f}")
+
+        # Find best
+        best = max(results, key=lambda x: x["hit_at_10"])
+        print("\n" + "=" * 70)
+        print(f"BEST: temp={best['temperature']}, top_p={best['top_p']}")
+        print(f"  Hit@1:  {best['hit_at_1']:.1%}")
+        print(f"  Hit@10: {best['hit_at_10']:.1%}")
+        print(f"  Tanimoto: {best['tanimoto']:.3f}")
+        print("=" * 70)
+
+        # Save results
+        sweep_path = settings.metrics_path / "e2e_sweep.json"
+        sweep_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(sweep_path, "w") as f:
+            json.dump({"results": results, "best": best}, f, indent=2)
+        print(f"Sweep results saved to {sweep_path}")
+        return
 
     # Part A: Predict descriptors from spectra
     print("Part A: Predicting descriptors from spectra...")

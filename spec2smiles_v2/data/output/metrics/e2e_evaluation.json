@@ -4,12 +4,18 @@
     "mean_r2": 0.7967574868243534
   },
   "end_to_end": {
-    "exact_match": 0.3608862377503196,
-    "mean_best_tanimoto": 0.5753040555919997,
-    "validity": 1.0
+    "exact_match": 0.34469535577332766,
+    "mean_best_tanimoto": 0.5552892590279306,
+    "validity": 1.0,
+    "hit_at_1": 0.27013208351086493,
+    "hit_at_5": 0.34256497656582874,
+    "hit_at_10": 0.34469535577332766,
+    "hit_at_50": 0.34469535577332766
   },
   "config": {
-    "n_candidates": 50,
-    "n_samples": 2347
+    "n_candidates": 10,
+    "n_samples": 2347,
+    "temperature": 0.7,
+    "top_p": 0.9
   }
 }
