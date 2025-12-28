@@ -6,8 +6,8 @@
   "desc_augmented": false,
   "noise_prob": null,
   "noise_scale": null,
-  "final_train_loss": 0.7954307993931168,
-  "final_val_loss": 0.9538941979408264,
-  "n_epochs": 128,
+  "final_train_loss": 0.8157684912486952,
+  "final_val_loss": 0.9534298181533813,
+  "n_epochs": 100,
   "vocab_size": 105
 }

@@ -1,0 +1,110 @@
+# SPEC2SMILES Pipeline Configuration
+# OLD ARCHITECTURE - Testing DirectDecoder from commit 2d7bd70
+
+# Paths
+paths:
+  data_input: data/input
+  data_output: data/output
+
+# Dataset
+dataset: gnps
+
+# Device: cuda, mps, cpu, auto
+device: auto
+
+# Spectrum Processing
+spectrum:
+  n_bins: 500
+  bin_width: 1.0
+  max_mz: 500.0
+  transform: sqrt  # sqrt, log, none
+  normalize: true
+
+# 28 optimized descriptors (same as current)
+descriptors:
+  - fr_phos_ester
+  - Chi3n
+  - Chi2n
+  - NumAtomStereoCenters
+  - SMR_VSA1
+  - SMR_VSA4
+  - NumSaturatedCarbocycles
+  - SMR_VSA5
+  - EState_VSA10
+  - PEOE_VSA7
+  - NumSaturatedRings
+  - fr_Al_OH
+  - VSA_EState3
+  - PEOE_VSA10
+  - SPS
+  - fr_ether
+  - SMR_VSA3
+  - qed
+  - SlogP_VSA5
+  - AvgIpc
+  - FractionCSP3
+  - SlogP_VSA3
+  - Kappa2
+  - RingCount
+  - SlogP_VSA11
+  - VSA_EState2
+  - HallKierAlpha
+  - NumAromaticRings
+
+# Part A: Spectrum -> Descriptors (same as current)
+part_a:
+  cnn_hidden: 128
+  transformer_dim: 128
+  n_heads: 4
+  n_transformer_layers: 2
+  d_ff: 256
+  dropout: 0.2
+  learning_rate: 0.0005
+  weight_decay: 0.01
+  max_epochs: 200
+  batch_size: 64
+  gradient_clip: 1.0
+  patience: 30
+
+# Part B: Descriptors -> SMILES (DirectDecoder)
+# ========================================
+# OLD ARCHITECTURE from commit 2d7bd70
+# ========================================
+part_b:
+  model: direct
+
+  direct:
+    hidden_dim: 512      # OLD: 512 (CURRENT: 768)
+    n_layers: 4          # OLD: 4   (CURRENT: 6)
+    n_heads: 8           # OLD: 8   (CURRENT: 12)
+    d_ff: 2048           # OLD: auto-calc 512*4 (CURRENT: 3072)
+    dropout: 0.1
+    max_seq_len: 100
+    learning_rate: 0.0003
+    n_epochs: 100        # OLD: 100 (CURRENT: 200)
+    batch_size: 128      # OLD: 128 (CURRENT: 64)
+    label_smoothing: 0.1
+    gradient_clip: 1.0
+    patience: 30
+
+  augment:
+    enabled: false
+    n_augment: 5
+
+  descriptor_augment:
+    enabled: true
+    noise_prob: 0.5
+    noise_scale: 1.0
+
+# Inference
+inference:
+  n_candidates: 50
+  temperature: 0.7
+  top_p: 0.9
+
+# Data Split
+split:
+  train: 0.8
+  val: 0.1
+  test: 0.1
+  seed: 42
