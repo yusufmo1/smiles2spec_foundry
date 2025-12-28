@@ -1,0 +1,82 @@
+Logging to: /home/yusuf/smiles2spec_foundry/spec2smiles_v2/logs/train_part_a_lgbm_20251228_210940.log
+============================================================
+Training Part A (Spectrum -> Descriptors) with LightGBM
+============================================================
+Dataset:     gnps
+Descriptors: 28
+Workers:     32
+
+Loading preprocessed data splits...
+
+Data split:
+  Train: 18739 samples
+  Val:   2342 samples
+  Test:  2343 samples
+
+Training 28 LightGBM models...
+  Discrete (classification): 8
+  Bounded (regression+clip): 2
+  Continuous (regression):   18
+
+Training LightGBM (8 workers):   0%|          | 0/28 [00:00<?, ?it/s]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):   4%|3         | 1/28 [00:25<11:21, 25.23s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):   7%|7         | 2/28 [01:03<14:14, 32.87s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  25%|##5       | 7/28 [01:42<04:23, 12.55s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  36%|###5      | 10/28 [02:05<03:10, 10.61s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  54%|#####3    | 15/28 [02:10<01:16,  5.88s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  57%|#####7    | 16/28 [02:29<01:29,  7.43s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  61%|######    | 17/28 [02:35<01:20,  7.29s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  68%|######7   | 19/28 [02:56<01:14,  8.28s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  71%|#######1  | 20/28 [03:01<01:00,  7.61s/it]Training LightGBM (8 workers):  79%|#######8  | 22/28 [03:08<00:37,  6.25s/it]Training LightGBM (8 workers):  82%|########2 | 23/28 [03:17<00:34,  6.88s/it]Training LightGBM (8 workers):  86%|########5 | 24/28 [03:25<00:28,  7.02s/it]Training LightGBM (8 workers):  89%|########9 | 25/28 [03:35<00:23,  7.84s/it]Training LightGBM (8 workers):  96%|#########6| 27/28 [03:43<00:06,  6.13s/it]Training LightGBM (8 workers): 100%|##########| 28/28 [03:43<00:00,  7.96s/it]
+Traceback (most recent call last):
+  File "/home/yusuf/smiles2spec_foundry/spec2smiles_v2/scripts/train_part_a_lgbm.py", line 548, in <module>
+    # Compute summary statistics
+    ^^^^^^
+  File "/home/yusuf/smiles2spec_foundry/spec2smiles_v2/scripts/train_part_a_lgbm.py", line 387, in main
+    discrete_class_results.sort(key=lambda x: x['accuracy'], reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/yusuf/smiles2spec_foundry/spec2smiles_v2/scripts/train_part_a_lgbm.py", line 387, in <lambda>
+    discrete_class_results.sort(key=lambda x: x['accuracy'], reverse=True)
+                                          ^^^^^^^
+KeyError: 'R2'

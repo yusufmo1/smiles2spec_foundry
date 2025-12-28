@@ -61,11 +61,14 @@ from src.domain.spectrum import process_spectrum
 from src.domain.descriptors import calculate_descriptors_batch, get_descriptor_type
 
 
+MAX_CLASSES_FOR_CLASSIFICATION = 10  # Use regression for high-cardinality discrete
+
+
 def train_single_descriptor(args):
     """Train LightGBM for a single descriptor.
 
-    Uses classification for discrete descriptors (counts) and
-    regression for continuous descriptors.
+    Uses classification for low-cardinality discrete descriptors (< 10 classes),
+    regression for high-cardinality discrete and continuous descriptors.
     """
     idx, name, X_train, y_train, X_val, y_val, X_test, y_test, desc_type = args
 
@@ -75,7 +78,6 @@ def train_single_descriptor(args):
     y_test_col = y_test[:, idx]
 
     if desc_type == "discrete":
-        # Classification for discrete count descriptors
         # Convert to integer labels
         y_train_int = y_train_col.astype(int)
         y_val_int = y_val_col.astype(int)
@@ -85,51 +87,100 @@ def train_single_descriptor(args):
         all_vals = np.concatenate([y_train_int, y_val_int, y_test_int])
         n_classes = int(np.max(all_vals)) + 1
 
-        params = {
-            'objective': 'multiclass',
-            'num_class': n_classes,
-            'metric': 'multi_logloss',
-            'boosting_type': 'gbdt',
-            'num_leaves': 63,
-            'learning_rate': 0.05,
-            'feature_fraction': 0.8,
-            'bagging_fraction': 0.8,
-            'bagging_freq': 5,
-            'verbose': -1,
-            'n_jobs': 1,
-        }
+        # Use classification only for low-cardinality targets
+        if n_classes < MAX_CLASSES_FOR_CLASSIFICATION:
+            # Classification for low-cardinality discrete descriptors
+            params = {
+                'objective': 'multiclass',
+                'num_class': n_classes,
+                'metric': 'multi_logloss',
+                'boosting_type': 'gbdt',
+                'num_leaves': 63,
+                'learning_rate': 0.05,
+                'feature_fraction': 0.8,
+                'bagging_fraction': 0.8,
+                'bagging_freq': 5,
+                'verbose': -1,
+                'n_jobs': 1,
+            }
 
-        # Create datasets with integer labels
-        train_data = lgb.Dataset(X_train, label=y_train_int)
-        val_data = lgb.Dataset(X_val, label=y_val_int, reference=train_data)
+            # Create datasets with integer labels
+            train_data = lgb.Dataset(X_train, label=y_train_int)
+            val_data = lgb.Dataset(X_val, label=y_val_int, reference=train_data)
 
-        # Train with early stopping
-        model = lgb.train(
-            params,
-            train_data,
-            num_boost_round=1000,
-            valid_sets=[val_data],
-            callbacks=[lgb.early_stopping(50, verbose=False)]
-        )
+            # Train with early stopping
+            model = lgb.train(
+                params,
+                train_data,
+                num_boost_round=1000,
+                valid_sets=[val_data],
+                callbacks=[lgb.early_stopping(50, verbose=False)]
+            )
 
-        # Predict: get class with highest probability
-        y_pred_proba = model.predict(X_test)
-        y_pred = np.argmax(y_pred_proba, axis=1)
+            # Predict: get class with highest probability
+            y_pred_proba = model.predict(X_test)
+            y_pred = np.argmax(y_pred_proba, axis=1)
 
-        # Metrics for classification
-        accuracy = float((y_pred == y_test_int).mean())
-        mae = float(mean_absolute_error(y_test_int, y_pred))
+            # Metrics for classification
+            accuracy = float((y_pred == y_test_int).mean())
+            mae = float(mean_absolute_error(y_test_int, y_pred))
 
-        return {
-            'name': name,
-            'idx': idx,
-            'model': model,
-            'type': 'discrete',
-            'accuracy': accuracy,
-            'MAE': mae,
-            'n_classes': n_classes,
-            'best_iteration': model.best_iteration
-        }
+            return {
+                'name': name,
+                'idx': idx,
+                'model': model,
+                'type': 'discrete_class',  # Classification
+                'accuracy': accuracy,
+                'MAE': mae,
+                'n_classes': n_classes,
+                'best_iteration': model.best_iteration
+            }
+        else:
+            # Regression for high-cardinality discrete descriptors
+            params = {
+                'objective': 'regression',
+                'metric': 'rmse',
+                'boosting_type': 'gbdt',
+                'num_leaves': 63,
+                'learning_rate': 0.05,
+                'feature_fraction': 0.8,
+                'bagging_fraction': 0.8,
+                'bagging_freq': 5,
+                'verbose': -1,
+                'n_jobs': 1,
+            }
+
+            train_data = lgb.Dataset(X_train, label=y_train_col)
+            val_data = lgb.Dataset(X_val, label=y_val_col, reference=train_data)
+
+            model = lgb.train(
+                params,
+                train_data,
+                num_boost_round=1000,
+                valid_sets=[val_data],
+                callbacks=[lgb.early_stopping(50, verbose=False)]
+            )
+
+            # Predict and round to nearest integer
+            y_pred = model.predict(X_test)
+            y_pred_rounded = np.round(y_pred).astype(int)
+            y_pred_rounded = np.clip(y_pred_rounded, 0, None)  # Ensure non-negative
+
+            mae = float(mean_absolute_error(y_test_int, y_pred_rounded))
+            rmse = float(np.sqrt(mean_squared_error(y_test_col, y_pred)))
+            r2 = float(r2_score(y_test_col, y_pred))
+
+            return {
+                'name': name,
+                'idx': idx,
+                'model': model,
+                'type': 'discrete_reg',  # Regression for high-cardinality
+                'MAE': mae,
+                'RMSE': rmse,
+                'R2': r2,
+                'n_classes': n_classes,
+                'best_iteration': model.best_iteration
+            }
     else:
         # Regression for continuous and bounded descriptors
         params = {
@@ -328,62 +379,79 @@ def main():
             models[result['name']] = result['model']
 
     # Separate results by type
-    discrete_results = [r for r in results if r['type'] == 'discrete']
-    regression_results = [r for r in results if r['type'] != 'discrete']
+    discrete_class_results = [r for r in results if r['type'] == 'discrete_class']
+    discrete_reg_results = [r for r in results if r['type'] == 'discrete_reg']
+    continuous_results = [r for r in results if r['type'] in ('continuous', 'bounded')]
 
     # Sort each by their respective primary metric
-    discrete_results.sort(key=lambda x: x['accuracy'], reverse=True)
-    regression_results.sort(key=lambda x: x['R2'], reverse=True)
+    discrete_class_results.sort(key=lambda x: x['accuracy'], reverse=True)
+    discrete_reg_results.sort(key=lambda x: x['R2'], reverse=True)
+    continuous_results.sort(key=lambda x: x['R2'], reverse=True)
 
-    # Print discrete (classification) results
-    if discrete_results:
-        print("\n" + "=" * 70)
-        print("DISCRETE DESCRIPTORS (Classification) - sorted by Accuracy")
-        print("=" * 70)
+    # Print discrete classification results
+    if discrete_class_results:
+        print("\n" + "=" * 75)
+        print(f"DISCRETE (Classification, <{MAX_CLASSES_FOR_CLASSIFICATION} classes) - sorted by Accuracy")
+        print("=" * 75)
         print(f"{'Rank':<5} {'Descriptor':<30} {'Acc':>8} {'MAE':>8} {'Classes':>8}")
-        print("-" * 70)
+        print("-" * 75)
 
-        for i, r in enumerate(discrete_results, 1):
+        for i, r in enumerate(discrete_class_results, 1):
             marker = "🟢" if r['accuracy'] >= 0.8 else ("🟡" if r['accuracy'] >= 0.6 else "🟠")
             print(f"{i:<5} {r['name']:<30} {r['accuracy']:>8.3f} {r['MAE']:>8.3f} {r['n_classes']:>8} {marker}")
 
-        acc_values = [r['accuracy'] for r in discrete_results]
-        print("-" * 70)
+        acc_values = [r['accuracy'] for r in discrete_class_results]
+        print("-" * 75)
         print(f"Mean Accuracy:   {np.mean(acc_values):.4f}")
-        print(f"Median Accuracy: {np.median(acc_values):.4f}")
         print(f"Acc >= 0.8: {sum(1 for a in acc_values if a >= 0.8)} descriptors")
-        print(f"Acc >= 0.9: {sum(1 for a in acc_values if a >= 0.9)} descriptors")
 
-    # Print regression results
-    if regression_results:
-        print("\n" + "=" * 70)
-        print("CONTINUOUS DESCRIPTORS (Regression) - sorted by R²")
-        print("=" * 70)
+    # Print discrete regression results (high-cardinality)
+    if discrete_reg_results:
+        print("\n" + "=" * 75)
+        print(f"DISCRETE (Regression+Round, >={MAX_CLASSES_FOR_CLASSIFICATION} classes) - sorted by R²")
+        print("=" * 75)
+        print(f"{'Rank':<5} {'Descriptor':<30} {'R²':>8} {'MAE':>8} {'Classes':>8}")
+        print("-" * 75)
+
+        for i, r in enumerate(discrete_reg_results, 1):
+            marker = "🟢" if r['R2'] >= 0.7 else ("🟡" if r['R2'] >= 0.5 else "🟠")
+            print(f"{i:<5} {r['name']:<30} {r['R2']:>8.4f} {r['MAE']:>8.3f} {r['n_classes']:>8} {marker}")
+
+        r2_values = [r['R2'] for r in discrete_reg_results]
+        print("-" * 75)
+        print(f"Mean R²: {np.mean(r2_values):.4f}")
+
+    # Print continuous results
+    if continuous_results:
+        print("\n" + "=" * 75)
+        print("CONTINUOUS (Regression) - sorted by R²")
+        print("=" * 75)
         print(f"{'Rank':<5} {'Descriptor':<30} {'R²':>10} {'MAE':>10} {'Type':>10}")
-        print("-" * 70)
+        print("-" * 75)
 
-        for i, r in enumerate(regression_results, 1):
+        for i, r in enumerate(continuous_results, 1):
             marker = "🟢" if r['R2'] >= 0.7 else ("🟡" if r['R2'] >= 0.5 else "🟠")
             print(f"{i:<5} {r['name']:<30} {r['R2']:>10.4f} {r['MAE']:>10.4f} {r['type']:>10} {marker}")
 
-        r2_values = [r['R2'] for r in regression_results]
-        print("-" * 70)
+        r2_values = [r['R2'] for r in continuous_results]
+        print("-" * 75)
         print(f"Mean R²:   {np.mean(r2_values):.4f}")
-        print(f"Median R²: {np.median(r2_values):.4f}")
         print(f"R² >= 0.7: {sum(1 for r in r2_values if r >= 0.7)} descriptors")
-        print(f"R² >= 0.8: {sum(1 for r in r2_values if r >= 0.8)} descriptors")
 
     # Overall summary
-    print("\n" + "=" * 70)
+    print("\n" + "=" * 75)
     print("OVERALL SUMMARY")
-    print("=" * 70)
-    print(f"Total descriptors:   {len(results)}")
-    print(f"  Discrete:          {len(discrete_results)} (classification)")
-    print(f"  Continuous:        {len(regression_results)} (regression)")
-    if discrete_results:
-        print(f"Mean accuracy (discrete): {np.mean([r['accuracy'] for r in discrete_results]):.4f}")
-    if regression_results:
-        print(f"Mean R² (continuous):     {np.mean([r['R2'] for r in regression_results]):.4f}")
+    print("=" * 75)
+    print(f"Total descriptors:        {len(results)}")
+    print(f"  Discrete (classify):    {len(discrete_class_results)} (<{MAX_CLASSES_FOR_CLASSIFICATION} classes)")
+    print(f"  Discrete (regress):     {len(discrete_reg_results)} (>={MAX_CLASSES_FOR_CLASSIFICATION} classes)")
+    print(f"  Continuous:             {len(continuous_results)}")
+    if discrete_class_results:
+        print(f"Mean accuracy (classify): {np.mean([r['accuracy'] for r in discrete_class_results]):.4f}")
+    if discrete_reg_results:
+        print(f"Mean R² (discrete reg):   {np.mean([r['R2'] for r in discrete_reg_results]):.4f}")
+    if continuous_results:
+        print(f"Mean R² (continuous):     {np.mean([r['R2'] for r in continuous_results]):.4f}")
 
     # Save models and metadata
     import pickle
@@ -396,9 +464,14 @@ def main():
     # Save descriptor metadata (types and class info) for inference
     descriptor_meta = {}
     for r in results:
-        if r['type'] == 'discrete':
+        if r['type'] == 'discrete_class':
             descriptor_meta[r['name']] = {
-                'type': 'discrete',
+                'type': 'discrete_class',
+                'n_classes': r['n_classes']
+            }
+        elif r['type'] == 'discrete_reg':
+            descriptor_meta[r['name']] = {
+                'type': 'discrete_reg',
                 'n_classes': r['n_classes']
             }
         else:
@@ -418,18 +491,22 @@ def main():
 
     for idx, name in enumerate(descriptor_names):
         model = models[name]
-        desc_type = get_descriptor_type(name)
+        result_type = result_lookup[name]['type']
 
-        if desc_type == "discrete":
+        if result_type == "discrete_class":
             # Classification: get probabilities and take argmax
             y_pred_proba = model.predict(X_test)
             y_pred_test[:, idx] = np.argmax(y_pred_proba, axis=1)
+        elif result_type == "discrete_reg":
+            # Regression + round for high-cardinality discrete
+            y_pred = model.predict(X_test)
+            y_pred_test[:, idx] = np.clip(np.round(y_pred), 0, None)
+        elif result_type == "bounded":
+            # Regression + clip for bounded [0, 1]
+            y_pred_test[:, idx] = np.clip(model.predict(X_test), 0.0, 1.0)
         else:
-            # Regression: direct prediction
+            # Continuous: direct regression
             y_pred_test[:, idx] = model.predict(X_test)
-            # Clip bounded descriptors
-            if desc_type == "bounded":
-                y_pred_test[:, idx] = np.clip(y_pred_test[:, idx], 0.0, 1.0)
 
     # Save predictions as numpy arrays
     predictions_dir = settings.metrics_path
@@ -445,11 +522,19 @@ def main():
     # Build per-descriptor metrics based on type
     per_descriptor = {}
     for r in results:
-        if r['type'] == 'discrete':
+        if r['type'] == 'discrete_class':
             per_descriptor[r['name']] = {
-                'type': 'discrete',
+                'type': 'discrete_class',
                 'accuracy': r['accuracy'],
                 'MAE': r['MAE'],
+                'n_classes': r['n_classes']
+            }
+        elif r['type'] == 'discrete_reg':
+            per_descriptor[r['name']] = {
+                'type': 'discrete_reg',
+                'MAE': r['MAE'],
+                'RMSE': r['RMSE'],
+                'R2': r['R2'],
                 'n_classes': r['n_classes']
             }
         else:
@@ -463,21 +548,27 @@ def main():
     # Compute summary statistics
     summary = {
         "n_descriptors": len(results),
-        "n_discrete": len(discrete_results),
-        "n_continuous": len(regression_results),
+        "n_discrete_class": len(discrete_class_results),
+        "n_discrete_reg": len(discrete_reg_results),
+        "n_continuous": len(continuous_results),
+        "max_classes_for_classification": MAX_CLASSES_FOR_CLASSIFICATION,
     }
 
-    if discrete_results:
-        acc_values = [r['accuracy'] for r in discrete_results]
-        summary["mean_accuracy_discrete"] = float(np.mean(acc_values))
-        summary["best_discrete"] = discrete_results[0]['name']
-        summary["best_discrete_accuracy"] = float(discrete_results[0]['accuracy'])
+    if discrete_class_results:
+        acc_values = [r['accuracy'] for r in discrete_class_results]
+        summary["mean_accuracy_discrete_class"] = float(np.mean(acc_values))
+        summary["best_discrete_class"] = discrete_class_results[0]['name']
+        summary["best_discrete_class_accuracy"] = float(discrete_class_results[0]['accuracy'])
 
-    if regression_results:
-        r2_values = [r['R2'] for r in regression_results]
+    if discrete_reg_results:
+        r2_values = [r['R2'] for r in discrete_reg_results]
+        summary["mean_r2_discrete_reg"] = float(np.mean(r2_values))
+
+    if continuous_results:
+        r2_values = [r['R2'] for r in continuous_results]
         summary["mean_r2_continuous"] = float(np.mean(r2_values))
-        summary["best_continuous"] = regression_results[0]['name']
-        summary["best_continuous_r2"] = float(regression_results[0]['R2'])
+        summary["best_continuous"] = continuous_results[0]['name']
+        summary["best_continuous_r2"] = float(continuous_results[0]['R2'])
 
     full_metrics = {
         "model_type": "lightgbm_mixed",

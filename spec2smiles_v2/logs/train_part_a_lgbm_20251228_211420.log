@@ -1,0 +1,144 @@
+Logging to: /home/yusuf/smiles2spec_foundry/spec2smiles_v2/logs/train_part_a_lgbm_20251228_211420.log
+============================================================
+Training Part A (Spectrum -> Descriptors) with LightGBM
+============================================================
+Dataset:     gnps
+Descriptors: 28
+Workers:     32
+
+Loading preprocessed data splits...
+
+Data split:
+  Train: 18739 samples
+  Val:   2342 samples
+  Test:  2343 samples
+
+Training 28 LightGBM models...
+  Discrete (classification): 8
+  Bounded (regression+clip): 2
+  Continuous (regression):   18
+
+Training LightGBM (8 workers):   0%|          | 0/28 [00:00<?, ?it/s]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):   4%|3         | 1/28 [00:23<10:34, 23.48s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):   7%|7         | 2/28 [01:14<17:14, 39.80s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  25%|##5       | 7/28 [01:20<03:00,  8.58s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  32%|###2      | 9/28 [01:42<02:58,  9.40s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  36%|###5      | 10/28 [01:49<02:38,  8.82s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  39%|###9      | 11/28 [02:10<03:14, 11.45s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  54%|#####3    | 15/28 [02:20<01:26,  6.62s/it]Training LightGBM (8 workers):  57%|#####7    | 16/28 [02:21<01:08,  5.67s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  61%|######    | 17/28 [02:38<01:26,  7.89s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  68%|######7   | 19/28 [02:49<01:03,  7.05s/it]/home/yusuf/.cache/pypoetry/virtualenvs/spec2smiles-pipeline-y8ztjoGQ-py3.11/lib/python3.11/site-packages/lightgbm/basic.py:743: UserWarning: Usage of np.ndarray subset (sliced data) is not recommended due to it will double the peak memory cost in LightGBM.
+  _log_warning(
+Training LightGBM (8 workers):  71%|#######1  | 20/28 [03:03<01:07,  8.39s/it]Training LightGBM (8 workers):  75%|#######5  | 21/28 [03:04<00:47,  6.76s/it]Training LightGBM (8 workers):  79%|#######8  | 22/28 [03:21<00:54,  9.09s/it]Training LightGBM (8 workers):  82%|########2 | 23/28 [03:21<00:34,  6.84s/it]Training LightGBM (8 workers):  89%|########9 | 25/28 [03:28<00:16,  5.48s/it]Training LightGBM (8 workers):  93%|#########2| 26/28 [03:32<00:10,  5.18s/it]Training LightGBM (8 workers):  96%|#########6| 27/28 [03:38<00:05,  5.22s/it]Training LightGBM (8 workers): 100%|##########| 28/28 [03:40<00:00,  4.39s/it]Training LightGBM (8 workers): 100%|##########| 28/28 [03:40<00:00,  7.87s/it]
+
+===========================================================================
+DISCRETE (Classification, <10 classes) - sorted by Accuracy
+===========================================================================
+Rank  Descriptor                          Acc      MAE  Classes
+---------------------------------------------------------------------------
+1     fr_phos_ester                     0.989    0.013        4 🟢
+2     NumSaturatedCarbocycles           0.835    0.339        7 🟢
+3     NumAromaticRings                  0.586    0.654        9 🟠
+---------------------------------------------------------------------------
+Mean Accuracy:   0.8034
+Acc >= 0.8: 2 descriptors
+
+===========================================================================
+DISCRETE (Regression+Round, >=10 classes) - sorted by R²
+===========================================================================
+Rank  Descriptor                           R²      MAE  Classes
+---------------------------------------------------------------------------
+1     NumAtomStereoCenters             0.6964    2.088       65 🟡
+2     NumSaturatedRings                0.6237    0.677       12 🟡
+3     fr_Al_OH                         0.6202    1.039       43 🟡
+4     fr_ether                         0.6066    0.944       21 🟡
+5     RingCount                        0.5541    0.842       13 🟡
+---------------------------------------------------------------------------
+Mean R²: 0.6202
+
+===========================================================================
+CONTINUOUS (Regression) - sorted by R²
+===========================================================================
+Rank  Descriptor                             R²        MAE       Type
+---------------------------------------------------------------------------
+1     Chi3n                              0.7183     1.3746 continuous 🟢
+2     Chi2n                              0.7141     1.6622 continuous 🟢
+3     SMR_VSA1                           0.6724     9.3602 continuous 🟡
+4     SMR_VSA4                           0.6676     6.2729 continuous 🟡
+5     SMR_VSA5                           0.6564    20.8535 continuous 🟡
+6     EState_VSA10                       0.6558     6.9309 continuous 🟡
+7     PEOE_VSA7                          0.6299    13.1708 continuous 🟡
+8     VSA_EState3                        0.6178    12.6938 continuous 🟡
+9     PEOE_VSA10                         0.6152     8.9596 continuous 🟡
+10    SPS                                0.6148     6.6009 continuous 🟡
+11    SMR_VSA3                           0.5978     3.4124 continuous 🟡
+12    qed                                0.5949     0.1179    bounded 🟡
+13    SlogP_VSA5                         0.5931    16.0008 continuous 🟡
+14    AvgIpc                             0.5908     0.2084 continuous 🟡
+15    FractionCSP3                       0.5878     0.1305    bounded 🟡
+16    SlogP_VSA3                         0.5873     6.6313 continuous 🟡
+17    Kappa2                             0.5599     2.5658 continuous 🟡
+18    SlogP_VSA11                        0.5513     4.5745 continuous 🟡
+19    VSA_EState2                        0.5506    10.4173 continuous 🟡
+20    HallKierAlpha                      0.5499     0.6198 continuous 🟡
+---------------------------------------------------------------------------
+Mean R²:   0.6163
+R² >= 0.7: 2 descriptors
+
+===========================================================================
+OVERALL SUMMARY
+===========================================================================
+Total descriptors:        28
+  Discrete (classify):    3 (<10 classes)
+  Discrete (regress):     5 (>=10 classes)
+  Continuous:             20
+Mean accuracy (classify): 0.8034
+Mean R² (discrete reg):   0.6202
+Mean R² (continuous):     0.6163
+
+Generating test predictions for visualization...
+  Saved test predictions: (2343, 28)
+
+Models saved to data/output/models/part_a_lgbm
+Metrics saved to data/output/metrics/part_a_lgbm_metrics.json
+
+Done!

@@ -2,18 +2,21 @@
   "model_type": "lightgbm_mixed",
   "summary": {
     "n_descriptors": 28,
-    "n_discrete": 8,
+    "n_discrete_class": 3,
+    "n_discrete_reg": 5,
     "n_continuous": 20,
-    "mean_accuracy_discrete": 0.6164639351259069,
-    "best_discrete": "fr_phos_ester",
-    "best_discrete_accuracy": 0.9893299189073836,
+    "max_classes_for_classification": 10,
+    "mean_accuracy_discrete_class": 0.8033859724000569,
+    "best_discrete_class": "fr_phos_ester",
+    "best_discrete_class_accuracy": 0.9893299189073836,
+    "mean_r2_discrete_reg": 0.620212386888825,
     "mean_r2_continuous": 0.6162786933617952,
     "best_continuous": "Chi3n",
     "best_continuous_r2": 0.7182943421245289
   },
   "per_descriptor": {
     "fr_phos_ester": {
-      "type": "discrete",
+      "type": "discrete_class",
       "accuracy": 0.9893299189073836,
       "MAE": 0.013230900554844216,
       "n_classes": 4
@@ -31,9 +34,10 @@
       "R2": 0.7140698344334098
     },
     "NumAtomStereoCenters": {
-      "type": "discrete",
-      "accuracy": 0.4127187366623986,
-      "MAE": 2.9897567221510886,
+      "type": "discrete_reg",
+      "MAE": 2.087921468203158,
+      "RMSE": 3.106286611921074,
+      "R2": 0.6964271253144612,
       "n_classes": 65
     },
     "SMR_VSA1": {
@@ -49,7 +53,7 @@
       "R2": 0.6676435700969843
     },
     "NumSaturatedCarbocycles": {
-      "type": "discrete",
+      "type": "discrete_class",
       "accuracy": 0.8352539479300043,
       "MAE": 0.3388817755014938,
       "n_classes": 7
@@ -73,15 +77,17 @@
       "R2": 0.6298545167783349
     },
     "NumSaturatedRings": {
-      "type": "discrete",
-      "accuracy": 0.6197183098591549,
-      "MAE": 0.7503201024327785,
+      "type": "discrete_reg",
+      "MAE": 0.677336747759283,
+      "RMSE": 1.047425625989189,
+      "R2": 0.6237230997053033,
       "n_classes": 12
     },
     "fr_Al_OH": {
-      "type": "discrete",
-      "accuracy": 0.4793000426803244,
-      "MAE": 1.912932138284251,
+      "type": "discrete_reg",
+      "MAE": 1.039265898420828,
+      "RMSE": 1.6006639012654675,
+      "R2": 0.6201944081672175,
       "n_classes": 43
     },
     "VSA_EState3": {
@@ -103,9 +109,10 @@
       "R2": 0.6147701943322396
     },
     "fr_ether": {
-      "type": "discrete",
-      "accuracy": 0.4818608621425523,
-      "MAE": 1.2168160478019634,
+      "type": "discrete_reg",
+      "MAE": 0.9436619718309859,
+      "RMSE": 1.381333735829595,
+      "R2": 0.6065858174616702,
       "n_classes": 21
     },
     "SMR_VSA3": {
@@ -151,9 +158,10 @@
       "R2": 0.5598839592483527
     },
     "RingCount": {
-      "type": "discrete",
-      "accuracy": 0.5279556124626548,
-      "MAE": 0.8467776355100298,
+      "type": "discrete_reg",
+      "MAE": 0.8420827998292787,
+      "RMSE": 1.2128190877617682,
+      "R2": 0.5541314837954724,
       "n_classes": 13
     },
     "SlogP_VSA11": {
@@ -175,7 +183,7 @@
       "R2": 0.5499488468826069
     },
     "NumAromaticRings": {
-      "type": "discrete",
+      "type": "discrete_class",
       "accuracy": 0.5855740503627828,
       "MAE": 0.6538625693555271,
       "n_classes": 9

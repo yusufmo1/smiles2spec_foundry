@@ -26,3 +26,7 @@ DirectDecoder: 57,564,777 parameters
 Epoch 1: train_loss=2.4467, val_loss=2.0833
 Epoch 11: train_loss=1.2412, val_loss=1.2014
 Epoch 21: train_loss=0.9750, val_loss=1.0200
+Epoch 31: train_loss=0.8932, val_loss=0.9776
+Epoch 41: train_loss=0.8634, val_loss=0.9674
+Epoch 51: train_loss=0.8449, val_loss=0.9578
+Epoch 61: train_loss=0.8338, val_loss=0.9596
