@@ -13,7 +13,38 @@ Or via Makefile:
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
+
+
+class TeeOutput:
+    """Redirect stdout to both console and file."""
+    def __init__(self, log_file: Path):
+        self.file = open(log_file, "w")
+        self.stdout = sys.stdout
+
+    def write(self, data):
+        self.file.write(data)
+        self.stdout.write(data)
+        self.file.flush()
+
+    def flush(self):
+        self.file.flush()
+        self.stdout.flush()
+
+    def close(self):
+        self.file.close()
+
+
+def setup_logging(log_dir: Path, script_name: str) -> Path:
+    """Setup logging to both console and file."""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"{script_name}_{timestamp}.log"
+    sys.stdout = TeeOutput(log_file)
+    sys.stderr = sys.stdout
+    return log_file
+
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -91,6 +122,11 @@ def main():
         help="Train on Part A predicted descriptors instead of true descriptors"
     )
     args = parser.parse_args()
+
+    # Setup logging to file and console
+    log_dir = Path(__file__).parent.parent / "logs"
+    log_file = setup_logging(log_dir, "train_part_b")
+    print(f"Logging to: {log_file}")
 
     # Reload config if custom path provided
     global settings

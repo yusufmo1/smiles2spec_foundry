@@ -22,7 +22,6 @@ import matplotlib.pyplot as plt
 
 from src.config import settings, reload_config
 from src.services.part_b import PartBService
-from src.services.data_loader import DataLoaderService
 from src.domain.spectrum import process_spectrum
 from src.domain.descriptors import calculate_descriptors
 from src.models.hybrid import HybridCNNTransformer
@@ -268,20 +267,18 @@ def main():
     print(f"  Device: {part_b.device}")
     print()
 
-    # Load test data
+    # Load test data from saved split
     print("Loading test data...")
-    data_loader = DataLoaderService(
-        data_dir=Path(settings.data_input_dir) / settings.dataset
-    )
-    raw_data, _ = data_loader.load_raw_data()
+    data_dir = Path(settings.data_input_dir) / settings.dataset
+    test_path = data_dir / "test_data.jsonl"
 
-    # Split to get test set
-    from sklearn.model_selection import train_test_split
-    train_val, test_data = train_test_split(
-        raw_data,
-        test_size=settings.test_ratio,
-        random_state=settings.random_seed
-    )
+    if not test_path.exists():
+        print(f"Error: Test data not found at {test_path}")
+        print("Run preprocessing first: python scripts/preprocess_splits.py")
+        sys.exit(1)
+
+    with open(test_path) as f:
+        test_data = [json.loads(line) for line in f]
 
     # Process test data
     spectra_list = []

@@ -11,6 +11,7 @@ Usage:
 import argparse
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 
@@ -19,6 +20,38 @@ import lightgbm as lgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from tqdm import tqdm
+
+
+class TeeOutput:
+    """Redirect stdout to both console and file."""
+    def __init__(self, log_file: Path):
+        self.file = open(log_file, "w")
+        self.stdout = sys.stdout
+
+    def write(self, data):
+        self.file.write(data)
+        self.stdout.write(data)
+        self.file.flush()
+
+    def flush(self):
+        self.file.flush()
+        self.stdout.flush()
+
+    def close(self):
+        self.file.close()
+
+
+def setup_logging(log_dir: Path, script_name: str) -> Path:
+    """Setup logging to both console and file."""
+    log_dir.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = log_dir / f"{script_name}_{timestamp}.log"
+
+    # Redirect stdout to both console and file
+    sys.stdout = TeeOutput(log_file)
+    sys.stderr = sys.stdout  # Also capture stderr
+
+    return log_file
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -93,6 +126,11 @@ def main():
         help="Number of parallel jobs (-1 for all CPUs)"
     )
     args = parser.parse_args()
+
+    # Setup logging to file and console
+    log_dir = Path(__file__).parent.parent / "logs"
+    log_file = setup_logging(log_dir, "train_part_a_lgbm")
+    print(f"Logging to: {log_file}")
 
     # Reload config if custom path provided
     global settings
