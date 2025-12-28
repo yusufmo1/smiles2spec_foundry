@@ -1,0 +1,19 @@
+[
+  {
+    "method": "nucleus",
+    "n_samples": 100,
+    "temperature": 0.8,
+    "top_p": 0.9,
+    "exact_match_rate": 0.6816047801963295,
+    "formula_match_rate": 0.7887323943661971,
+    "hit_at_1": 0.5736235595390525,
+    "hit_at_5": 0.6717883055911225,
+    "hit_at_10": 0.678617157490397,
+    "hit_at_50": 0.6816047801963295,
+    "mean_tanimoto": 0.8702403902838116,
+    "median_tanimoto": 1.0,
+    "total": 2343,
+    "time_seconds": 8486.345225095749,
+    "samples_per_second": 0.27609058291327815
+  }
+]

@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-a-lgbm train-part-b train-full evaluate eval-nucleus eval-nucleus-sweep viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis clean clean-output clean-logs init-dirs lint format help
+.PHONY: install train-part-a train-part-a-lgbm train-part-b train-full evaluate eval-e2e-nucleus eval-nucleus eval-nucleus-sweep viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis clean clean-output clean-logs init-dirs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -24,6 +24,7 @@ help:
 	@echo ""
 	@echo "  Evaluation:"
 	@echo "    make evaluate             End-to-end evaluation on test set"
+	@echo "    make eval-e2e-nucleus     E2E with nucleus sampling (top_p=0.9)"
 	@echo "    make eval-nucleus         Nucleus sampling (oracle descriptors)"
 	@echo "    make eval-nucleus-sweep   Parameter sweep for nucleus sampling"
 	@echo ""
@@ -77,6 +78,9 @@ eval-nucleus: ## Nucleus sampling evaluation (oracle descriptors)
 
 eval-nucleus-sweep: ## Nucleus sampling parameter sweep
 	poetry run python scripts/eval_nucleus.py --config config.yml --sweep 2>&1 | tee $(LOG_DIR)/eval_nucleus_sweep_$$(date +%Y%m%d_%H%M%S).log
+
+eval-e2e-nucleus: ## End-to-end evaluation with nucleus sampling
+	poetry run python scripts/eval_e2e.py --config config.yml --part-a lgbm --top-p 0.9 2>&1 | tee $(LOG_DIR)/eval_e2e_nucleus_$$(date +%Y%m%d_%H%M%S).log
 
 # Visualization
 viz: ## Regenerate all figures

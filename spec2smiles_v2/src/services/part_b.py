@@ -251,6 +251,7 @@ class PartBService:
         descriptors: np.ndarray,
         n_candidates: int = 50,
         temperature: float = 0.7,
+        top_p: float = 0.9,
     ) -> List[List[str]]:
         """Generate SMILES candidates from descriptors.
 
@@ -258,6 +259,7 @@ class PartBService:
             descriptors: Descriptor array of shape (n_samples, n_descriptors)
             n_candidates: Number of candidates per sample
             temperature: Sampling temperature
+            top_p: Nucleus sampling threshold (0.0-1.0)
 
         Returns:
             List of candidate SMILES lists (one per sample)
@@ -273,7 +275,7 @@ class PartBService:
         for i in range(len(descriptors)):
             sample_desc = desc_tensor[i : i + 1]
             candidates = self.model.generate(
-                sample_desc, n_samples=n_candidates, temperature=temperature
+                sample_desc, n_samples=n_candidates, temperature=temperature, top_p=top_p
             )
 
             # Decode candidates

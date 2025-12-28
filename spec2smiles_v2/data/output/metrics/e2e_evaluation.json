@@ -1,0 +1,15 @@
+{
+  "part_a": {
+    "model": "lgbm",
+    "mean_r2": 0.7967574868243534
+  },
+  "end_to_end": {
+    "exact_match": 0.3608862377503196,
+    "mean_best_tanimoto": 0.5753040555919997,
+    "validity": 1.0
+  },
+  "config": {
+    "n_candidates": 50,
+    "n_samples": 2347
+  }
+}

@@ -1,0 +1,7 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+usage: eval_e2e.py [-h] --config CONFIG [--part-a {lgbm,hybrid}]
+                   [--n-candidates N_CANDIDATES] [--n-samples N_SAMPLES]
+                   [--visualize] [--top-p TOP_P]
+eval_e2e.py: error: unrecognized arguments: --batch-size 32

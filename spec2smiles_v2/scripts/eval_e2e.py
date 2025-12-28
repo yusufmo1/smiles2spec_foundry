@@ -132,6 +132,33 @@ def compute_tanimoto(candidates_list, true_smiles_list):
     return np.mean(best_sims) if best_sims else 0.0
 
 
+def compute_hit_at_k(candidates_list, true_smiles_list, k_values=[1, 5, 10, 50]):
+    """Compute Hit@K metrics for multiple K values."""
+    hits = {k: 0 for k in k_values}
+    total = 0
+
+    for candidates, true_smiles in zip(candidates_list, true_smiles_list):
+        mol = Chem.MolFromSmiles(true_smiles)
+        if mol is None:
+            continue
+        true_canonical = Chem.MolToSmiles(mol, canonical=True)
+        total += 1
+
+        # Canonicalize candidates
+        canonical_candidates = []
+        for cand in candidates:
+            cand_mol = Chem.MolFromSmiles(cand)
+            if cand_mol is not None:
+                canonical_candidates.append(Chem.MolToSmiles(cand_mol, canonical=True))
+
+        # Check hit at each K
+        for k in k_values:
+            if true_canonical in canonical_candidates[:k]:
+                hits[k] += 1
+
+    return {k: hits[k] / total if total > 0 else 0.0 for k in k_values}
+
+
 def generate_visualizations(results: dict, output_dir: Path, part_a_type: str):
     """Generate E2E evaluation visualizations."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -199,6 +226,8 @@ def main():
     parser.add_argument("--n-candidates", type=int, default=50)
     parser.add_argument("--n-samples", type=int, default=None)
     parser.add_argument("--visualize", action="store_true", help="Generate visualizations")
+    parser.add_argument("--top-p", type=float, default=0.9, help="Nucleus sampling threshold")
+    parser.add_argument("--batch-size", type=int, default=32, help="Batch size for generation")
     args = parser.parse_args()
 
     # Load config
@@ -308,16 +337,20 @@ def main():
     pred_scaled = part_b.scaler.transform(pred_descriptors)
 
     # Part B: Generate SMILES candidates
-    print("Part B: Generating SMILES candidates...")
+    print(f"Part B: Generating SMILES candidates (batch_size={args.batch_size})...")
     all_candidates = []
-    for i in tqdm(range(len(pred_scaled)), desc="Generating"):
-        desc = pred_scaled[i:i+1]
-        candidates = part_b.generate(
-            desc,
+    n_batches = (len(pred_scaled) + args.batch_size - 1) // args.batch_size
+    for batch_idx in tqdm(range(n_batches), desc="Generating"):
+        start = batch_idx * args.batch_size
+        end = min(start + args.batch_size, len(pred_scaled))
+        batch_desc = pred_scaled[start:end]
+        batch_candidates = part_b.generate(
+            batch_desc,
             n_candidates=args.n_candidates,
             temperature=settings.temperature,
+            top_p=args.top_p,
         )
-        all_candidates.append(candidates[0] if candidates else [])
+        all_candidates.extend(batch_candidates)
 
     # Compute metrics
     print()
@@ -325,6 +358,7 @@ def main():
 
     exact_match = compute_exact_match(all_candidates, smiles_list)
     mean_tanimoto = compute_tanimoto(all_candidates, smiles_list)
+    hit_at_k = compute_hit_at_k(all_candidates, smiles_list)
 
     # Validity
     valid_count = sum(
@@ -340,11 +374,16 @@ def main():
     print("END-TO-END RESULTS")
     print("=" * 60)
     print(f"  Part A Mean R²:     {mean_r2:.4f}")
+    print(f"  Hit@1:              {hit_at_k[1]:.4f} ({hit_at_k[1] * 100:.1f}%)")
+    print(f"  Hit@5:              {hit_at_k[5]:.4f} ({hit_at_k[5] * 100:.1f}%)")
+    print(f"  Hit@10:             {hit_at_k[10]:.4f} ({hit_at_k[10] * 100:.1f}%)")
+    print(f"  Hit@50:             {hit_at_k[50]:.4f} ({hit_at_k[50] * 100:.1f}%)")
     print(f"  Exact Match:        {exact_match:.4f} ({exact_match * 100:.1f}%)")
     print(f"  Mean Best Tanimoto: {mean_tanimoto:.4f}")
     print(f"  Validity:           {validity:.4f} ({validity * 100:.1f}%)")
     print()
     print(f"  Candidates per sample: {args.n_candidates}")
+    print(f"  Top-p: {args.top_p}")
     print(f"  Test samples: {len(smiles_list)}")
 
     # Save results
@@ -357,10 +396,16 @@ def main():
             "exact_match": float(exact_match),
             "mean_best_tanimoto": float(mean_tanimoto),
             "validity": float(validity),
+            "hit_at_1": float(hit_at_k[1]),
+            "hit_at_5": float(hit_at_k[5]),
+            "hit_at_10": float(hit_at_k[10]),
+            "hit_at_50": float(hit_at_k[50]),
         },
         "config": {
             "n_candidates": args.n_candidates,
             "n_samples": len(smiles_list),
+            "temperature": settings.temperature,
+            "top_p": args.top_p,
         }
     }
 
