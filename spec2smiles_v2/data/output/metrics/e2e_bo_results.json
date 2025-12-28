@@ -1,0 +1,723 @@
+{
+  "best_value": 0.36,
+  "best_params": {
+    "temperature": 1.1534993482489322,
+    "top_p": 0.806904759146935
+  },
+  "best_metrics": {
+    "hit_at_1": 0.222,
+    "hit_at_5": 0.342,
+    "hit_at_10": 0.36,
+    "hit_at_50": 0.36,
+    "tanimoto": 0.5681050419913785
+  },
+  "config": {
+    "n_trials": 50,
+    "n_samples": 500,
+    "batch_size": 128,
+    "seed": 42
+  },
+  "total_time_seconds": 8597.281155347824,
+  "all_trials": [
+    {
+      "number": 0,
+      "value": 0.34,
+      "params": {
+        "temperature": 0.8116262258099887,
+        "top_p": 0.9753571532049581
+      },
+      "user_attrs": {
+        "hit_at_1": 0.234,
+        "hit_at_5": 0.334,
+        "hit_at_50": 0.34,
+        "tanimoto": 0.5558125592452345
+      }
+    },
+    {
+      "number": 1,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.4907884894416696,
+        "top_p": 0.7993292420985183
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.1199451219377655
+      }
+    },
+    {
+      "number": 2,
+      "value": 0.254,
+      "params": {
+        "temperature": 0.39643541684062933,
+        "top_p": 0.5779972601681014
+      },
+      "user_attrs": {
+        "hit_at_1": 0.244,
+        "hit_at_5": 0.254,
+        "hit_at_50": 0.254,
+        "tanimoto": 0.48819063344092956
+      }
+    },
+    {
+      "number": 3,
+      "value": 0.274,
+      "params": {
+        "temperature": 0.21035886311957896,
+        "top_p": 0.9330880728874675
+      },
+      "user_attrs": {
+        "hit_at_1": 0.244,
+        "hit_at_5": 0.274,
+        "hit_at_50": 0.274,
+        "tanimoto": 0.5056835897895364
+      }
+    },
+    {
+      "number": 4,
+      "value": 0.032,
+      "params": {
+        "temperature": 1.2421185223120967,
+        "top_p": 0.8540362888980227
+      },
+      "user_attrs": {
+        "hit_at_1": 0.008,
+        "hit_at_5": 0.022,
+        "hit_at_50": 0.032,
+        "tanimoto": 0.2541404310052325
+      }
+    },
+    {
+      "number": 5,
+      "value": 0.266,
+      "params": {
+        "temperature": 0.13911053916202465,
+        "top_p": 0.9849549260809971
+      },
+      "user_attrs": {
+        "hit_at_1": 0.25,
+        "hit_at_5": 0.266,
+        "hit_at_50": 0.266,
+        "tanimoto": 0.5008875052148292
+      }
+    },
+    {
+      "number": 6,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.6816410175208014,
+        "top_p": 0.6061695553391381
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.12119463275574764
+      }
+    },
+    {
+      "number": 7,
+      "value": 0.256,
+      "params": {
+        "temperature": 0.4454674376934912,
+        "top_p": 0.5917022549267169
+      },
+      "user_attrs": {
+        "hit_at_1": 0.24,
+        "hit_at_5": 0.256,
+        "hit_at_50": 0.256,
+        "tanimoto": 0.49282634487215976
+      }
+    },
+    {
+      "number": 8,
+      "value": 0.308,
+      "params": {
+        "temperature": 0.6780602616231216,
+        "top_p": 0.762378215816119
+      },
+      "user_attrs": {
+        "hit_at_1": 0.25,
+        "hit_at_5": 0.308,
+        "hit_at_50": 0.308,
+        "tanimoto": 0.5275924975047214
+      }
+    },
+    {
+      "number": 9,
+      "value": 0.302,
+      "params": {
+        "temperature": 0.9206955354200199,
+        "top_p": 0.645614570099021
+      },
+      "user_attrs": {
+        "hit_at_1": 0.24,
+        "hit_at_5": 0.3,
+        "hit_at_50": 0.302,
+        "tanimoto": 0.5277574357877448
+      }
+    },
+    {
+      "number": 10,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.8957594340377346,
+        "top_p": 0.885693772006416
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.06585403683799897
+      }
+    },
+    {
+      "number": 11,
+      "value": 0.316,
+      "params": {
+        "temperature": 0.8598043435065502,
+        "top_p": 0.7097519247564522
+      },
+      "user_attrs": {
+        "hit_at_1": 0.25,
+        "hit_at_5": 0.316,
+        "hit_at_50": 0.316,
+        "tanimoto": 0.5334821546108174
+      }
+    },
+    {
+      "number": 12,
+      "value": 0.32,
+      "params": {
+        "temperature": 0.934065846180208,
+        "top_p": 0.6783830655585379
+      },
+      "user_attrs": {
+        "hit_at_1": 0.25,
+        "hit_at_5": 0.314,
+        "hit_at_50": 0.32,
+        "tanimoto": 0.5384625949206732
+      }
+    },
+    {
+      "number": 13,
+      "value": 0.358,
+      "params": {
+        "temperature": 1.2383425342480694,
+        "top_p": 0.6962264460513162
+      },
+      "user_attrs": {
+        "hit_at_1": 0.212,
+        "hit_at_5": 0.346,
+        "hit_at_50": 0.358,
+        "tanimoto": 0.5603975773284777
+      }
+    },
+    {
+      "number": 14,
+      "value": 0.328,
+      "params": {
+        "temperature": 1.291078925322479,
+        "top_p": 0.5065883662316701
+      },
+      "user_attrs": {
+        "hit_at_1": 0.246,
+        "hit_at_5": 0.326,
+        "hit_at_50": 0.328,
+        "tanimoto": 0.5515819271772334
+      }
+    },
+    {
+      "number": 15,
+      "value": 0.35,
+      "params": {
+        "temperature": 1.1757565865660955,
+        "top_p": 0.8087272364965106
+      },
+      "user_attrs": {
+        "hit_at_1": 0.212,
+        "hit_at_5": 0.332,
+        "hit_at_50": 0.35,
+        "tanimoto": 0.5574622503193232
+      }
+    },
+    {
+      "number": 16,
+      "value": 0.342,
+      "params": {
+        "temperature": 1.1935370531561618,
+        "top_p": 0.7994559616365622
+      },
+      "user_attrs": {
+        "hit_at_1": 0.182,
+        "hit_at_5": 0.324,
+        "hit_at_50": 0.342,
+        "tanimoto": 0.5575989009514865
+      }
+    },
+    {
+      "number": 17,
+      "value": 0.002,
+      "params": {
+        "temperature": 1.4691654425153309,
+        "top_p": 0.7248736876757276
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.002,
+        "hit_at_50": 0.002,
+        "tanimoto": 0.152055794411557
+      }
+    },
+    {
+      "number": 18,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.5859840219975596,
+        "top_p": 0.8482336119513245
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.09359664658379409
+      }
+    },
+    {
+      "number": 19,
+      "value": 0.346,
+      "params": {
+        "temperature": 1.122033197116676,
+        "top_p": 0.7760131200377596
+      },
+      "user_attrs": {
+        "hit_at_1": 0.234,
+        "hit_at_5": 0.336,
+        "hit_at_50": 0.346,
+        "tanimoto": 0.5570537811937502
+      }
+    },
+    {
+      "number": 20,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.8442312996253794,
+        "top_p": 0.6625712669661852
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.0860381068896179
+      }
+    },
+    {
+      "number": 21,
+      "value": 0.338,
+      "params": {
+        "temperature": 1.0918801565847382,
+        "top_p": 0.7736042808689005
+      },
+      "user_attrs": {
+        "hit_at_1": 0.24,
+        "hit_at_5": 0.336,
+        "hit_at_50": 0.338,
+        "tanimoto": 0.5572480808856862
+      }
+    },
+    {
+      "number": 22,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.3516404753263616,
+        "top_p": 0.8429320600531681
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.15145301483188098
+      }
+    },
+    {
+      "number": 23,
+      "value": 0.34,
+      "params": {
+        "temperature": 1.0823025605381718,
+        "top_p": 0.7324709516333555
+      },
+      "user_attrs": {
+        "hit_at_1": 0.238,
+        "hit_at_5": 0.334,
+        "hit_at_50": 0.34,
+        "tanimoto": 0.5557430951876877
+      }
+    },
+    {
+      "number": 24,
+      "value": 0.318,
+      "params": {
+        "temperature": 0.6986740977319532,
+        "top_p": 0.8097662289948226
+      },
+      "user_attrs": {
+        "hit_at_1": 0.246,
+        "hit_at_5": 0.316,
+        "hit_at_50": 0.318,
+        "tanimoto": 0.5321322092701148
+      }
+    },
+    {
+      "number": 25,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.3845722937136435,
+        "top_p": 0.9136274155264168
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.11948223660324621
+      }
+    },
+    {
+      "number": 26,
+      "value": 0.334,
+      "params": {
+        "temperature": 1.1243987430934526,
+        "top_p": 0.7089963223644309
+      },
+      "user_attrs": {
+        "hit_at_1": 0.238,
+        "hit_at_5": 0.33,
+        "hit_at_50": 0.334,
+        "tanimoto": 0.551390687331536
+      }
+    },
+    {
+      "number": 27,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.70356219325127,
+        "top_p": 0.7491820425680544
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.09070245463113241
+      }
+    },
+    {
+      "number": 28,
+      "value": 0.308,
+      "params": {
+        "temperature": 0.9482349307278893,
+        "top_p": 0.6388329148516713
+      },
+      "user_attrs": {
+        "hit_at_1": 0.26,
+        "hit_at_5": 0.308,
+        "hit_at_50": 0.308,
+        "tanimoto": 0.5344953533908947
+      }
+    },
+    {
+      "number": 29,
+      "value": 0.296,
+      "params": {
+        "temperature": 0.7535245823891176,
+        "top_p": 0.6866331066221929
+      },
+      "user_attrs": {
+        "hit_at_1": 0.23,
+        "hit_at_5": 0.294,
+        "hit_at_50": 0.296,
+        "tanimoto": 0.5197343867005388
+      }
+    },
+    {
+      "number": 30,
+      "value": 0.332,
+      "params": {
+        "temperature": 0.6147293312623949,
+        "top_p": 0.9501945220447685
+      },
+      "user_attrs": {
+        "hit_at_1": 0.24,
+        "hit_at_5": 0.33,
+        "hit_at_50": 0.332,
+        "tanimoto": 0.5411649764924896
+      }
+    },
+    {
+      "number": 31,
+      "value": 0.286,
+      "params": {
+        "temperature": 1.2100071601110745,
+        "top_p": 0.8054797961144339
+      },
+      "user_attrs": {
+        "hit_at_1": 0.078,
+        "hit_at_5": 0.214,
+        "hit_at_50": 0.286,
+        "tanimoto": 0.5301133253877599
+      }
+    },
+    {
+      "number": 32,
+      "value": 0.36,
+      "params": {
+        "temperature": 1.1534993482489322,
+        "top_p": 0.806904759146935
+      },
+      "user_attrs": {
+        "hit_at_1": 0.222,
+        "hit_at_5": 0.342,
+        "hit_at_50": 0.36,
+        "tanimoto": 0.5681050419913785
+      }
+    },
+    {
+      "number": 33,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.472339068165852,
+        "top_p": 0.7791343787770278
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.1272531708566413
+      }
+    },
+    {
+      "number": 34,
+      "value": 0.352,
+      "params": {
+        "temperature": 1.0035874108493439,
+        "top_p": 0.8895008495299426
+      },
+      "user_attrs": {
+        "hit_at_1": 0.236,
+        "hit_at_5": 0.346,
+        "hit_at_50": 0.352,
+        "tanimoto": 0.562331211874513
+      }
+    },
+    {
+      "number": 35,
+      "value": 0.34,
+      "params": {
+        "temperature": 0.998803892632677,
+        "top_p": 0.8949769325617627
+      },
+      "user_attrs": {
+        "hit_at_1": 0.236,
+        "hit_at_5": 0.33,
+        "hit_at_50": 0.34,
+        "tanimoto": 0.561822200713753
+      }
+    },
+    {
+      "number": 36,
+      "value": 0.324,
+      "params": {
+        "temperature": 0.8191049153561407,
+        "top_p": 0.8774581775958631
+      },
+      "user_attrs": {
+        "hit_at_1": 0.244,
+        "hit_at_5": 0.324,
+        "hit_at_50": 0.324,
+        "tanimoto": 0.5430073442063208
+      }
+    },
+    {
+      "number": 37,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.3414676413130902,
+        "top_p": 0.8300971841284606
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.1703650614800372
+      }
+    },
+    {
+      "number": 38,
+      "value": 0.32,
+      "params": {
+        "temperature": 0.5269685876863275,
+        "top_p": 0.9438458919291773
+      },
+      "user_attrs": {
+        "hit_at_1": 0.234,
+        "hit_at_5": 0.32,
+        "hit_at_50": 0.32,
+        "tanimoto": 0.5299878902096528
+      }
+    },
+    {
+      "number": 39,
+      "value": 0.276,
+      "params": {
+        "temperature": 0.29252757629613246,
+        "top_p": 0.8245617274653859
+      },
+      "user_attrs": {
+        "hit_at_1": 0.244,
+        "hit_at_5": 0.276,
+        "hit_at_50": 0.276,
+        "tanimoto": 0.5048616524243804
+      }
+    },
+    {
+      "number": 40,
+      "value": 0.036,
+      "params": {
+        "temperature": 1.2091147107976865,
+        "top_p": 0.8650211121694974
+      },
+      "user_attrs": {
+        "hit_at_1": 0.004,
+        "hit_at_5": 0.018,
+        "hit_at_50": 0.036,
+        "tanimoto": 0.2984281912317823
+      }
+    },
+    {
+      "number": 41,
+      "value": 0.344,
+      "params": {
+        "temperature": 1.0563057577003816,
+        "top_p": 0.7666408936084415
+      },
+      "user_attrs": {
+        "hit_at_1": 0.26,
+        "hit_at_5": 0.342,
+        "hit_at_50": 0.344,
+        "tanimoto": 0.5487909100632998
+      }
+    },
+    {
+      "number": 42,
+      "value": 0.336,
+      "params": {
+        "temperature": 0.9910606161832212,
+        "top_p": 0.7860232096809107
+      },
+      "user_attrs": {
+        "hit_at_1": 0.234,
+        "hit_at_5": 0.334,
+        "hit_at_50": 0.336,
+        "tanimoto": 0.5464966701730964
+      }
+    },
+    {
+      "number": 43,
+      "value": 0.344,
+      "params": {
+        "temperature": 1.141260916604095,
+        "top_p": 0.7414770848543041
+      },
+      "user_attrs": {
+        "hit_at_1": 0.228,
+        "hit_at_5": 0.34,
+        "hit_at_50": 0.344,
+        "tanimoto": 0.5600876572267672
+      }
+    },
+    {
+      "number": 44,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.2821080084671015,
+        "top_p": 0.9105968544510767
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.15744403914365057
+      }
+    },
+    {
+      "number": 45,
+      "value": 0.3,
+      "params": {
+        "temperature": 0.8808345194117274,
+        "top_p": 0.9916869171200056
+      },
+      "user_attrs": {
+        "hit_at_1": 0.084,
+        "hit_at_5": 0.244,
+        "hit_at_50": 0.3,
+        "tanimoto": 0.5364591160336099
+      }
+    },
+    {
+      "number": 46,
+      "value": 0.002,
+      "params": {
+        "temperature": 1.535744701580812,
+        "top_p": 0.622037347536009
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.002,
+        "hit_at_50": 0.002,
+        "tanimoto": 0.17601648085612703
+      }
+    },
+    {
+      "number": 47,
+      "value": 0.354,
+      "params": {
+        "temperature": 1.4127854417573813,
+        "top_p": 0.5511345419023486
+      },
+      "user_attrs": {
+        "hit_at_1": 0.216,
+        "hit_at_5": 0.34,
+        "hit_at_50": 0.354,
+        "tanimoto": 0.5618207445149404
+      }
+    },
+    {
+      "number": 48,
+      "value": 0.0,
+      "params": {
+        "temperature": 1.6562280148455515,
+        "top_p": 0.5490851573245074
+      },
+      "user_attrs": {
+        "hit_at_1": 0.0,
+        "hit_at_5": 0.0,
+        "hit_at_50": 0.0,
+        "tanimoto": 0.1550978707901428
+      }
+    },
+    {
+      "number": 49,
+      "value": 0.348,
+      "params": {
+        "temperature": 1.4242187867966367,
+        "top_p": 0.5450870264737139
+      },
+      "user_attrs": {
+        "hit_at_1": 0.212,
+        "hit_at_5": 0.33,
+        "hit_at_50": 0.348,
+        "tanimoto": 0.5632902159616255
+      }
+    }
+  ]
+}

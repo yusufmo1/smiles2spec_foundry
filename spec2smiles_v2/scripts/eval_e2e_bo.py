@@ -115,22 +115,21 @@ class RichCallback:
         print(
             f"[Trial {trial.number:3d}] "
             f"Hit@10={trial.value:.1%} | Hit@1={hit1:.1%} | Tan={tan:.3f} | "
-            f"temp={trial.params.get('temperature', 0):.2f} | "
-            f"top_p={trial.params.get('top_p', 0):.2f} | "
-            f"n_cand={trial.params.get('n_candidates', 0):3d} | "
+            f"temp={trial.params.get('temperature', 0):.3f} | "
+            f"top_p={trial.params.get('top_p', 0):.3f} | "
             f"{elapsed:.0f}s {status}",
             flush=True
         )
 
 
-def create_objective(pred_scaled, smiles_list, part_b, batch_size):
+def create_objective(pred_scaled, smiles_list, part_b, batch_size, n_candidates=10):
     """Create Optuna objective function."""
 
     def objective(trial):
         # Sample parameters - nucleus sampling only
         temperature = trial.suggest_float("temperature", 0.1, 2.0)
         top_p = trial.suggest_float("top_p", 0.5, 1.0)
-        n_candidates = trial.suggest_int("n_candidates", 10, 100, step=10)
+        # n_candidates fixed for speed
 
         # Generate candidates
         all_candidates = []
@@ -255,7 +254,7 @@ def main():
     print("Search space:", flush=True)
     print("  temperature: [0.1, 2.0]", flush=True)
     print("  top_p:       [0.5, 1.0]", flush=True)
-    print("  n_candidates:[10, 100]", flush=True)
+    print("  n_candidates: 10 (fixed)", flush=True)
     print()
 
     optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -291,7 +290,7 @@ def main():
     print("BEST PARAMETERS:", flush=True)
     print(f"  temperature:  {study.best_params['temperature']:.3f}", flush=True)
     print(f"  top_p:        {study.best_params['top_p']:.3f}", flush=True)
-    print(f"  n_candidates: {study.best_params['n_candidates']}", flush=True)
+    print(f"  n_candidates: 10 (fixed)", flush=True)
     print()
     print("BEST METRICS:", flush=True)
     print(f"  Hit@1:     {study.best_trial.user_attrs['hit_at_1']:.1%}", flush=True)
@@ -307,9 +306,8 @@ def main():
     for i, t in enumerate(sorted_trials[:5]):
         print(
             f"  #{i+1}: Hit@10={t.value:.1%} | "
-            f"temp={t.params['temperature']:.2f} | "
-            f"top_p={t.params['top_p']:.2f} | "
-            f"n_cand={t.params['n_candidates']}",
+            f"temp={t.params['temperature']:.3f} | "
+            f"top_p={t.params['top_p']:.3f}",
             flush=True
         )
     print()
