@@ -329,8 +329,8 @@ def main():
 
     # Sweep mode
     if args.sweep:
-        temps = [0.6, 0.7, 0.8, 0.9, 1.0]
-        top_ps = [0.85, 0.9, 0.95]
+        temps = [0.3, 0.5, 0.7, 0.9, 1.0, 1.2, 1.5, 2.0]
+        top_ps = [0.85, 0.9, 0.95, 1.0]  # 1.0 = no nucleus filtering (pure temp)
 
         print("=" * 70)
         print("E2E PARAMETER SWEEP")

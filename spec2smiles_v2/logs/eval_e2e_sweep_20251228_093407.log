@@ -1,0 +1,34 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+============================================================
+End-to-End Evaluation (Spectrum -> SMILES)
+============================================================
+Dataset: gnps
+Part A: lgbm
+Part B: direct
+Device: cuda
+
+Loading Part A models...
+  Loaded 28 LightGBM models
+Loading Part B model...
+  Vocab size: 105
+  Device: cuda
+
+Loading test data...
+Test samples: 2347
+Random subsample: 500 samples
+
+======================================================================
+E2E PARAMETER SWEEP
+Samples: 500 | Candidates: 10 | Batch: 128
+======================================================================
+temp=0.6, top_p=0.85: Hit@1=23.8%, Hit@10=30.4%, Tan=0.525
+temp=0.6, top_p=0.90: Hit@1=24.2%, Hit@10=31.6%, Tan=0.534
+temp=0.6, top_p=0.95: Hit@1=24.6%, Hit@10=33.6%, Tan=0.543
+temp=0.7, top_p=0.85: Hit@1=25.4%, Hit@10=31.6%, Tan=0.534
+temp=0.7, top_p=0.90: Hit@1=24.8%, Hit@10=33.4%, Tan=0.542
+temp=0.7, top_p=0.95: Hit@1=24.4%, Hit@10=33.6%, Tan=0.546
+temp=0.8, top_p=0.85: Hit@1=24.6%, Hit@10=32.4%, Tan=0.542
+temp=0.8, top_p=0.90: Hit@1=25.0%, Hit@10=33.4%, Tan=0.549
+temp=0.8, top_p=0.95: Hit@1=22.8%, Hit@10=33.0%, Tan=0.549

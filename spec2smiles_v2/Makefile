@@ -85,6 +85,9 @@ eval-e2e-nucleus: ## End-to-end evaluation with nucleus sampling
 eval-e2e-sweep: ## E2E parameter sweep (temp/top_p) on 500 samples
 	poetry run python scripts/eval_e2e.py --config config.yml --part-a lgbm --sweep --sweep-samples 500 --batch-size 128 2>&1 | tee $(LOG_DIR)/eval_e2e_sweep_$$(date +%Y%m%d_%H%M%S).log
 
+eval-e2e-bo: ## Bayesian optimization for E2E params (50 trials)
+	PYTHONUNBUFFERED=1 poetry run python scripts/eval_e2e_bo.py --config config.yml --n-trials 50 --n-samples 500 --batch-size 128 2>&1 | tee $(LOG_DIR)/eval_e2e_bo_$$(date +%Y%m%d_%H%M%S).log
+
 # Visualization
 viz: ## Regenerate all figures
 	poetry run python scripts/visualize.py $(CONFIG_FLAG) 2>&1 | tee $(LOG_DIR)/visualize_$$(date +%Y%m%d_%H%M%S).log
