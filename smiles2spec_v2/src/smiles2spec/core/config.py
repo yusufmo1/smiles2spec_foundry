@@ -332,7 +332,7 @@ def load_config(config_path: Optional[Path] = None) -> Settings:
         nn_data = data["neural_network"]
         nn_kwargs = {}
         for key in ("learning_rate", "weight_decay", "max_epochs", "batch_size", "patience",
-                    "gradient_clip"):
+                    "gradient_clip", "num_modules", "dropout"):
             if key in nn_data:
                 nn_kwargs[key] = nn_data[key]
         if "modular_net" in nn_data:

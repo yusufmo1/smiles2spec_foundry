@@ -1,0 +1,122 @@
+# SMILES2SPEC Pipeline Configuration
+# GNPS dataset with STRONGER REGULARIZATION
+# Addressing overfitting observed in initial run
+
+# Paths
+paths:
+  data_input: data/input
+  data_output: data/output
+  cache: data/cache
+
+# Dataset
+dataset: gnps
+
+# Device: cuda, mps, cpu, auto
+device: auto
+
+# Spectrum Processing (output)
+spectrum:
+  n_bins: 500
+  bin_width: 1.0
+  max_mz: 499.0
+  transform: sqrt  # sqrt, log, none
+  normalize: true
+
+# Feature Configuration
+features:
+  type: 2d  # Options: 2d, 3d, combined
+
+  # 2D Molecular Features (RDKit)
+  descriptors:
+    enabled: true
+
+  fingerprints:
+    morgan:
+      enabled: true
+      radii: [1, 2, 3]
+      n_bits: 1024
+    maccs:
+      enabled: true
+    rdkit_fp:
+      enabled: true
+      n_bits: 2048
+
+  # 3D Conformer Features (optional - slower)
+  enable_3d: false
+  conformer:
+    n_conformers: 5
+    optimize: true
+    energy_window: 50.0
+
+# Random Forest Configuration
+random_forest:
+  n_estimators: 290
+  max_depth: 25
+  max_features: 0.3
+  min_samples_split: 2
+  min_samples_leaf: 1
+  n_jobs: -1
+  random_state: 42
+
+# Neural Network Configurations - STRONGER REGULARIZATION
+neural_network:
+  # Shared settings
+  learning_rate: 0.001   # Keep standard, larger batch compensates
+  weight_decay: 0.001    # Increased 100x from 0.00001
+  max_epochs: 200
+  batch_size: 2048       # Max out RTX 4090 (16GB VRAM)
+  patience: 40           # More patience with regularization
+  gradient_clip: 1.0
+  num_modules: 4
+  dropout: 0.3           # Increased from 0.1
+
+  # ModularNet - larger with more regularization
+  modular_net:
+    n_modules: 6         # Increased from 4
+    hidden_dim: 512      # Increased from 256
+    dropout: 0.4         # Increased from 0.1
+
+  # HierarchicalPredictionNet
+  hierarchical_net:
+    hidden_dim: 768      # Increased from 512
+    n_layers: 4          # Increased from 3
+    dropout: 0.4         # Increased from 0.2
+
+  # SparseGatedNet
+  sparse_gated_net:
+    hidden_dim: 512      # Increased from 256
+    n_experts: 12        # Increased from 8
+    top_k: 3             # Increased from 2
+    dropout: 0.3         # Increased from 0.1
+
+  # RegionalExpertNet
+  regional_expert:
+    n_regions: 8         # Increased from 5
+    hidden_dim: 512      # Increased from 256
+    dropout: 0.3         # Increased from 0.1
+
+# Ensemble Configuration
+ensemble:
+  method: bin_by_bin
+  models:
+    - random_forest
+    - modular_net
+
+  weighted:
+    optimize_weights: true
+
+  bin_by_bin:
+    optimize_per_bin: true
+
+# Data Split
+split:
+  train: 0.8
+  val: 0.1
+  test: 0.1
+  seed: 42
+
+# Training
+training:
+  early_stopping: true
+  save_best: true
+  log_interval: 10

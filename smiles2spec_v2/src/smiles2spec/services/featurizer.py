@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+from joblib import Parallel, delayed
 from tqdm import tqdm
 
 from smiles2spec.core.config import FeatureConfig
@@ -15,6 +16,55 @@ from smiles2spec.data.cache import FeatureCache
 from smiles2spec.domain.features_2d import Feature2DExtractor
 from smiles2spec.domain.features_3d import Feature3DExtractor
 from smiles2spec.domain.molecule import MoleculeProcessor
+
+
+def _extract_single_parallel(
+    smiles: str,
+    feature_type: str,
+    extractor_config: dict,
+) -> Optional[np.ndarray]:
+    """Standalone function for parallel feature extraction.
+
+    Creates extractors fresh in each process for RDKit thread safety.
+
+    Args:
+        smiles: SMILES string
+        feature_type: Feature type ('2d', '3d', 'combined')
+        extractor_config: Configuration dict for extractors
+
+    Returns:
+        Feature array or None if failed
+    """
+    try:
+        # Create extractors (lightweight, just config)
+        extractor_2d = Feature2DExtractor(
+            include_descriptors=extractor_config["include_descriptors"],
+            include_fingerprints=True,
+            include_electronic=True,
+            morgan_radii=extractor_config["morgan_radii"],
+            morgan_bits=extractor_config["morgan_bits"],
+        )
+
+        extractor_3d = None
+        if extractor_config.get("enable_3d"):
+            extractor_3d = Feature3DExtractor(
+                n_conformers=extractor_config["n_conformers"],
+            )
+
+        if feature_type == "2d":
+            return extractor_2d.extract_from_smiles(smiles)
+        elif feature_type == "3d" and extractor_3d:
+            return extractor_3d.extract_from_smiles(smiles)
+        elif feature_type == "combined" and extractor_3d:
+            feat_2d = extractor_2d.extract_from_smiles(smiles)
+            feat_3d = extractor_3d.extract_from_smiles(smiles)
+            if feat_2d is not None and feat_3d is not None:
+                return np.concatenate([feat_2d, feat_3d])
+            return None
+        else:
+            return extractor_2d.extract_from_smiles(smiles)
+    except Exception:
+        return None
 
 
 class FeaturizationService:
@@ -29,6 +79,7 @@ class FeaturizationService:
         cache_dir: Optional[Union[str, Path]] = None,
         use_cache: bool = True,
         verbose: bool = True,
+        n_jobs: int = -1,
     ):
         """Initialize featurization service.
 
@@ -37,11 +88,13 @@ class FeaturizationService:
             cache_dir: Directory for feature cache
             use_cache: Whether to use caching
             verbose: Print progress
+            n_jobs: Number of parallel jobs (-1 = all cores)
         """
         self.config = config or FeatureConfig()
         self.cache_dir = Path(cache_dir) if cache_dir else None
         self.use_cache = use_cache and cache_dir is not None
         self.verbose = verbose
+        self.n_jobs = n_jobs
 
         # Initialize extractors
         self._2d_extractor = Feature2DExtractor(
@@ -87,20 +140,33 @@ class FeaturizationService:
             if cached is not None:
                 return cached, self._get_feature_names(feature_type), []
 
-        # Extract features
+        # Extract features in parallel
+        if self.verbose:
+            n_jobs_display = self.n_jobs if self.n_jobs > 0 else "all"
+            print(f"Extracting features using {n_jobs_display} workers...")
+
+        # Build config dict for standalone function (picklable)
+        extractor_config = {
+            "include_descriptors": self.config.descriptors_enabled,
+            "morgan_radii": self.config.fingerprints.morgan.radii,
+            "morgan_bits": self.config.fingerprints.morgan.n_bits,
+            "enable_3d": self.config.enable_3d,
+            "n_conformers": self.config.conformer.n_conformers,
+        }
+
+        # Use processes for RDKit thread safety
+        results = Parallel(n_jobs=self.n_jobs, prefer="processes")(
+            delayed(_extract_single_parallel)(smiles, feature_type, extractor_config)
+            for smiles in tqdm(smiles_list, desc="Extracting features", disable=not self.verbose)
+        )
+
+        # Collect results and track failures
         features_list = []
         failed_indices = []
-
-        iterator = tqdm(smiles_list, desc="Extracting features") if self.verbose else smiles_list
-
-        for i, smiles in enumerate(iterator):
-            try:
-                features = self._extract_single(smiles, feature_type)
-                if features is not None:
-                    features_list.append(features)
-                else:
-                    failed_indices.append(i)
-            except Exception:
+        for i, feat in enumerate(results):
+            if feat is not None:
+                features_list.append(feat)
+            else:
                 failed_indices.append(i)
 
         if not features_list:

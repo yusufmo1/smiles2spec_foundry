@@ -1,0 +1,103 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+============================================================
+SMILES2SPEC: Neural Network Training (Pre-split Data)
+============================================================
+Config: config_gnps_regularized.yml
+Dataset: gnps
+Models: ['modular_net', 'hierarchical_net', 'sparse_gated_net', 'regional_expert_net']
+
+Loading pre-split data...
+  Train: 18739 samples
+  Val:   2342 samples
+  Test:  2343 samples
+
+Spectrum shape: 500 bins
+
+Featurizing SMILES...
+  Featurizing train: 18739 samples...
+Extracting features using all workers...
+Extracting features:   0%|          | 0/18739 [00:00<?, ?it/s]Extracting features:   0%|          | 64/18739 [00:02<12:10, 25.56it/s]Extracting features:   1%|          | 96/18739 [00:02<07:51, 39.55it/s]Extracting features:   1%|          | 224/18739 [00:02<02:31, 122.42it/s]Extracting features:   2%|▏         | 416/18739 [00:02<01:06, 276.20it/s]Extracting features:   4%|▍         | 800/18739 [00:03<00:28, 636.84it/s]Extracting features:   6%|▌         | 1056/18739 [00:03<00:20, 867.55it/s]Extracting features:   8%|▊         | 1568/18739 [00:03<00:12, 1414.65it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+Extracting features:  11%|█         | 2080/18739 [00:03<00:10, 1594.78it/s]Extracting features:  14%|█▍        | 2592/18739 [00:03<00:09, 1696.24it/s]Extracting features:  17%|█▋        | 3104/18739 [00:04<00:09, 1581.22it/s]Extracting features:  19%|█▉        | 3616/18739 [00:04<00:09, 1654.98it/s]Extracting features:  22%|██▏       | 4128/18739 [00:04<00:08, 1675.00it/s]Extracting features:  25%|██▍       | 4640/18739 [00:05<00:08, 1612.64it/s]Extracting features:  27%|██▋       | 5152/18739 [00:05<00:08, 1515.64it/s]Extracting features:  30%|███       | 5664/18739 [00:05<00:08, 1552.48it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+Extracting features:  33%|███▎      | 6176/18739 [00:06<00:08, 1514.87it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+Extracting features:  36%|███▌      | 6688/18739 [00:06<00:08, 1480.95it/s]Extracting features:  38%|███▊      | 7200/18739 [00:06<00:07, 1448.10it/s][20:46:26] WARNING: not removing hydrogen atom without neighbors
+[20:46:26] WARNING: not removing hydrogen atom without neighbors
+Extracting features:  41%|████      | 7712/18739 [00:07<00:07, 1438.17it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+Extracting features:  44%|████▍     | 8224/18739 [00:07<00:06, 1549.42it/s]Extracting features:  47%|████▋     | 8736/18739 [00:07<00:06, 1467.43it/s]Extracting features:  49%|████▉     | 9248/18739 [00:08<00:06, 1522.63it/s]Extracting features:  52%|█████▏    | 9760/18739 [00:08<00:05, 1527.93it/s]Extracting features:  55%|█████▍    | 10272/18739 [00:08<00:05, 1530.43it/s]Extracting features:  58%|█████▊    | 10784/18739 [00:09<00:05, 1422.17it/s]Extracting features:  60%|██████    | 11296/18739 [00:09<00:05, 1428.18it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+Extracting features:  63%|██████▎   | 11808/18739 [00:10<00:04, 1415.62it/s]Extracting features:  66%|██████▌   | 12320/18739 [00:10<00:04, 1444.46it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+Extracting features:  68%|██████▊   | 12832/18739 [00:10<00:04, 1378.61it/s]Extracting features:  71%|███████   | 13344/18739 [00:11<00:03, 1453.11it/s]Extracting features:  74%|███████▍  | 13856/18739 [00:11<00:03, 1455.38it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+Extracting features:  77%|███████▋  | 14368/18739 [00:11<00:02, 1529.07it/s]Extracting features:  79%|███████▉  | 14880/18739 [00:12<00:02, 1570.49it/s]Extracting features:  82%|████████▏ | 15392/18739 [00:12<00:02, 1498.95it/s]Extracting features:  85%|████████▍ | 15904/18739 [00:12<00:01, 1543.85it/s]Extracting features:  88%|████████▊ | 16416/18739 [00:13<00:01, 1591.16it/s]Extracting features:  90%|█████████ | 16928/18739 [00:13<00:01, 1591.74it/s]Extracting features:  93%|█████████▎| 17440/18739 [00:13<00:00, 1572.56it/s]Extracting features:  96%|█████████▌| 17952/18739 [00:14<00:00, 1614.68it/s]Extracting features:  99%|█████████▊| 18464/18739 [00:14<00:00, 1613.71it/s]Extracting features: 100%|██████████| 18739/18739 [00:14<00:00, 1304.92it/s]
+/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+  Featurizing val: 2342 samples...
+Extracting features using all workers...
+Extracting features:   0%|          | 0/2342 [00:00<?, ?it/s]Extracting features:  14%|█▎        | 320/2342 [00:00<00:00, 2174.02it/s]Extracting features:  30%|███       | 704/2342 [00:00<00:00, 2328.76it/s]Extracting features:  41%|████      | 960/2342 [00:00<00:00, 2130.32it/s]Extracting features:  63%|██████▎   | 1472/2342 [00:00<00:00, 2503.05it/s]Extracting features:  85%|████████▍ | 1984/2342 [00:00<00:00, 2181.30it/s]Extracting features: 100%|██████████| 2342/2342 [00:00<00:00, 2631.01it/s]
+/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+  Featurizing test: 2343 samples...
+Extracting features using all workers...
+Extracting features:   0%|          | 0/2343 [00:00<?, ?it/s]Extracting features:  14%|█▎        | 320/2343 [00:00<00:00, 2851.46it/s]Extracting features:  30%|███       | 704/2343 [00:00<00:00, 2659.79it/s]Extracting features:  41%|████▏     | 972/2343 [00:00<00:00, 2531.74it/s]Extracting features:  63%|██████▎   | 1472/2343 [00:00<00:00, 2891.06it/s]Extracting features:  85%|████████▍ | 1984/2343 [00:00<00:00, 2216.96it/s]Extracting features: 100%|██████████| 2343/2343 [00:00<00:00, 2824.11it/s]
+/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+
+After featurization:
+  Train: 18739 samples, 6541 features
+  Val:   2342 samples
+  Test:  2343 samples
+
+Preprocessing features...
+/home/yusuf/.cache/pypoetry/virtualenvs/smiles2spec-pipeline-0DAUoUmF-py3.11/lib/python3.11/site-packages/numpy/lib/nanfunctions.py:1741: RuntimeWarning: invalid value encountered in subtract
+  np.subtract(arr, avg, out=arr, casting='unsafe', where=where)
+  Saved preprocessor to data/output/models/preprocessor_gnps.pkl
+
+Model dimensions:
+  Input:  6473
+  Output: 500
+
+============================================================
+Training modular_net
+============================================================
+Parameters: 8,680,916
+Epoch   5 | Train: 0.4911 | Val: 0.4799 | Cosine: 0.5286
+Epoch  10 | Train: 0.4324 | Val: 0.4558 | Cosine: 0.5521
+Epoch  15 | Train: 0.4038 | Val: 0.4474 | Cosine: 0.5605
+Epoch  20 | Train: 0.3847 | Val: 0.4428 | Cosine: 0.5652
+Epoch  25 | Train: 0.3729 | Val: 0.4418 | Cosine: 0.5662
+Epoch  30 | Train: 0.3644 | Val: 0.4409 | Cosine: 0.5670
+Epoch  35 | Train: 0.3576 | Val: 0.4385 | Cosine: 0.5694
+Epoch  40 | Train: 0.3519 | Val: 0.4384 | Cosine: 0.5697
+Epoch  45 | Train: 0.3477 | Val: 0.4396 | Cosine: 0.5688
+Epoch  50 | Train: 0.3445 | Val: 0.4375 | Cosine: 0.5708
+Epoch  55 | Train: 0.3407 | Val: 0.4364 | Cosine: 0.5718
+Epoch  60 | Train: 0.3394 | Val: 0.4365 | Cosine: 0.5715
+Epoch  65 | Train: 0.3365 | Val: 0.4376 | Cosine: 0.5704
+Epoch  70 | Train: 0.3351 | Val: 0.4369 | Cosine: 0.5712
+Epoch  75 | Train: 0.3325 | Val: 0.4379 | Cosine: 0.5704
+Epoch  80 | Train: 0.3316 | Val: 0.4369 | Cosine: 0.5714
+Epoch  85 | Train: 0.3297 | Val: 0.4387 | Cosine: 0.5695
+Epoch  90 | Train: 0.3289 | Val: 0.4386 | Cosine: 0.5696
+Epoch  95 | Train: 0.3276 | Val: 0.4387 | Cosine: 0.5694
+Early stopping at epoch 95
+
+Test Results:
+  Cosine: 0.5529 +/- 0.2718
+  Best epoch: 54
+  Saved model to data/output/models/neural/modular_net_gnps.pth
+
+============================================================
+Training hierarchical_net
+============================================================
+Parameters: 7,627,756
+Epoch   5 | Train: 0.4579 | Val: 0.4650 | Cosine: 0.5437
+Epoch  10 | Train: 0.4080 | Val: 0.4474 | Cosine: 0.5608
+Epoch  15 | Train: 0.3838 | Val: 0.4406 | Cosine: 0.5676

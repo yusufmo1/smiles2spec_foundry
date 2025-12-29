@@ -1,0 +1,111 @@
+# Mamba-Diffusion: End-to-End Spectrum to SMILES
+# Novel architecture combining Mamba-2 encoder with masked diffusion decoder
+
+# Dataset configuration
+dataset: gnps
+data_input_dir: data/input
+data_output_dir: data/output
+
+# Spectrum preprocessing
+spectrum:
+  n_bins: 500
+  transform: sqrt  # sqrt, log, or none
+  normalize: true
+
+# SELFIES tokenization
+tokenizer:
+  max_length: 100
+  pad_token: "[nop]"
+  mask_token: "[MASK]"
+  start_token: "[START]"
+  end_token: "[END]"
+
+# Mamba-2 Encoder configuration (REQUIRED - no fallback)
+encoder:
+  type: mamba2       # mamba2 or hybrid (Samba-style)
+  d_model: 512
+  d_state: 128        # SSM state dimension
+  d_conv: 4           # Convolution kernel size
+  expand: 2           # Expansion factor for inner dimension
+  n_layers: 8
+  dropout: 0.1
+
+# Masked Diffusion Decoder configuration
+decoder:
+  type: masked_diffusion
+  d_model: 512
+  n_heads: 8
+  n_layers: 6
+  d_ff: 2048
+  dropout: 0.1
+
+  # Diffusion parameters
+  diffusion:
+    num_timesteps: 100      # Training timesteps
+    inference_steps: 10     # DDIM-style fast sampling
+    noise_schedule: cosine  # cosine, linear, or sqrt
+    mask_schedule: progressive  # progressive, uniform, or absorbing
+
+# Cross-attention (encoder-decoder)
+cross_attention:
+  n_heads: 8
+  dropout: 0.1
+
+# Training configuration
+training:
+  batch_size: 32
+  epochs: 100
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+  warmup_steps: 1000
+  gradient_clip: 1.0
+
+  # Progressive masking (start at 15% to avoid NaN loss)
+  mask_schedule:
+    start_ratio: 0.15
+    end_ratio: 0.85
+    warmup_epochs: 20  # Linear increase from start to end
+
+  # Early stopping
+  early_stopping:
+    patience: 15
+    min_delta: 0.001
+    monitor: val_loss
+
+# Inference configuration
+inference:
+  n_candidates: 50
+  temperature: 0.8
+  top_p: 0.9
+  batch_size: 32
+
+  # Sampling strategy
+  sampling:
+    method: ddim       # ddim, ddpm, or greedy
+    steps: 10
+    guidance_scale: 1.0
+
+# Evaluation metrics
+evaluation:
+  metrics:
+    - hit_at_1
+    - hit_at_5
+    - hit_at_10
+    - hit_at_50
+    - exact_match
+    - tanimoto
+    - validity
+    - diversity
+
+# Model paths
+models_path: data/output/models/mamba_diffusion
+metrics_path: data/output/metrics
+
+# Device configuration
+device: auto  # auto, cuda, mps, or cpu
+
+# Logging
+logging:
+  level: INFO
+  tensorboard: true
+  wandb: false

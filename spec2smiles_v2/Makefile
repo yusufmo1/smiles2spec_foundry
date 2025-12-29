@@ -1,5 +1,5 @@
 # SPEC2SMILES Pipeline Makefile
-.PHONY: install train-part-a train-part-a-lgbm train-part-b train-full evaluate eval-e2e-nucleus eval-nucleus eval-nucleus-sweep viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis clean clean-output clean-logs init-dirs lint format help
+.PHONY: install train-part-a train-part-a-lgbm train-part-b train-full train-mamba-diffusion evaluate eval-e2e-nucleus eval-nucleus eval-nucleus-sweep eval-mamba-diffusion viz viz-part-a viz-part-b viz-pipeline viz-benchmark viz-analysis clean clean-output clean-logs init-dirs lint format help
 
 # Log directory
 LOG_DIR := logs
@@ -22,11 +22,15 @@ help:
 	@echo "  Training (Full Pipeline):"
 	@echo "    make train-full           LightGBM -> DirectDecoder (recommended)"
 	@echo ""
+	@echo "  Training (End-to-End - Novel Architecture):"
+	@echo "    make train-mamba-diffusion  Mamba-2 + Masked Diffusion (direct spectrum->SMILES)"
+	@echo ""
 	@echo "  Evaluation:"
 	@echo "    make evaluate             End-to-end evaluation on test set"
 	@echo "    make eval-e2e-nucleus     E2E with nucleus sampling (top_p=0.9)"
 	@echo "    make eval-nucleus         Nucleus sampling (oracle descriptors)"
 	@echo "    make eval-nucleus-sweep   Parameter sweep for nucleus sampling"
+	@echo "    make eval-mamba-diffusion Evaluate Mamba-Diffusion model"
 	@echo ""
 	@echo "  Visualization:"
 	@echo "    make viz                  Generate all figures"
@@ -69,6 +73,10 @@ train-part-b: ## DirectDecoder with SELFIES
 train-full: ## Complete pipeline
 	$(MAKE) train-part-a-lgbm CONFIG=$(CONFIG) && $(MAKE) train-part-b CONFIG=$(CONFIG)
 
+# Training End-to-End (Mamba-Diffusion)
+train-mamba-diffusion: ## Mamba-2 encoder + Masked Diffusion decoder (novel architecture)
+	poetry run python scripts/train_mamba_diffusion.py --config config_mamba_diffusion.yml 2>&1 | tee $(LOG_DIR)/train_mamba_diffusion_$$(date +%Y%m%d_%H%M%S).log
+
 # Evaluation
 evaluate: ## End-to-end evaluation
 	poetry run python scripts/eval_e2e.py --config config.yml --part-a lgbm 2>&1 | tee $(LOG_DIR)/evaluate_$$(date +%Y%m%d_%H%M%S).log
@@ -87,6 +95,9 @@ eval-e2e-sweep: ## E2E parameter sweep (temp/top_p) on 500 samples
 
 eval-e2e-bo: ## Bayesian optimization for E2E params (50 trials)
 	PYTHONUNBUFFERED=1 poetry run python scripts/eval_e2e_bo.py --config config.yml --n-trials 50 --n-samples 500 --batch-size 128 2>&1 | tee $(LOG_DIR)/eval_e2e_bo_$$(date +%Y%m%d_%H%M%S).log
+
+eval-mamba-diffusion: ## Evaluate Mamba-Diffusion on test set
+	poetry run python scripts/eval_mamba_diffusion.py --config config_mamba_diffusion.yml --n-candidates 50 --n-steps 10 2>&1 | tee $(LOG_DIR)/eval_mamba_diffusion_$$(date +%Y%m%d_%H%M%S).log
 
 # Visualization
 viz: ## Regenerate all figures
