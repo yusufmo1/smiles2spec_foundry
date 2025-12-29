@@ -1,0 +1,27 @@
+{
+  "metrics": {
+    "exact_match": 0.0,
+    "hit_at_1": 0.0,
+    "hit_at_5": 0.0,
+    "hit_at_10": 0.0,
+    "hit_at_50": 0.0,
+    "mean_best_tanimoto": 0.1670475604544878,
+    "mean_validity": 1.0,
+    "mean_diversity": 0.9567477592829705
+  },
+  "config": {
+    "n_candidates": 50,
+    "n_steps": 10,
+    "temperature": 0.8,
+    "n_samples": 2343
+  },
+  "model": {
+    "encoder_type": "Mamba-2",
+    "encoder_params": 14292352,
+    "decoder_params": 29068394,
+    "total_params": 43360746,
+    "d_model": 512,
+    "vocab_size": 106,
+    "max_seq_len": 100
+  }
+}

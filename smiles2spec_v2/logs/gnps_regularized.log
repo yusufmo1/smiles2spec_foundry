@@ -101,3 +101,7 @@ Parameters: 7,627,756
 Epoch   5 | Train: 0.4579 | Val: 0.4650 | Cosine: 0.5437
 Epoch  10 | Train: 0.4080 | Val: 0.4474 | Cosine: 0.5608
 Epoch  15 | Train: 0.3838 | Val: 0.4406 | Cosine: 0.5676
+/home/yusuf/.cache/pypoetry/virtualenvs/smiles2spec-pipeline-0DAUoUmF-py3.11/lib/python3.11/site-packages/joblib/externals/loky/backend/resource_tracker.py:359: UserWarning: resource_tracker: There appear to be 38 leaked semlock objects to clean up at shutdown
+  warnings.warn(
+/home/yusuf/.cache/pypoetry/virtualenvs/smiles2spec-pipeline-0DAUoUmF-py3.11/lib/python3.11/site-packages/joblib/externals/loky/backend/resource_tracker.py:359: UserWarning: resource_tracker: There appear to be 3 leaked folder objects to clean up at shutdown
+  warnings.warn(

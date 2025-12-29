@@ -37,3 +37,207 @@ Extracting features using all workers...
 Extracting features:  72%|███████▏  | 13568/18739 [00:12<00:03, 1435.52it/s]Extracting features:  74%|███████▍  | 13824/18739 [00:12<00:03, 1421.15it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
   return np.array(descriptors, dtype=np.float32)
 Extracting features:  75%|███████▌  | 14080/18739 [00:12<00:03, 1292.74it/s]Extracting features:  77%|███████▋  | 14336/18739 [00:12<00:03, 1336.55it/s]Extracting features:  78%|███████▊  | 14592/18739 [00:12<00:03, 1320.43it/s]Extracting features:  79%|███████▉  | 14848/18739 [00:13<00:02, 1394.44it/s]Extracting features:  81%|████████  | 15104/18739 [00:13<00:02, 1461.50it/s]Extracting features:  82%|████████▏ | 15360/18739 [00:13<00:02, 1383.15it/s]Extracting features:  83%|████████▎ | 15616/18739 [00:13<00:02, 1338.13it/s]Extracting features:  85%|████████▍ | 15872/18739 [00:13<00:02, 1343.26it/s]Extracting features:  86%|████████▌ | 16128/18739 [00:14<00:01, 1350.73it/s]Extracting features:  87%|████████▋ | 16384/18739 [00:14<00:01, 1419.63it/s]Extracting features:  89%|████████▉ | 16640/18739 [00:14<00:01, 1485.24it/s]Extracting features:  90%|█████████ | 16896/18739 [00:14<00:01, 1458.40it/s]Extracting features:  92%|█████████▏| 17152/18739 [00:14<00:01, 1409.21it/s]Extracting features:  93%|█████████▎| 17408/18739 [00:14<00:00, 1393.99it/s]Extracting features:  94%|█████████▍| 17664/18739 [00:15<00:00, 1437.66it/s]Extracting features:  96%|█████████▌| 17920/18739 [00:15<00:00, 1361.18it/s]Extracting features:  97%|█████████▋| 18176/18739 [00:15<00:00, 1428.20it/s]Extracting features:  98%|█████████▊| 18432/18739 [00:15<00:00, 1494.16it/s]Extracting features: 100%|█████████▉| 18688/18739 [00:15<00:00, 1444.34it/s]Extracting features: 100%|██████████| 18739/18739 [00:15<00:00, 1184.85it/s]
+/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+  Featurizing val: 2342 samples...
+Extracting features using all workers...
+Extracting features:   0%|          | 0/2342 [00:00<?, ?it/s]Extracting features:  14%|█▎        | 320/2342 [00:00<00:01, 1925.10it/s]Extracting features:  30%|███       | 704/2342 [00:00<00:00, 2113.61it/s]/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+Extracting features:  41%|████      | 960/2342 [00:00<00:00, 2149.22it/s]Extracting features:  52%|█████▏    | 1216/2342 [00:00<00:00, 1835.72it/s]Extracting features:  63%|██████▎   | 1472/2342 [00:00<00:00, 1738.44it/s]Extracting features:  74%|███████▍  | 1728/2342 [00:00<00:00, 1694.13it/s]Extracting features:  85%|████████▍ | 1984/2342 [00:01<00:00, 1598.82it/s]Extracting features:  96%|█████████▌| 2240/2342 [00:01<00:00, 1516.69it/s]Extracting features: 100%|██████████| 2342/2342 [00:01<00:00, 1773.02it/s]
+/home/yusuf/smiles2spec_foundry/smiles2spec_v2/src/smiles2spec/domain/features_2d.py:52: RuntimeWarning: overflow encountered in cast
+  return np.array(descriptors, dtype=np.float32)
+  Featurizing test: 2343 samples...
+Extracting features using all workers...
+Extracting features:   0%|          | 0/2343 [00:00<?, ?it/s]Extracting features:  14%|█▎        | 320/2343 [00:00<00:00, 2897.48it/s]Extracting features:  30%|███       | 704/2343 [00:00<00:00, 2562.38it/s]Extracting features:  41%|████      | 965/2343 [00:00<00:00, 2342.05it/s]Extracting features:  52%|█████▏    | 1216/2343 [00:00<00:00, 1937.92it/s]Extracting features:  63%|██████▎   | 1472/2343 [00:00<00:00, 1622.71it/s]Extracting features:  74%|███████▍  | 1728/2343 [00:00<00:00, 1553.58it/s]Extracting features:  85%|████████▍ | 1984/2343 [00:01<00:00, 1566.46it/s]Extracting features:  96%|█████████▌| 2240/2343 [00:01<00:00, 1516.72it/s]Extracting features: 100%|██████████| 2343/2343 [00:01<00:00, 1802.35it/s]
+
+After featurization:
+  Train: 18739 samples, 6541 features
+  Val:   2342 samples
+  Test:  2343 samples
+
+Preprocessing features...
+/home/yusuf/.cache/pypoetry/virtualenvs/smiles2spec-pipeline-0DAUoUmF-py3.11/lib/python3.11/site-packages/numpy/lib/nanfunctions.py:1741: RuntimeWarning: invalid value encountered in subtract
+  np.subtract(arr, avg, out=arr, casting='unsafe', where=where)
+  Saved preprocessor to data/output/models/preprocessor_gnps.pkl
+
+Neural network config:
+  Batch size: 2048
+  Learning rate: 0.001
+  Weight decay: 0.001
+  Dropout: 0.3
+
+Model dimensions:
+  Input:  6473
+  Output: 500
+
+============================================================
+Training modular_net
+============================================================
+Parameters: 8,680,916
+Epoch   5 | Train: 0.5422 | Val: 0.5205 | Cosine: 0.4891
+Epoch  10 | Train: 0.4782 | Val: 0.4804 | Cosine: 0.5300
+Epoch  15 | Train: 0.4553 | Val: 0.4687 | Cosine: 0.5416
+Epoch  20 | Train: 0.4484 | Val: 0.4642 | Cosine: 0.5464
+Epoch  25 | Train: 0.4414 | Val: 0.4629 | Cosine: 0.5497
+Epoch  30 | Train: 0.4386 | Val: 0.4602 | Cosine: 0.5497
+Epoch  35 | Train: 0.4347 | Val: 0.4606 | Cosine: 0.5511
+Epoch  40 | Train: 0.4354 | Val: 0.4604 | Cosine: 0.5501
+Epoch  45 | Train: 0.4335 | Val: 0.4569 | Cosine: 0.5518
+Epoch  50 | Train: 0.4301 | Val: 0.4576 | Cosine: 0.5528
+Epoch  55 | Train: 0.4279 | Val: 0.4599 | Cosine: 0.5511
+Epoch  60 | Train: 0.4284 | Val: 0.4628 | Cosine: 0.5511
+Epoch  65 | Train: 0.4285 | Val: 0.4589 | Cosine: 0.5535
+Epoch  70 | Train: 0.4302 | Val: 0.4589 | Cosine: 0.5532
+Epoch  75 | Train: 0.4273 | Val: 0.4642 | Cosine: 0.5489
+Epoch  80 | Train: 0.4293 | Val: 0.4598 | Cosine: 0.5523
+Epoch  85 | Train: 0.4289 | Val: 0.4603 | Cosine: 0.5537
+Epoch  90 | Train: 0.4287 | Val: 0.4585 | Cosine: 0.5539
+Epoch  95 | Train: 0.4274 | Val: 0.4575 | Cosine: 0.5549
+Epoch 100 | Train: 0.4283 | Val: 0.4597 | Cosine: 0.5525
+Epoch 105 | Train: 0.4281 | Val: 0.4597 | Cosine: 0.5550
+Epoch 110 | Train: 0.4288 | Val: 0.4562 | Cosine: 0.5560
+Epoch 115 | Train: 0.4265 | Val: 0.4573 | Cosine: 0.5547
+Epoch 120 | Train: 0.4282 | Val: 0.4601 | Cosine: 0.5556
+Epoch 125 | Train: 0.4250 | Val: 0.4613 | Cosine: 0.5517
+Epoch 130 | Train: 0.4277 | Val: 0.4622 | Cosine: 0.5536
+Epoch 135 | Train: 0.4294 | Val: 0.4616 | Cosine: 0.5523
+Epoch 140 | Train: 0.4289 | Val: 0.4588 | Cosine: 0.5537
+Epoch 145 | Train: 0.4283 | Val: 0.4624 | Cosine: 0.5514
+Epoch 150 | Train: 0.4291 | Val: 0.4585 | Cosine: 0.5539
+Early stopping at epoch 150
+
+Test Results:
+  Cosine: 0.5399 +/- 0.2581
+  Best epoch: 109
+  Saved model to data/output/models/neural/modular_net_gnps.pth
+
+============================================================
+Training hierarchical_net
+============================================================
+Parameters: 7,627,756
+Epoch   5 | Train: 0.5117 | Val: 0.5163 | Cosine: 0.4945
+Epoch  10 | Train: 0.4702 | Val: 0.4892 | Cosine: 0.5218
+Epoch  15 | Train: 0.4561 | Val: 0.4780 | Cosine: 0.5318
+Epoch  20 | Train: 0.4494 | Val: 0.4776 | Cosine: 0.5351
+Epoch  25 | Train: 0.4482 | Val: 0.4769 | Cosine: 0.5339
+Epoch  30 | Train: 0.4439 | Val: 0.4749 | Cosine: 0.5353
+Epoch  35 | Train: 0.4427 | Val: 0.4752 | Cosine: 0.5347
+Epoch  40 | Train: 0.4403 | Val: 0.4738 | Cosine: 0.5368
+Epoch  45 | Train: 0.4412 | Val: 0.4726 | Cosine: 0.5383
+Epoch  50 | Train: 0.4406 | Val: 0.4736 | Cosine: 0.5377
+Epoch  55 | Train: 0.4443 | Val: 0.4768 | Cosine: 0.5338
+Epoch  60 | Train: 0.4428 | Val: 0.4750 | Cosine: 0.5351
+Epoch  65 | Train: 0.4433 | Val: 0.4731 | Cosine: 0.5363
+Epoch  70 | Train: 0.4438 | Val: 0.4760 | Cosine: 0.5337
+Epoch  75 | Train: 0.4444 | Val: 0.4761 | Cosine: 0.5340
+Epoch  80 | Train: 0.4439 | Val: 0.4790 | Cosine: 0.5332
+Epoch  85 | Train: 0.4460 | Val: 0.4754 | Cosine: 0.5359
+Early stopping at epoch 85
+
+Test Results:
+  Cosine: 0.5286 +/- 0.2522
+  Best epoch: 44
+  Saved model to data/output/models/neural/hierarchical_net_gnps.pth
+
+============================================================
+Training sparse_gated_net
+============================================================
+Parameters: 10,698,716
+Epoch   5 | Train: 0.5115 | Val: 0.5502 | Cosine: 0.4609
+Epoch  10 | Train: 0.4646 | Val: 0.5142 | Cosine: 0.4969
+Epoch  15 | Train: 0.4452 | Val: 0.5074 | Cosine: 0.5044
+Epoch  20 | Train: 0.4309 | Val: 0.4944 | Cosine: 0.5182
+Epoch  25 | Train: 0.4283 | Val: 0.5145 | Cosine: 0.4952
+Epoch  30 | Train: 0.4168 | Val: 0.4880 | Cosine: 0.5244
+Epoch  35 | Train: 0.4143 | Val: 0.5089 | Cosine: 0.5016
+Epoch  40 | Train: 0.4141 | Val: 0.4870 | Cosine: 0.5253
+Epoch  45 | Train: 0.4052 | Val: 0.4846 | Cosine: 0.5250
+Epoch  50 | Train: 0.3981 | Val: 0.4816 | Cosine: 0.5314
+Epoch  55 | Train: 0.4054 | Val: 0.4901 | Cosine: 0.5193
+Epoch  60 | Train: 0.3942 | Val: 0.4767 | Cosine: 0.5338
+Epoch  65 | Train: 0.4043 | Val: 0.4790 | Cosine: 0.5305
+Epoch  70 | Train: 0.3951 | Val: 0.4726 | Cosine: 0.5370
+Epoch  75 | Train: 0.3914 | Val: 0.4735 | Cosine: 0.5387
+Epoch  80 | Train: 0.3956 | Val: 0.4809 | Cosine: 0.5291
+Epoch  85 | Train: 0.3902 | Val: 0.4737 | Cosine: 0.5378
+Epoch  90 | Train: 0.3888 | Val: 0.4737 | Cosine: 0.5400
+Epoch  95 | Train: 0.3901 | Val: 0.4839 | Cosine: 0.5327
+Epoch 100 | Train: 0.3866 | Val: 0.4852 | Cosine: 0.5264
+Epoch 105 | Train: 0.3872 | Val: 0.4948 | Cosine: 0.5175
+Epoch 110 | Train: 0.3848 | Val: 0.4736 | Cosine: 0.5387
+Epoch 115 | Train: 0.3808 | Val: 0.4649 | Cosine: 0.5461
+Epoch 120 | Train: 0.3821 | Val: 0.4778 | Cosine: 0.5321
+Epoch 125 | Train: 0.3821 | Val: 0.4699 | Cosine: 0.5397
+Epoch 130 | Train: 0.3804 | Val: 0.4758 | Cosine: 0.5362
+Epoch 135 | Train: 0.3861 | Val: 0.4682 | Cosine: 0.5440
+Epoch 140 | Train: 0.3755 | Val: 0.4769 | Cosine: 0.5348
+Epoch 145 | Train: 0.3771 | Val: 0.4704 | Cosine: 0.5413
+Epoch 150 | Train: 0.3758 | Val: 0.4700 | Cosine: 0.5404
+Epoch 155 | Train: 0.3865 | Val: 0.4789 | Cosine: 0.5351
+Early stopping at epoch 155
+
+Test Results:
+  Cosine: 0.5321 +/- 0.2579
+  Best epoch: 114
+  Saved model to data/output/models/neural/sparse_gated_net_gnps.pth
+
+============================================================
+Training regional_expert_net
+============================================================
+Parameters: 20,708,445
+Epoch   5 | Train: 0.4536 | Val: 0.4872 | Cosine: 0.5208
+Epoch  10 | Train: 0.4128 | Val: 0.4817 | Cosine: 0.5279
+Epoch  15 | Train: 0.3995 | Val: 0.4778 | Cosine: 0.5314
+Epoch  20 | Train: 0.3925 | Val: 0.4790 | Cosine: 0.5344
+Epoch  25 | Train: 0.3907 | Val: 0.4761 | Cosine: 0.5350
+Epoch  30 | Train: 0.3842 | Val: 0.4752 | Cosine: 0.5356
+Epoch  35 | Train: 0.3866 | Val: 0.4747 | Cosine: 0.5385
+Epoch  40 | Train: 0.3856 | Val: 0.4736 | Cosine: 0.5360
+Epoch  45 | Train: 0.3844 | Val: 0.4753 | Cosine: 0.5358
+Epoch  50 | Train: 0.3757 | Val: 0.4701 | Cosine: 0.5407
+Epoch  55 | Train: 0.3769 | Val: 0.4732 | Cosine: 0.5374
+Epoch  60 | Train: 0.3757 | Val: 0.4741 | Cosine: 0.5384
+Epoch  65 | Train: 0.3769 | Val: 0.4723 | Cosine: 0.5408
+Epoch  70 | Train: 0.3742 | Val: 0.4671 | Cosine: 0.5434
+Epoch  75 | Train: 0.3736 | Val: 0.4688 | Cosine: 0.5432
+Epoch  80 | Train: 0.3731 | Val: 0.4734 | Cosine: 0.5392
+Epoch  85 | Train: 0.3741 | Val: 0.4706 | Cosine: 0.5434
+Epoch  90 | Train: 0.3682 | Val: 0.4733 | Cosine: 0.5411
+Epoch  95 | Train: 0.3686 | Val: 0.4692 | Cosine: 0.5419
+Epoch 100 | Train: 0.3661 | Val: 0.4671 | Cosine: 0.5456
+Epoch 105 | Train: 0.3635 | Val: 0.4669 | Cosine: 0.5460
+Epoch 110 | Train: 0.3613 | Val: 0.4686 | Cosine: 0.5448
+Epoch 115 | Train: 0.3628 | Val: 0.4669 | Cosine: 0.5467
+Epoch 120 | Train: 0.3616 | Val: 0.4658 | Cosine: 0.5492
+Epoch 125 | Train: 0.3604 | Val: 0.4603 | Cosine: 0.5524
+Epoch 130 | Train: 0.3611 | Val: 0.4619 | Cosine: 0.5521
+Epoch 135 | Train: 0.3589 | Val: 0.4642 | Cosine: 0.5475
+Epoch 140 | Train: 0.3570 | Val: 0.4678 | Cosine: 0.5463
+Epoch 145 | Train: 0.3563 | Val: 0.4610 | Cosine: 0.5553
+Epoch 150 | Train: 0.3585 | Val: 0.4617 | Cosine: 0.5519
+Epoch 155 | Train: 0.3579 | Val: 0.4590 | Cosine: 0.5524
+Epoch 160 | Train: 0.3574 | Val: 0.4623 | Cosine: 0.5506
+Epoch 165 | Train: 0.3532 | Val: 0.4615 | Cosine: 0.5527
+Epoch 170 | Train: 0.3556 | Val: 0.4684 | Cosine: 0.5467
+Epoch 175 | Train: 0.3580 | Val: 0.4645 | Cosine: 0.5504
+Epoch 180 | Train: 0.3545 | Val: 0.4568 | Cosine: 0.5563
+Epoch 185 | Train: 0.3545 | Val: 0.4611 | Cosine: 0.5527
+Epoch 190 | Train: 0.3565 | Val: 0.4631 | Cosine: 0.5498
+Epoch 195 | Train: 0.3526 | Val: 0.4610 | Cosine: 0.5512
+Epoch 200 | Train: 0.3529 | Val: 0.4615 | Cosine: 0.5525
+
+Test Results:
+  Cosine: 0.5370 +/- 0.2628
+  Best epoch: 179
+  Saved model to data/output/models/neural/regional_expert_net_gnps.pth
+
+============================================================
+TRAINING SUMMARY
+============================================================
+Dataset: gnps (18739 train samples)
+
+Results (sorted by cosine similarity):
+  modular_net: 0.5399 +/- 0.2581
+  regional_expert_net: 0.5370 +/- 0.2628
+  sparse_gated_net: 0.5321 +/- 0.2579
+  hierarchical_net: 0.5286 +/- 0.2522
