@@ -72,10 +72,10 @@ part_b:
   model: direct
 
   direct:
-    hidden_dim: 768
-    n_layers: 6
-    n_heads: 12
-    d_ff: 3072
+    hidden_dim: 512
+    n_layers: 4
+    n_heads: 8
+    d_ff: 2048
     dropout: 0.1
     max_seq_len: 100
     learning_rate: 0.0003

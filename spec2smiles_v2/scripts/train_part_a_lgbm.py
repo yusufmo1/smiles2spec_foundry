@@ -61,7 +61,7 @@ from src.domain.spectrum import process_spectrum
 from src.domain.descriptors import calculate_descriptors_batch, get_descriptor_type
 
 
-MAX_CLASSES_FOR_CLASSIFICATION = 10  # Use regression for high-cardinality discrete
+MAX_CLASSES_FOR_CLASSIFICATION = 0  # Use pure regression for ALL descriptors
 
 
 def train_single_descriptor(args):

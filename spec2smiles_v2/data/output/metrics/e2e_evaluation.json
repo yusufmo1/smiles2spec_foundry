@@ -1,19 +1,19 @@
 {
   "part_a": {
     "model": "lgbm",
-    "classification_accuracy": 0.8033859724000569,
-    "classification_n_descriptors": 3,
-    "regression_r2": 0.6170562817079839,
-    "regression_n_descriptors": 25
+    "classification_accuracy": 0.0,
+    "classification_n_descriptors": 0,
+    "regression_r2": 0.6192489027635094,
+    "regression_n_descriptors": 28
   },
   "end_to_end": {
-    "exact_match": 0.06999573196756295,
-    "mean_best_tanimoto": 0.3544540614818694,
+    "exact_match": 0.09218950064020487,
+    "mean_best_tanimoto": 0.39282161417921707,
     "validity": 1.0,
-    "hit_at_1": 0.021340162185232606,
-    "hit_at_5": 0.050789586000853607,
-    "hit_at_10": 0.061886470337174565,
-    "hit_at_50": 0.06999573196756295
+    "hit_at_1": 0.03158344003414426,
+    "hit_at_5": 0.0695689287238583,
+    "hit_at_10": 0.08322663252240717,
+    "hit_at_50": 0.09218950064020487
   },
   "config": {
     "n_candidates": 50,

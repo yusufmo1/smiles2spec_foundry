@@ -2,23 +2,21 @@
   "model_type": "lightgbm_mixed",
   "summary": {
     "n_descriptors": 28,
-    "n_discrete_class": 3,
-    "n_discrete_reg": 5,
+    "n_discrete_class": 0,
+    "n_discrete_reg": 8,
     "n_continuous": 20,
-    "max_classes_for_classification": 10,
-    "mean_accuracy_discrete_class": 0.8033859724000569,
-    "best_discrete_class": "fr_phos_ester",
-    "best_discrete_class_accuracy": 0.9893299189073836,
-    "mean_r2_discrete_reg": 0.620212386888825,
+    "max_classes_for_classification": 0,
+    "mean_r2_discrete_reg": 0.6267030211403489,
     "mean_r2_continuous": 0.6162786933617952,
     "best_continuous": "Chi3n",
     "best_continuous_r2": 0.7182943421245289
   },
   "per_descriptor": {
     "fr_phos_ester": {
-      "type": "discrete_class",
-      "accuracy": 0.9893299189073836,
-      "MAE": 0.013230900554844216,
+      "type": "discrete_reg",
+      "MAE": 0.01195049082373026,
+      "RMSE": 0.10678741645206336,
+      "R2": 0.7230193724778178,
       "n_classes": 4
     },
     "Chi3n": {
@@ -53,9 +51,10 @@
       "R2": 0.6676435700969843
     },
     "NumSaturatedCarbocycles": {
-      "type": "discrete_class",
-      "accuracy": 0.8352539479300043,
-      "MAE": 0.3388817755014938,
+      "type": "discrete_reg",
+      "MAE": 0.391378574477166,
+      "RMSE": 0.783008232699952,
+      "R2": 0.6564961931802025,
       "n_classes": 7
     },
     "SMR_VSA5": {
@@ -183,9 +182,10 @@
       "R2": 0.5499488468826069
     },
     "NumAromaticRings": {
-      "type": "discrete_class",
-      "accuracy": 0.5855740503627828,
-      "MAE": 0.6538625693555271,
+      "type": "discrete_reg",
+      "MAE": 0.5326504481434059,
+      "RMSE": 0.8024133797919976,
+      "R2": 0.5330466690206461,
       "n_classes": 9
     }
   }
