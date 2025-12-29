@@ -1,0 +1,24 @@
+{
+  "part_a": {
+    "model": "lgbm",
+    "classification_accuracy": 1.0,
+    "classification_n_descriptors": 0,
+    "regression_r2": 1.0,
+    "regression_n_descriptors": 28
+  },
+  "end_to_end": {
+    "exact_match": 0.5100298762270593,
+    "mean_best_tanimoto": 0.7986895168386573,
+    "validity": 1.0,
+    "hit_at_1": 0.3119931711481007,
+    "hit_at_5": 0.471190781049936,
+    "hit_at_10": 0.499359795134443,
+    "hit_at_50": 0.5100298762270593
+  },
+  "config": {
+    "n_candidates": 50,
+    "n_samples": 2343,
+    "temperature": 0.7,
+    "top_p": 0.9
+  }
+}

@@ -240,6 +240,7 @@ def main():
     parser.add_argument("--batch-size", type=int, default=32, help="Batch size for generation")
     parser.add_argument("--sweep", action="store_true", help="Run temperature/top_p sweep")
     parser.add_argument("--sweep-samples", type=int, default=500, help="Random subsample size for sweep")
+    parser.add_argument("--oracle", action="store_true", help="Use true descriptors (oracle mode) to measure Part B upper bound")
     args = parser.parse_args()
 
     # Load config
@@ -249,10 +250,13 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     print("=" * 60)
-    print("End-to-End Evaluation (Spectrum -> SMILES)")
+    if args.oracle:
+        print("ORACLE Evaluation (True Descriptors -> SMILES)")
+    else:
+        print("End-to-End Evaluation (Spectrum -> SMILES)")
     print("=" * 60)
     print(f"Dataset: {settings.dataset}")
-    print(f"Part A: {args.part_a}")
+    print(f"Part A: {'ORACLE (true desc)' if args.oracle else args.part_a}")
     print(f"Part B: {settings.part_b_model}")
     print(f"Device: {device}")
     print()
@@ -396,47 +400,59 @@ def main():
         print(f"Sweep results saved to {sweep_path}")
         return
 
-    # Part A: Predict descriptors from spectra
-    print("Part A: Predicting descriptors from spectra...")
-    pred_descriptors = predict_descriptors_lgbm(
-        lgbm_models, spectra, settings.descriptor_names
-    )
+    # Oracle mode: skip Part A and use true descriptors
+    if args.oracle:
+        print("ORACLE MODE: Using TRUE descriptors (skipping Part A)")
+        print()
+        descriptors_for_part_b = true_descriptors
+        mean_class_acc = 1.0
+        mean_reg_r2 = 1.0
+        class_indices = []
+        reg_indices = list(range(len(settings.descriptor_names)))
+    else:
+        # Part A: Predict descriptors from spectra
+        print("Part A: Predicting descriptors from spectra...")
+        pred_descriptors = predict_descriptors_lgbm(
+            lgbm_models, spectra, settings.descriptor_names
+        )
 
-    # Compute Part A metrics - separate classification vs regression
-    from sklearn.metrics import r2_score, accuracy_score
+        # Compute Part A metrics - separate classification vs regression
+        from sklearn.metrics import r2_score, accuracy_score
 
-    # Identify classification vs regression descriptors
-    class_indices = []
-    reg_indices = []
-    for i, name in enumerate(settings.descriptor_names):
-        if name in lgbm_models:
-            params = lgbm_models[name].dump_model()
-            obj = params.get("objective", "regression")
-            if "multiclass" in obj:
-                class_indices.append(i)
-            else:
-                reg_indices.append(i)
+        # Identify classification vs regression descriptors
+        class_indices = []
+        reg_indices = []
+        for i, name in enumerate(settings.descriptor_names):
+            if name in lgbm_models:
+                params = lgbm_models[name].dump_model()
+                obj = params.get("objective", "regression")
+                if "multiclass" in obj:
+                    class_indices.append(i)
+                else:
+                    reg_indices.append(i)
 
-    # Compute metrics for each type
-    class_accuracies = []
-    for i in class_indices:
-        acc = accuracy_score(true_descriptors[:, i].astype(int), pred_descriptors[:, i].astype(int))
-        class_accuracies.append(acc)
+        # Compute metrics for each type
+        class_accuracies = []
+        for i in class_indices:
+            acc = accuracy_score(true_descriptors[:, i].astype(int), pred_descriptors[:, i].astype(int))
+            class_accuracies.append(acc)
 
-    reg_r2_scores = []
-    for i in reg_indices:
-        r2 = r2_score(true_descriptors[:, i], pred_descriptors[:, i])
-        reg_r2_scores.append(r2)
+        reg_r2_scores = []
+        for i in reg_indices:
+            r2 = r2_score(true_descriptors[:, i], pred_descriptors[:, i])
+            reg_r2_scores.append(r2)
 
-    mean_class_acc = np.mean(class_accuracies) if class_accuracies else 0.0
-    mean_reg_r2 = np.mean(reg_r2_scores) if reg_r2_scores else 0.0
+        mean_class_acc = np.mean(class_accuracies) if class_accuracies else 0.0
+        mean_reg_r2 = np.mean(reg_r2_scores) if reg_r2_scores else 0.0
 
-    print(f"  Classification ({len(class_indices)} desc): Mean Accuracy = {mean_class_acc:.4f}")
-    print(f"  Regression ({len(reg_indices)} desc): Mean R² = {mean_reg_r2:.4f}")
-    print()
+        print(f"  Classification ({len(class_indices)} desc): Mean Accuracy = {mean_class_acc:.4f}")
+        print(f"  Regression ({len(reg_indices)} desc): Mean R² = {mean_reg_r2:.4f}")
+        print()
+
+        descriptors_for_part_b = pred_descriptors
 
     # Scale descriptors for Part B
-    pred_scaled = part_b.scaler.transform(pred_descriptors)
+    pred_scaled = part_b.scaler.transform(descriptors_for_part_b)
 
     # Part B: Generate SMILES candidates
     print(f"Part B: Generating SMILES candidates (batch_size={args.batch_size})...")
@@ -473,10 +489,14 @@ def main():
 
     print()
     print("=" * 60)
-    print("END-TO-END RESULTS")
+    if args.oracle:
+        print("ORACLE RESULTS (Part B Upper Bound)")
+    else:
+        print("END-TO-END RESULTS")
     print("=" * 60)
-    print(f"  Part A Classification Acc: {mean_class_acc:.4f} ({len(class_indices)} desc)")
-    print(f"  Part A Regression R²:      {mean_reg_r2:.4f} ({len(reg_indices)} desc)")
+    if not args.oracle:
+        print(f"  Part A Classification Acc: {mean_class_acc:.4f} ({len(class_indices)} desc)")
+        print(f"  Part A Regression R²:      {mean_reg_r2:.4f} ({len(reg_indices)} desc)")
     print(f"  Hit@1:              {hit_at_k[1]:.4f} ({hit_at_k[1] * 100:.1f}%)")
     print(f"  Hit@5:              {hit_at_k[5]:.4f} ({hit_at_k[5] * 100:.1f}%)")
     print(f"  Hit@10:             {hit_at_k[10]:.4f} ({hit_at_k[10] * 100:.1f}%)")
@@ -515,7 +535,8 @@ def main():
         }
     }
 
-    output_path = settings.metrics_path / "e2e_evaluation.json"
+    output_filename = "oracle_evaluation.json" if args.oracle else "e2e_evaluation.json"
+    output_path = settings.metrics_path / output_filename
     output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path, "w") as f:
         json.dump(results, f, indent=2)
@@ -568,7 +589,8 @@ def main():
         })
 
     # Save as JSONL for easy processing
-    detailed_path = settings.metrics_path / f"e2e_predictions_{args.part_a}.jsonl"
+    prefix = "oracle" if args.oracle else "e2e"
+    detailed_path = settings.metrics_path / f"{prefix}_predictions_{args.part_a}.jsonl"
     with open(detailed_path, "w") as f:
         for item in detailed_results:
             f.write(json.dumps(item) + "\n")
