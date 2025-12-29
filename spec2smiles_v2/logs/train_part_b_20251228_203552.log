@@ -30,3 +30,6 @@ Epoch 31: train_loss=0.8932, val_loss=0.9776
 Epoch 41: train_loss=0.8634, val_loss=0.9674
 Epoch 51: train_loss=0.8449, val_loss=0.9578
 Epoch 61: train_loss=0.8338, val_loss=0.9596
+Epoch 71: train_loss=0.8243, val_loss=0.9527
+Epoch 81: train_loss=0.8166, val_loss=0.9531
+Epoch 91: train_loss=0.8105, val_loss=0.9527

@@ -1,0 +1,50 @@
+{
+  "model_type": "multihead_transformer",
+  "test_loss": 5.221901750564575,
+  "n_params": 7547050,
+  "classification": {
+    "n_descriptors": 3,
+    "mean_accuracy": 0.8188931569213259,
+    "per_descriptor": {
+      "fr_phos_ester": 0.9871959026888605,
+      "NumSaturatedCarbocycles": 0.8267178830559112,
+      "NumAromaticRings": 0.6427656850192062
+    }
+  },
+  "regression": {
+    "n_descriptors": 25,
+    "mean_r2": 0.6166381120681763,
+    "per_descriptor": {
+      "Chi3n": 0.7442371845245361,
+      "Chi2n": 0.7410364151000977,
+      "NumAtomStereoCenters": 0.6977835893630981,
+      "SMR_VSA1": 0.6586417555809021,
+      "SMR_VSA4": 0.6624102592468262,
+      "SMR_VSA5": 0.6975745558738708,
+      "EState_VSA10": 0.6708931922912598,
+      "PEOE_VSA7": 0.6361547708511353,
+      "NumSaturatedRings": 0.642877459526062,
+      "fr_Al_OH": 0.6115576028823853,
+      "VSA_EState3": 0.6227297782897949,
+      "PEOE_VSA10": 0.5743409395217896,
+      "SPS": 0.6327565908432007,
+      "fr_ether": 0.5279050469398499,
+      "SMR_VSA3": 0.5884881615638733,
+      "qed": 0.582004189491272,
+      "SlogP_VSA5": 0.6506789922714233,
+      "AvgIpc": 0.5350324511528015,
+      "FractionCSP3": 0.6093778014183044,
+      "SlogP_VSA3": 0.5396480560302734,
+      "Kappa2": 0.5816981196403503,
+      "RingCount": 0.533038854598999,
+      "SlogP_VSA11": 0.5310732126235962,
+      "VSA_EState2": 0.5662118196487427,
+      "HallKierAlpha": 0.5778020024299622
+    }
+  },
+  "training": {
+    "epochs": 136,
+    "best_val_loss": 5.070809745788575,
+    "final_train_loss": 2.418228384610769
+  }
+}

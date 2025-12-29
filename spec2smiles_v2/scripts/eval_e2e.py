@@ -77,13 +77,24 @@ def load_lgbm_models(model_dir: Path):
 
 
 def predict_descriptors_lgbm(models, spectra, descriptor_names):
-    """Predict descriptors using LightGBM ensemble."""
+    """Predict descriptors using LightGBM ensemble (handles both classification and regression)."""
     n_samples = len(spectra)
     predictions = np.zeros((n_samples, len(descriptor_names)))
 
     for i, name in enumerate(descriptor_names):
         if name in models:
-            predictions[:, i] = models[name].predict(spectra)
+            model = models[name]
+            # Check if classifier or regressor from objective
+            params = model.dump_model()
+            obj = params.get("objective", "regression")
+
+            pred = model.predict(spectra)
+            if "multiclass" in obj:
+                # Classifier: pred is (n_samples, n_classes), take argmax
+                predictions[:, i] = np.argmax(pred, axis=1)
+            else:
+                # Regressor: pred is (n_samples,)
+                predictions[:, i] = pred
 
     return predictions
 
@@ -286,16 +297,23 @@ def main():
     true_desc_list = []
 
     for sample in test_data:
-        # Process spectrum
-        spectrum = process_spectrum(
-            sample["peaks"],
-            n_bins=settings.n_bins,
-            transform=settings.transform,
-            normalize=settings.normalize,
-        )
+        # Use pre-binned spectrum if available, otherwise process peaks
+        if "spectrum" in sample:
+            spectrum = np.array(sample["spectrum"])
+        else:
+            spectrum = process_spectrum(
+                sample["peaks"],
+                n_bins=settings.n_bins,
+                transform=settings.transform,
+                normalize=settings.normalize,
+            )
 
-        # Calculate true descriptors (for comparison)
-        desc = calculate_descriptors(sample["smiles"], settings.descriptor_names)
+        # Use pre-computed descriptors if available, otherwise calculate
+        if "descriptors" in sample:
+            desc = np.array(sample["descriptors"])
+        else:
+            desc = calculate_descriptors(sample["smiles"], settings.descriptor_names)
+
         if desc is not None:
             spectra_list.append(spectrum)
             smiles_list.append(sample["smiles"])
@@ -384,15 +402,37 @@ def main():
         lgbm_models, spectra, settings.descriptor_names
     )
 
-    # Compute Part A metrics
-    from sklearn.metrics import r2_score, mean_absolute_error
-    r2_scores = []
-    for i in range(pred_descriptors.shape[1]):
-        r2 = r2_score(true_descriptors[:, i], pred_descriptors[:, i])
-        r2_scores.append(r2)
+    # Compute Part A metrics - separate classification vs regression
+    from sklearn.metrics import r2_score, accuracy_score
 
-    mean_r2 = np.mean(r2_scores)
-    print(f"  Mean R² (Part A): {mean_r2:.4f}")
+    # Identify classification vs regression descriptors
+    class_indices = []
+    reg_indices = []
+    for i, name in enumerate(settings.descriptor_names):
+        if name in lgbm_models:
+            params = lgbm_models[name].dump_model()
+            obj = params.get("objective", "regression")
+            if "multiclass" in obj:
+                class_indices.append(i)
+            else:
+                reg_indices.append(i)
+
+    # Compute metrics for each type
+    class_accuracies = []
+    for i in class_indices:
+        acc = accuracy_score(true_descriptors[:, i].astype(int), pred_descriptors[:, i].astype(int))
+        class_accuracies.append(acc)
+
+    reg_r2_scores = []
+    for i in reg_indices:
+        r2 = r2_score(true_descriptors[:, i], pred_descriptors[:, i])
+        reg_r2_scores.append(r2)
+
+    mean_class_acc = np.mean(class_accuracies) if class_accuracies else 0.0
+    mean_reg_r2 = np.mean(reg_r2_scores) if reg_r2_scores else 0.0
+
+    print(f"  Classification ({len(class_indices)} desc): Mean Accuracy = {mean_class_acc:.4f}")
+    print(f"  Regression ({len(reg_indices)} desc): Mean R² = {mean_reg_r2:.4f}")
     print()
 
     # Scale descriptors for Part B
@@ -435,7 +475,8 @@ def main():
     print("=" * 60)
     print("END-TO-END RESULTS")
     print("=" * 60)
-    print(f"  Part A Mean R²:     {mean_r2:.4f}")
+    print(f"  Part A Classification Acc: {mean_class_acc:.4f} ({len(class_indices)} desc)")
+    print(f"  Part A Regression R²:      {mean_reg_r2:.4f} ({len(reg_indices)} desc)")
     print(f"  Hit@1:              {hit_at_k[1]:.4f} ({hit_at_k[1] * 100:.1f}%)")
     print(f"  Hit@5:              {hit_at_k[5]:.4f} ({hit_at_k[5] * 100:.1f}%)")
     print(f"  Hit@10:             {hit_at_k[10]:.4f} ({hit_at_k[10] * 100:.1f}%)")
@@ -452,7 +493,10 @@ def main():
     results = {
         "part_a": {
             "model": args.part_a,
-            "mean_r2": float(mean_r2),
+            "classification_accuracy": float(mean_class_acc),
+            "classification_n_descriptors": len(class_indices),
+            "regression_r2": float(mean_reg_r2),
+            "regression_n_descriptors": len(reg_indices),
         },
         "end_to_end": {
             "exact_match": float(exact_match),

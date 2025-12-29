@@ -1,0 +1,13 @@
+{
+  "model_type": "direct",
+  "smiles_augmented": false,
+  "n_smiles_augment": 0,
+  "use_predicted_descriptors": false,
+  "desc_augmented": false,
+  "noise_prob": null,
+  "noise_scale": null,
+  "final_train_loss": 0.8026420594075434,
+  "final_val_loss": 0.952806293964386,
+  "n_epochs": 106,
+  "vocab_size": 105
+}

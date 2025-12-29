@@ -1,0 +1,9 @@
+{
+  "exact_match": 0.6598378147673922,
+  "mean_best_tanimoto": 0.8633557265930554,
+  "validity": 1.0,
+  "uniqueness": 0.8648842450317558,
+  "n_candidates": 50,
+  "n_samples": 2343,
+  "model": "direct"
+}

@@ -336,12 +336,8 @@ def main():
 
     print(f"Metrics saved to {metrics_path}")
 
-    # Auto-generate visualizations
-    print("\nGenerating visualizations...")
-    from scripts.visualize import generate_part_b_plots
-    generate_part_b_plots(settings.figures_path, skip_missing=True)
-
-    print("\nDone!")
+    # Note: Run `make visualize` separately to generate plots
+    print("\nDone! Run 'make visualize' to generate plots.")
 
 
 if __name__ == "__main__":

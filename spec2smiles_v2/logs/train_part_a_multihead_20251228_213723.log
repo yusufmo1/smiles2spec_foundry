@@ -1,0 +1,60 @@
+Logging to: /Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/logs/train_part_a_multihead_20251228_213723.log
+Using Apple MPS
+======================================================================
+Training Part A (Spectrum -> Descriptors) with Multi-Head Transformer
+======================================================================
+Dataset:     gnps
+Descriptors: 28
+Device:      mps
+Epochs:      200
+Batch size:  32
+LR:          0.0003
+
+Loading preprocessed data splits...
+
+Data split:
+  Train: 18739 samples
+  Val:   2342 samples
+  Test:  2343 samples
+
+Descriptor split (threshold: 10 classes):
+  Classification: 3 descriptors
+    - fr_phos_ester: 4 classes
+    - NumSaturatedCarbocycles: 7 classes
+    - NumAromaticRings: 9 classes
+  Regression: 25 descriptors
+
+/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/.venv/lib/python3.11/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+Model parameters: 7,547,050
+
+Starting training...
+----------------------------------------------------------------------
+Epoch 1/200:   0%|          | 0/586 [00:00<?, ?it/s]                                                    Traceback (most recent call last):
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/scripts/train_part_a_multihead.py", line 567, in <module>
+    main()
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/scripts/train_part_a_multihead.py", line 378, in main
+    loss, class_loss, reg_loss = criterion(class_logits, reg_preds, class_targets, reg_targets)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/src/models/multihead_transformer.py", line 247, in forward
+    reg_loss = self.reg_criterion(reg_preds, reg_targets)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1775, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/.venv/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1786, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/.venv/lib/python3.11/site-packages/torch/nn/modules/loss.py", line 1077, in forward
+    return F.smooth_l1_loss(input, target, reduction=self.reduction, beta=self.beta)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yusuf/Library/CloudStorage/OneDrive-QueenMary,UniversityofLondon/MSc/SEM-C/project/msc_project/data_science_ml/smiles2spec_foundry/spec2smiles_v2/.venv/lib/python3.11/site-packages/torch/nn/functional.py", line 3657, in smooth_l1_loss
+    return torch._C._nn.smooth_l1_loss(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: view size is not compatible with input tensor's size and stride (at least one dimension spans across two contiguous subspaces). Use .reshape(...) instead.

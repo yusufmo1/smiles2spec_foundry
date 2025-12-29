@@ -7,13 +7,13 @@
 | Random | 0.00 | 0.10 | - |
 | SMILES Transformer | 0.00 | 0.17 | - |
 | SELFIES Transformer | 0.00 | 0.15 | - |
-| **Ours (E2E)** | **34.5** | **0.555** | 100.0 |
-| Ours (Oracle) | 82.2 | 0.943 | 100.0 |
+| **Ours (E2E)** | **2.0** | **0.250** | 100.0 |
+| Ours (Oracle) | 66.0 | 0.863 | 100.0 |
 
 ## Key Findings
 
-- **Exact Match**: 34.5% vs 0% baseline (∞× improvement)
-- **Tanimoto**: 0.555 vs 0.17 (3.3× improvement)
+- **Exact Match**: 2.0% vs 0% baseline (∞× improvement)
+- **Tanimoto**: 0.250 vs 0.17 (1.5× improvement)
 - **Validity**: 100% (SELFIES encoding)
 
 ## Caveats
