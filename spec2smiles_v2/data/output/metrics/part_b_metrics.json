@@ -2,12 +2,12 @@
   "model_type": "direct",
   "smiles_augmented": false,
   "n_smiles_augment": 0,
-  "use_predicted_descriptors": false,
+  "use_predicted_descriptors": true,
   "desc_augmented": false,
   "noise_prob": null,
   "noise_scale": null,
-  "final_train_loss": 0.8026420594075434,
-  "final_val_loss": 0.952806293964386,
-  "n_epochs": 106,
+  "final_train_loss": 0.855711000567817,
+  "final_val_loss": 1.4433313608169556,
+  "n_epochs": 52,
   "vocab_size": 105
 }
