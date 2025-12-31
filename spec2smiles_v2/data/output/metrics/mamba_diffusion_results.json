@@ -5,13 +5,13 @@
     "hit_at_5": 0.0,
     "hit_at_10": 0.0,
     "hit_at_50": 0.0,
-    "mean_best_tanimoto": 0.1670475604544878,
+    "mean_best_tanimoto": 0.1527679408311506,
     "mean_validity": 1.0,
-    "mean_diversity": 0.9567477592829705
+    "mean_diversity": 0.9660435339308581
   },
   "config": {
     "n_candidates": 50,
-    "n_steps": 10,
+    "n_steps": 20,
     "temperature": 0.8,
     "n_samples": 2343
   },

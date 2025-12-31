@@ -1,0 +1,78 @@
+# Experiment: Lower Learning Rate (1e-5)
+# Hypothesis: High LR may be causing unstable training
+
+dataset: gnps
+data_input_dir: data/input
+data_output_dir: data/output
+
+spectrum:
+  n_bins: 500
+  transform: sqrt
+  normalize: true
+
+tokenizer:
+  max_length: 100
+  pad_token: "[nop]"
+  mask_token: "[MASK]"
+  start_token: "[START]"
+  end_token: "[END]"
+
+encoder:
+  type: mamba2
+  d_model: 512
+  d_state: 128
+  d_conv: 4
+  expand: 2
+  n_layers: 8
+  dropout: 0.1
+
+decoder:
+  type: masked_diffusion
+  d_model: 512
+  n_heads: 8
+  n_layers: 6
+  d_ff: 2048
+  dropout: 0.1
+  diffusion:
+    num_timesteps: 100
+    inference_steps: 10
+    noise_schedule: cosine
+    mask_schedule: progressive
+
+cross_attention:
+  n_heads: 8
+  dropout: 0.1
+
+training:
+  batch_size: 32
+  epochs: 150  # More epochs for lower LR
+  learning_rate: 1.0e-5  # KEY CHANGE: 10x lower
+  weight_decay: 0.01
+  warmup_steps: 2000  # More warmup
+  gradient_clip: 1.0
+  mask_schedule:
+    start_ratio: 0.15
+    end_ratio: 0.85
+    warmup_epochs: 30
+  early_stopping:
+    patience: 25  # More patience
+    min_delta: 0.001
+    monitor: val_loss
+
+inference:
+  n_candidates: 50
+  temperature: 0.8
+  top_p: 0.9
+  batch_size: 32
+  sampling:
+    method: ddim
+    steps: 20
+    guidance_scale: 1.0
+
+models_path: data/output/models/mamba_diffusion_lr_low
+metrics_path: data/output/metrics
+device: auto
+logging:
+  level: INFO
+  tensorboard: true
+  wandb: false

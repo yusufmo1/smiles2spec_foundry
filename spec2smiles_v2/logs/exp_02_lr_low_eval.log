@@ -1,0 +1,55 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+Using device: cuda
+
+Loading model from data/output/models/mamba_diffusion_lr_low
+
+Model architecture:
+  Encoder: Mamba-2
+  Total params: 43,360,746
+  Vocab size: 106
+
+Test samples: 2343
+
+Generating 50 candidates per sample...
+  Steps: 20
+  Temperature: 0.8
+  Batch size: 16
+Generating:   0%|          | 0/147 [00:00<?, ?it/s]Generating:   1%|          | 1/147 [00:16<39:43, 16.33s/it]Generating:   1%|▏         | 2/147 [00:28<34:01, 14.08s/it]Generating:   2%|▏         | 3/147 [00:41<32:20, 13.47s/it]Generating:   3%|▎         | 4/147 [00:54<31:25, 13.18s/it]Generating:   3%|▎         | 5/147 [01:07<30:48, 13.02s/it]Generating:   4%|▍         | 6/147 [01:19<30:17, 12.89s/it]Generating:   5%|▍         | 7/147 [01:32<29:53, 12.81s/it]Generating:   5%|▌         | 8/147 [01:45<29:34, 12.76s/it]Generating:   6%|▌         | 9/147 [01:57<29:16, 12.73s/it]Generating:   7%|▋         | 10/147 [02:10<29:03, 12.72s/it]Generating:   7%|▋         | 11/147 [02:23<28:47, 12.70s/it]Generating:   8%|▊         | 12/147 [02:35<28:33, 12.69s/it]Generating:   9%|▉         | 13/147 [02:48<28:19, 12.68s/it]Generating:  10%|▉         | 14/147 [03:01<28:06, 12.68s/it]Generating:  10%|█         | 15/147 [03:13<27:57, 12.71s/it]Generating:  11%|█         | 16/147 [03:26<27:44, 12.70s/it]Generating:  12%|█▏        | 17/147 [03:39<27:32, 12.71s/it]Generating:  12%|█▏        | 18/147 [03:51<27:17, 12.70s/it]Generating:  13%|█▎        | 19/147 [04:04<27:04, 12.69s/it]Generating:  14%|█▎        | 20/147 [04:17<26:51, 12.69s/it]Generating:  14%|█▍        | 21/147 [04:29<26:39, 12.69s/it]Generating:  15%|█▍        | 22/147 [04:42<26:27, 12.70s/it]Generating:  16%|█▌        | 23/147 [04:55<26:13, 12.69s/it]Generating:  16%|█▋        | 24/147 [05:08<26:01, 12.69s/it]Generating:  17%|█▋        | 25/147 [05:20<25:47, 12.69s/it]Generating:  18%|█▊        | 26/147 [05:33<25:34, 12.68s/it]Generating:  18%|█▊        | 27/147 [05:46<25:22, 12.69s/it]Generating:  19%|█▉        | 28/147 [05:58<25:08, 12.68s/it]Generating:  20%|█▉        | 29/147 [06:11<24:57, 12.69s/it]Generating:  20%|██        | 30/147 [06:24<24:45, 12.69s/it]Generating:  21%|██        | 31/147 [06:36<24:33, 12.70s/it]Generating:  22%|██▏       | 32/147 [06:49<24:20, 12.70s/it]Generating:  22%|██▏       | 33/147 [07:02<24:09, 12.71s/it]Generating:  23%|██▎       | 34/147 [07:15<23:55, 12.71s/it]Generating:  24%|██▍       | 35/147 [07:27<23:42, 12.70s/it]Generating:  24%|██▍       | 36/147 [07:40<23:29, 12.70s/it]Generating:  25%|██▌       | 37/147 [07:53<23:17, 12.70s/it]Generating:  26%|██▌       | 38/147 [08:05<23:04, 12.70s/it]Generating:  27%|██▋       | 39/147 [08:18<22:51, 12.70s/it]Generating:  27%|██▋       | 40/147 [08:31<22:40, 12.71s/it]Generating:  28%|██▊       | 41/147 [08:43<22:26, 12.70s/it]Generating:  29%|██▊       | 42/147 [08:56<22:13, 12.70s/it]Generating:  29%|██▉       | 43/147 [09:09<22:01, 12.71s/it]Generating:  30%|██▉       | 44/147 [09:22<21:48, 12.70s/it]Generating:  31%|███       | 45/147 [09:34<21:35, 12.70s/it]Generating:  31%|███▏      | 46/147 [09:47<21:23, 12.70s/it]Generating:  32%|███▏      | 47/147 [10:00<21:10, 12.70s/it]Generating:  33%|███▎      | 48/147 [10:12<20:58, 12.71s/it]Generating:  33%|███▎      | 49/147 [10:25<20:44, 12.70s/it]Generating:  34%|███▍      | 50/147 [10:38<20:32, 12.70s/it]Generating:  35%|███▍      | 51/147 [10:50<20:19, 12.70s/it]Generating:  35%|███▌      | 52/147 [11:03<20:07, 12.71s/it]Generating:  36%|███▌      | 53/147 [11:16<19:54, 12.71s/it]Generating:  37%|███▋      | 54/147 [11:29<19:41, 12.70s/it]Generating:  37%|███▋      | 55/147 [11:41<19:29, 12.71s/it]Generating:  38%|███▊      | 56/147 [11:54<19:16, 12.71s/it]Generating:  39%|███▉      | 57/147 [12:07<19:03, 12.71s/it]Generating:  39%|███▉      | 58/147 [12:19<18:50, 12.71s/it]Generating:  40%|████      | 59/147 [12:32<18:39, 12.72s/it]Generating:  41%|████      | 60/147 [12:45<18:26, 12.72s/it]Generating:  41%|████▏     | 61/147 [12:58<18:13, 12.71s/it]Generating:  42%|████▏     | 62/147 [13:10<18:00, 12.71s/it]Generating:  43%|████▎     | 63/147 [13:23<17:47, 12.71s/it]Generating:  44%|████▎     | 64/147 [13:36<17:34, 12.70s/it]Generating:  44%|████▍     | 65/147 [13:48<17:21, 12.70s/it]Generating:  45%|████▍     | 66/147 [14:01<17:08, 12.69s/it]Generating:  46%|████▌     | 67/147 [14:14<16:55, 12.70s/it]Generating:  46%|████▋     | 68/147 [14:26<16:43, 12.70s/it]Generating:  47%|████▋     | 69/147 [14:39<16:31, 12.71s/it]Generating:  48%|████▊     | 70/147 [14:52<16:18, 12.71s/it]Generating:  48%|████▊     | 71/147 [15:05<16:05, 12.71s/it]Generating:  49%|████▉     | 72/147 [15:17<15:53, 12.71s/it]Generating:  50%|████▉     | 73/147 [15:30<15:40, 12.71s/it]Generating:  50%|█████     | 74/147 [15:43<15:27, 12.71s/it]Generating:  51%|█████     | 75/147 [15:55<15:15, 12.71s/it]Generating:  52%|█████▏    | 76/147 [16:08<15:01, 12.70s/it]Generating:  52%|█████▏    | 77/147 [16:21<14:49, 12.71s/it]Generating:  53%|█████▎    | 78/147 [16:34<14:36, 12.70s/it]Generating:  54%|█████▎    | 79/147 [16:46<14:24, 12.71s/it]Generating:  54%|█████▍    | 80/147 [16:59<14:11, 12.72s/it]Generating:  55%|█████▌    | 81/147 [17:12<13:58, 12.71s/it]Generating:  56%|█████▌    | 82/147 [17:24<13:45, 12.70s/it]Generating:  56%|█████▋    | 83/147 [17:37<13:32, 12.70s/it]Generating:  57%|█████▋    | 84/147 [17:50<13:19, 12.70s/it]Generating:  58%|█████▊    | 85/147 [18:02<13:07, 12.70s/it]Generating:  59%|█████▊    | 86/147 [18:15<12:54, 12.70s/it]Generating:  59%|█████▉    | 87/147 [18:28<12:42, 12.71s/it]Generating:  60%|█████▉    | 88/147 [18:41<12:29, 12.71s/it]Generating:  61%|██████    | 89/147 [18:53<12:16, 12.71s/it]Generating:  61%|██████    | 90/147 [19:06<12:03, 12.70s/it]Generating:  62%|██████▏   | 91/147 [19:19<11:51, 12.70s/it]Generating:  63%|██████▎   | 92/147 [19:31<11:38, 12.70s/it]Generating:  63%|██████▎   | 93/147 [19:44<11:25, 12.70s/it]Generating:  64%|██████▍   | 94/147 [19:57<11:13, 12.70s/it]Generating:  65%|██████▍   | 95/147 [20:10<11:00, 12.70s/it]Generating:  65%|██████▌   | 96/147 [20:22<10:47, 12.70s/it]Generating:  66%|██████▌   | 97/147 [20:35<10:35, 12.71s/it]Generating:  67%|██████▋   | 98/147 [20:48<10:22, 12.70s/it]Generating:  67%|██████▋   | 99/147 [21:00<10:09, 12.71s/it]Generating:  68%|██████▊   | 100/147 [21:13<09:57, 12.71s/it]Generating:  69%|██████▊   | 101/147 [21:26<09:44, 12.71s/it]Generating:  69%|██████▉   | 102/147 [21:39<09:32, 12.72s/it]Generating:  70%|███████   | 103/147 [21:51<09:19, 12.71s/it]Generating:  71%|███████   | 104/147 [22:04<09:06, 12.71s/it]Generating:  71%|███████▏  | 105/147 [22:17<08:54, 12.73s/it]Generating:  72%|███████▏  | 106/147 [22:29<08:41, 12.72s/it]Generating:  73%|███████▎  | 107/147 [22:42<08:28, 12.72s/it]Generating:  73%|███████▎  | 108/147 [22:55<08:15, 12.71s/it]Generating:  74%|███████▍  | 109/147 [23:07<08:02, 12.71s/it]Generating:  75%|███████▍  | 110/147 [23:20<07:50, 12.71s/it]Generating:  76%|███████▌  | 111/147 [23:33<07:37, 12.70s/it]Generating:  76%|███████▌  | 112/147 [23:46<07:24, 12.71s/it]Generating:  77%|███████▋  | 113/147 [23:58<07:11, 12.70s/it]Generating:  78%|███████▊  | 114/147 [24:11<06:59, 12.71s/it]Generating:  78%|███████▊  | 115/147 [24:24<06:46, 12.70s/it]Generating:  79%|███████▉  | 116/147 [24:36<06:33, 12.70s/it]Generating:  80%|███████▉  | 117/147 [24:49<06:20, 12.69s/it]Generating:  80%|████████  | 118/147 [25:02<06:08, 12.70s/it]Generating:  81%|████████  | 119/147 [25:14<05:55, 12.69s/it]Generating:  82%|████████▏ | 120/147 [25:27<05:42, 12.69s/it]Generating:  82%|████████▏ | 121/147 [25:40<05:30, 12.69s/it]Generating:  83%|████████▎ | 122/147 [25:53<05:17, 12.70s/it]Generating:  84%|████████▎ | 123/147 [26:05<05:04, 12.69s/it]Generating:  84%|████████▍ | 124/147 [26:18<04:51, 12.69s/it]Generating:  85%|████████▌ | 125/147 [26:31<04:39, 12.69s/it]Generating:  86%|████████▌ | 126/147 [26:43<04:26, 12.70s/it]Generating:  86%|████████▋ | 127/147 [26:56<04:13, 12.69s/it]Generating:  87%|████████▋ | 128/147 [27:09<04:01, 12.70s/it]Generating:  88%|████████▊ | 129/147 [27:21<03:48, 12.71s/it]Generating:  88%|████████▊ | 130/147 [27:34<03:36, 12.72s/it]Generating:  89%|████████▉ | 131/147 [27:47<03:23, 12.72s/it]Generating:  90%|████████▉ | 132/147 [28:00<03:10, 12.71s/it]Generating:  90%|█████████ | 133/147 [28:12<02:57, 12.71s/it]Generating:  91%|█████████ | 134/147 [28:25<02:45, 12.71s/it]Generating:  92%|█████████▏| 135/147 [28:38<02:32, 12.70s/it]Generating:  93%|█████████▎| 136/147 [28:50<02:19, 12.69s/it]Generating:  93%|█████████▎| 137/147 [29:03<02:07, 12.73s/it]Generating:  94%|█████████▍| 138/147 [29:16<01:54, 12.72s/it]Generating:  95%|█████████▍| 139/147 [29:29<01:41, 12.72s/it]Generating:  95%|█████████▌| 140/147 [29:41<01:28, 12.71s/it]Generating:  96%|█████████▌| 141/147 [29:54<01:16, 12.70s/it]Generating:  97%|█████████▋| 142/147 [30:07<01:03, 12.70s/it]Generating:  97%|█████████▋| 143/147 [30:19<00:50, 12.70s/it]Generating:  98%|█████████▊| 144/147 [30:32<00:38, 12.69s/it]Generating:  99%|█████████▊| 145/147 [30:45<00:25, 12.70s/it]Generating:  99%|█████████▉| 146/147 [30:57<00:12, 12.70s/it]Generating: 100%|██████████| 147/147 [31:03<00:00, 10.57s/it]Generating: 100%|██████████| 147/147 [31:03<00:00, 12.68s/it]
+
+Computing metrics...
+
+============================================================
+MAMBA-DIFFUSION RESULTS
+============================================================
+  Hit@1:              0.0000 (0.0%)
+  Hit@5:              0.0000 (0.0%)
+  Hit@10:             0.0000 (0.0%)
+  Hit@50:             0.0000 (0.0%)
+  Exact Match:        0.0000 (0.0%)
+  Mean Best Tanimoto: 0.1528
+  Mean Validity:      1.0000 (100.0%)
+  Mean Diversity:     0.9660 (96.6%)
+
+  Candidates per sample: 50
+  Denoising steps: 20
+  Temperature: 0.8
+  Test samples: 2343
+
+Results saved to data/output/metrics/mamba_diffusion_results.json
+Predictions saved to data/output/metrics/mamba_diffusion_predictions.jsonl
+
+============================================================
+EXAMPLE PREDICTIONS
+============================================================
+
+Exact Matches (0 total):
+
+Best Non-Exact Matches:
+  [13] True: CCC(C)C(OC(C)=O)C(=O)OC(C(C)CC)C(=O)OC(C...
+       Pred: CCC(C)C(OC(C)=O)C(=O)OC(C(=O)OC(C(=O)OC(... (Tanimoto: 0.946)
+  [1047] True: CCC(C)C(OC(C)=O)C(=O)OC(C(C)CC)C(=O)OC(C...
+       Pred: CCC(C)C(OC(C)=O)C(=O)OC(C(=O)OC(C(=O)OC(... (Tanimoto: 0.946)
+  [326] True: CCC(C)C(OC(=O)C(OC(=O)C(OC(=O)C(OC(=O)C(...
+       Pred: CCC(C)C(OC(C)=O)C(=O)OC(C(=O)OC(C(=O)OC(... (Tanimoto: 0.923)

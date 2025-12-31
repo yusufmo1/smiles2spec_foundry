@@ -1,0 +1,19 @@
+The currently activated Python version 3.12.3 is not supported by the project (>=3.10,<3.12).
+Trying to find and use a compatible version. 
+Using python3.11 (3.11.14)
+Using device: cuda
+
+Loading model from data/output/models/mamba_diffusion_hybrid
+
+Model architecture:
+  Encoder: Mamba-2 Hybrid (Samba-style)
+  Total params: 44,792,506
+  Vocab size: 106
+
+Test samples: 2343
+
+Generating 50 candidates per sample...
+  Steps: 50
+  Temperature: 0.8
+  Batch size: 16
+Generating:   0%|          | 0/147 [00:00<?, ?it/s]Generating:   1%|          | 1/147 [01:00<2:26:34, 60.23s/it]Generating:   1%|▏         | 2/147 [02:04<2:31:11, 62.56s/it]Generating:   2%|▏         | 3/147 [03:08<2:31:59, 63.33s/it]Generating:   3%|▎         | 4/147 [04:13<2:31:57, 63.76s/it]Generating:   3%|▎         | 5/147 [05:16<2:30:24, 63.55s/it]Generating:   4%|▍         | 6/147 [06:20<2:30:05, 63.87s/it]Generating:   5%|▍         | 7/147 [07:25<2:29:32, 64.09s/it]Generating:   5%|▌         | 8/147 [08:29<2:28:42, 64.19s/it]Generating:   6%|▌         | 9/147 [09:33<2:27:37, 64.18s/it]Generating:   7%|▋         | 10/147 [10:37<2:26:17, 64.07s/it]Generating:   7%|▋         | 11/147 [11:42<2:25:33, 64.22s/it]Generating:   8%|▊         | 12/147 [12:46<2:24:41, 64.30s/it]Generating:   9%|▉         | 13/147 [13:51<2:23:43, 64.36s/it]Generating:  10%|▉         | 14/147 [14:54<2:21:53, 64.01s/it]Generating:  10%|█         | 15/147 [15:58<2:21:09, 64.17s/it]Generating:  11%|█         | 16/147 [17:03<2:20:19, 64.27s/it]Generating:  12%|█▏        | 17/147 [18:08<2:19:27, 64.37s/it]Generating:  12%|█▏        | 18/147 [19:11<2:17:44, 64.07s/it]Generating:  13%|█▎        | 19/147 [20:15<2:16:59, 64.21s/it]Generating:  14%|█▎        | 20/147 [21:20<2:16:08, 64.32s/it]Generating:  14%|█▍        | 21/147 [22:24<2:15:08, 64.35s/it]Generating:  15%|█▍        | 22/147 [23:29<2:13:57, 64.30s/it]Generating:  16%|█▌        | 23/147 [24:32<2:12:34, 64.15s/it]Generating:  16%|█▋        | 24/147 [25:37<2:11:45, 64.27s/it]Generating:  17%|█▋        | 25/147 [26:42<2:10:52, 64.36s/it]Generating:  18%|█▊        | 26/147 [27:46<2:09:53, 64.41s/it]Generating:  18%|█▊        | 27/147 [28:49<2:08:07, 64.06s/it]Generating:  19%|█▉        | 28/147 [29:54<2:07:19, 64.20s/it]Generating:  20%|█▉        | 29/147 [30:58<2:06:27, 64.30s/it]Generating:  20%|██        | 30/147 [32:03<2:05:35, 64.41s/it]Generating:  21%|██        | 31/147 [33:07<2:03:58, 64.12s/it]Generating:  22%|██▏       | 32/147 [34:11<2:03:08, 64.25s/it]Generating:  22%|██▏       | 33/147 [35:16<2:02:12, 64.32s/it]Generating:  23%|██▎       | 34/147 [36:20<2:01:14, 64.38s/it]Generating:  24%|██▍       | 35/147 [37:24<2:00:01, 64.30s/it]Generating:  24%|██▍       | 36/147 [38:28<1:58:46, 64.21s/it]Generating:  25%|██▌       | 37/147 [39:33<1:57:57, 64.34s/it]Generating:  26%|██▌       | 38/147 [40:37<1:57:00, 64.40s/it]Generating:  27%|██▋       | 39/147 [41:42<1:55:57, 64.42s/it]Generating:  27%|██▋       | 40/147 [42:45<1:54:21, 64.13s/it]Generating:  28%|██▊       | 41/147 [43:50<1:53:27, 64.23s/it]Generating:  29%|██▊       | 42/147 [44:54<1:52:32, 64.31s/it]Generating:  29%|██▉       | 43/147 [45:59<1:51:34, 64.37s/it]Generating:  30%|██▉       | 44/147 [47:02<1:50:02, 64.10s/it]Generating:  31%|███       | 45/147 [48:07<1:49:16, 64.28s/it]Generating:  31%|███▏      | 46/147 [49:11<1:48:20, 64.36s/it]Generating:  32%|███▏      | 47/147 [50:16<1:47:22, 64.42s/it]Generating:  33%|███▎      | 48/147 [51:20<1:46:03, 64.28s/it]Generating:  33%|███▎      | 49/147 [52:24<1:45:02, 64.31s/it]Generating:  34%|███▍      | 50/147 [53:29<1:44:09, 64.42s/it]Generating:  35%|███▍      | 51/147 [54:34<1:43:10, 64.48s/it]Generating:  35%|███▌      | 52/147 [55:38<1:42:05, 64.48s/it]Generating:  36%|███▌      | 53/147 [56:42<1:40:33, 64.19s/it]Generating:  37%|███▋      | 54/147 [57:46<1:39:38, 64.28s/it]
